@@ -6,7 +6,7 @@ const CourseCard = ({ course, onNavigate }) => {
   const isLocked = !hasAccess(course.requiredRoles);
 
   return (
-    <div className="relative bg-white rounded-xl overflow-hidden group cursor-pointer transform transition-transform hover:scale-105 shadow-md hover:shadow-xl border border-beige-200">
+    <div className="relative bg-white rounded-xl overflow-hidden group cursor-pointer transform transition-transform hover:scale-105 shadow-md hover:shadow-xl border border-beige-200 dark:border-gray-700">
       <div className="relative aspect-video">
         <img 
           src={course.image} 
@@ -29,14 +29,14 @@ const CourseCard = ({ course, onNavigate }) => {
         )}
       </div>
 
-      <div className="p-5 bg-beige-50">
-        <div className="text-primary-700 text-xs font-bold mb-2 uppercase tracking-wider">
+      <div className="p-5 bg-beige-50 dark:bg-gray-900">
+        <div className="text-primary-700 dark:text-primary-500 text-xs font-bold mb-2 uppercase tracking-wider">
           {course.category}
         </div>
-        <h3 className="text-secondary-700 font-bold text-lg mb-2 line-clamp-2 leading-tight">
+        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 leading-tight">
           {course.title}
         </h3>
-        <p className="text-secondary-500 text-sm mb-4 line-clamp-2 leading-relaxed">
+        <p className="text-secondary-500 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
           {course.description}
         </p>
 
@@ -50,8 +50,8 @@ const CourseCard = ({ course, onNavigate }) => {
                   </svg>
                 ))}
               </div>
-              <span className="text-secondary-700 text-sm font-bold ml-1">{course.rating}</span>
-              <span className="text-secondary-500 text-xs ml-1">({course.reviews})</span>
+              <span className="text-secondary-700 dark:text-gray-200 text-sm font-bold ml-1">{course.rating}</span>
+              <span className="text-secondary-500 dark:text-gray-400 text-xs ml-1">({course.reviews})</span>
             </div>
           </div>
         )}

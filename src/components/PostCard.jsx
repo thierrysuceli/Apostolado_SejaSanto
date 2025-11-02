@@ -6,7 +6,7 @@ const PostCard = ({ post, onNavigate }) => {
   const isLocked = !hasAccess(post.requiredRoles);
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden group cursor-pointer hover:shadow-xl transition-all shadow-md border border-beige-200">
+    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:shadow-xl transition-all shadow-md border border-beige-200 dark:border-gray-700">
       <div className="relative aspect-video">
         <img 
           src={post.image} 
@@ -23,28 +23,28 @@ const PostCard = ({ post, onNavigate }) => {
         )}
       </div>
 
-      <div className="p-5 bg-beige-50">
+      <div className="p-5 bg-beige-50 dark:bg-gray-900">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-primary-700 text-xs font-bold uppercase tracking-wider">
+          <span className="text-primary-700 dark:text-primary-500 text-xs font-bold uppercase tracking-wider">
             {post.category}
           </span>
-          <span className="text-secondary-500 text-xs font-medium">
+          <span className="text-secondary-500 dark:text-gray-400 text-xs font-medium">
             {post.date}
           </span>
         </div>
         
-        <h3 className="text-secondary-700 font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors leading-tight">
+        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors leading-tight">
           {post.title}
         </h3>
         
         {!isLocked && (
-          <p className="text-secondary-600 text-sm line-clamp-3 leading-relaxed">
+          <p className="text-secondary-600 dark:text-gray-300 text-sm line-clamp-3 leading-relaxed">
             {post.excerpt}
           </p>
         )}
 
         {isLocked && (
-          <p className="text-secondary-500 text-sm italic">
+          <p className="text-secondary-500 dark:text-gray-400 text-sm italic">
             Conteúdo disponível apenas para membros com acesso.
           </p>
         )}

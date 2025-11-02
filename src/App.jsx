@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -48,15 +49,17 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-black">
-        <Header onNavigate={handleNavigate} currentPage={currentPage} />
-        <main>
-          {renderPage()}
-        </main>
-        <Footer />
-      </div>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+          <Header onNavigate={handleNavigate} currentPage={currentPage} />
+          <main>
+            {renderPage()}
+          </main>
+          <Footer />
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
