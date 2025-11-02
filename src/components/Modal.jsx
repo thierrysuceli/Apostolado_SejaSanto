@@ -15,18 +15,18 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
 
         {/* Modal Content */}
-        <div className={`relative bg-gray-900 rounded-xl shadow-2xl w-full ${sizeClasses[size]} border border-gray-800`}>
+        <div className={`relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full ${sizeClasses[size]} border border-beige-200 dark:border-gray-800 transition-colors`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-800">
-            <h2 className="text-2xl font-bold text-white">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-beige-200 dark:border-gray-800">
+            <h2 className="text-2xl font-bold text-secondary-800 dark:text-white">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-secondary-500 dark:text-gray-400 hover:text-secondary-800 dark:hover:text-white transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
