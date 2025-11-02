@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle - Golden/Yellow -->
+  <circle cx="100" cy="100" r="95" fill="#FDB913" stroke="#1E3A8A" stroke-width="3"/>
+  
+  <!-- Inner circle - Blue -->
+  <circle cx="100" cy="100" r="75" fill="#1E3A8A"/>
+  
+  <!-- Cross/Wheel Design - Golden/Yellow -->
+  <g transform="translate(100, 100)">
+    <!-- Top spoke -->
+    <rect x="-8" y="-75" width="16" height="25" rx="4" fill="#FDB913"/>
+    <!-- Right spoke -->
+    <rect x="50" y="-8" width="25" height="16" rx="4" fill="#FDB913"/>
+    <!-- Bottom spoke -->
+    <rect x="-8" y="50" width="16" height="25" rx="4" fill="#FDB913"/>
+    <!-- Left spoke -->
+    <rect x="-75" y="-8" width="25" height="16" rx="4" fill="#FDB913"/>
+    
+    <!-- Diagonal spokes (lighter) -->
+    <g opacity="0.7">
+      <rect x="-8" y="-8" width="16" height="55" rx="4" fill="#FDB913" transform="rotate(45)"/>
+      <rect x="-8" y="-8" width="16" height="55" rx="4" fill="#FDB913" transform="rotate(-45)"/>
+      <rect x="-8" y="-8" width="16" height="55" rx="4" fill="#FDB913" transform="rotate(135)"/>
+      <rect x="-8" y="-8" width="16" height="55" rx="4" fill="#FDB913" transform="rotate(-135)"/>
+    </g>
+    
+    <!-- Center circle -->
+    <circle r="30" fill="#FFF5E6"/>
+    
+    <!-- Text in center -->
+    <text text-anchor="middle" y="-5" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1E3A8A">
+      SEJA
+    </text>
+    <text text-anchor="middle" y="10" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1E3A8A">
+      SANTO
+    </text>
+  </g>
+</svg>
