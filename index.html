@@ -15,17 +15,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <title>Apostolado Seja Santo</title>
-    
-    <script>
-      // Register Service Worker (only in production)
-      if ('serviceWorker' in navigator && import.meta.env.PROD) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registrado'))
-            .catch(err => console.log('Erro ao registrar Service Worker:', err));
-        });
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>

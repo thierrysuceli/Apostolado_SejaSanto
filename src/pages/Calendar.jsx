@@ -39,23 +39,23 @@ const Calendar = () => {
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-500 mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-500 dark:text-gray-400 mb-4">
             Calendário de Eventos
           </h1>
-          <p className="text-secondary-600 max-w-2xl mx-auto">
+          <p className="text-secondary-600 dark:text-gray-300 max-w-2xl mx-auto">
             Confira nossos eventos e participe conosco!
           </p>
         </div>
 
         {/* Calendar */}
-        <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 md:p-8 shadow-lg">
+        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 md:p-8 shadow-lg">
           {/* Month Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-secondary-500 capitalize">{monthName}</h2>
+            <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 capitalize">{monthName}</h2>
             <div className="text-primary-700 font-semibold">Agenda de novembro</div>
           </div>
 
@@ -84,7 +84,7 @@ const Calendar = () => {
                 <div
                   key={day}
                   className={`aspect-square border rounded-lg p-2 ${
-                    isToday ? 'bg-primary-100 border-primary-500 shadow-md' : 'bg-white border-beige-200'
+                    isToday ? 'bg-primary-100 border-primary-500 shadow-md' : 'bg-white dark:bg-gray-800 border-beige-200'
                   } ${hasEvents ? 'cursor-pointer hover:bg-beige-50' : ''}`}
                 >
                   <div className="h-full flex flex-col">
@@ -121,7 +121,7 @@ const Calendar = () => {
 
         {/* Events List */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-secondary-500 mb-6">Próximos Eventos</h2>
+          <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 mb-6">Próximos Eventos</h2>
           <div className="space-y-4">
             {dbEvents.map(event => {
               const canAccess = hasAccess(event.requiredRoles);
@@ -129,7 +129,7 @@ const Calendar = () => {
               return (
                 <div
                   key={event.id}
-                  className={`bg-beige-100 border border-beige-200 rounded-xl p-6 shadow-md ${
+                  className={`bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md ${
                     !canAccess ? 'opacity-50' : ''
                   }`}
                 >
@@ -143,19 +143,19 @@ const Calendar = () => {
                           <h3 className="text-secondary-500 font-bold text-lg flex items-center">
                             {event.title}
                             {!canAccess && (
-                              <svg className="w-5 h-5 text-primary-700 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-5 h-5 text-primary-700 dark:text-primary-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                               </svg>
                             )}
                           </h3>
-                          <p className="text-secondary-600 text-sm">{event.time}</p>
+                          <p className="text-secondary-600 dark:text-gray-300 text-sm">{event.time}</p>
                         </div>
                       </div>
                       {canAccess && (
                         <p className="text-secondary-500 ml-0 md:ml-20">{event.description}</p>
                       )}
                       {!canAccess && (
-                        <p className="text-secondary-600 italic ml-0 md:ml-20">
+                        <p className="text-secondary-600 dark:text-gray-300 italic ml-0 md:ml-20">
                           Este evento é restrito a membros com acesso especial.
                         </p>
                       )}

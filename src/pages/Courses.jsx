@@ -14,24 +14,24 @@ const Courses = ({ onNavigate }) => {
     : dbCourses.filter(c => c.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-beige-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-800 mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-800 dark:text-gray-100 mb-4">
             Cursos
           </h1>
-          <p className="text-xl text-primary-700 italic mb-2 font-bold">
+          <p className="text-xl text-primary-700 dark:text-primary-500 italic mb-2 font-bold">
             "Os que não querem ser vencidos pela verdade, serão vencidos pelo erro."
           </p>
-          <p className="text-secondary-600 max-w-2xl mx-auto text-base">
+          <p className="text-secondary-600 dark:text-gray-300 max-w-2xl mx-auto text-base">
             Explore nossos cursos de formação católica e aprofunde seu conhecimento da fé.
           </p>
         </div>
 
         {/* Category Filter */}
         <div className="mb-8">
-          <label className="block text-secondary-700 font-bold mb-3 text-sm uppercase tracking-wider">Categorias</label>
+          <label className="block text-secondary-700 dark:text-gray-200 font-bold mb-3 text-sm uppercase tracking-wider">Categorias</label>
           <div className="flex flex-wrap gap-3">
             {categories.map(category => (
               <button
@@ -40,7 +40,7 @@ const Courses = ({ onNavigate }) => {
                 className={`px-6 py-2 rounded-lg font-bold transition-all ${
                   selectedCategory === category
                     ? 'bg-primary-600 text-white shadow-md'
-                    : 'bg-white text-secondary-700 hover:bg-beige-100 border border-beige-300'
+                    : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 hover:bg-beige-100 dark:hover:bg-gray-800 border border-beige-300'
                 }`}
               >
                 {category === 'all' ? 'Todos' : category}
@@ -51,7 +51,7 @@ const Courses = ({ onNavigate }) => {
 
         {/* Course Count */}
         <div className="mb-6">
-          <p className="text-secondary-600 font-medium">
+          <p className="text-secondary-600 dark:text-gray-300 font-medium">
             {filteredCourses.length} {filteredCourses.length === 1 ? 'curso encontrado' : 'cursos encontrados'}
           </p>
         </div>
@@ -65,7 +65,7 @@ const Courses = ({ onNavigate }) => {
 
         {filteredCourses.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-secondary-600 text-lg font-medium">Nenhum curso encontrado nesta categoria.</p>
+            <p className="text-secondary-600 dark:text-gray-300 text-lg font-medium">Nenhum curso encontrado nesta categoria.</p>
           </div>
         )}
       </div>

@@ -20,13 +20,13 @@ const Admin = ({ onNavigate }) => {
 
   if (!isAdmin()) {
     return (
-      <div className="min-h-screen bg-beige-50 flex items-center justify-center">
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <svg className="w-24 h-24 text-primary-700 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-24 h-24 text-primary-700 dark:text-primary-500 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <h2 className="text-3xl font-bold text-secondary-500 mb-4">Acesso Negado</h2>
-          <p className="text-secondary-600 mb-6">Você não possui permissões de administrador.</p>
+          <h2 className="text-3xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Acesso Negado</h2>
+          <p className="text-secondary-600 dark:text-gray-300 mb-6">Você não possui permissões de administrador.</p>
           <button
             onClick={() => onNavigate('home')}
             className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors shadow-md"
@@ -122,7 +122,7 @@ const Admin = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-beige-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -135,19 +135,19 @@ const Admin = ({ onNavigate }) => {
             </svg>
             Voltar
           </button>
-          <h1 className="text-4xl font-bold text-secondary-500 mb-2">Admin Panel</h1>
+          <h1 className="text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">Admin Panel</h1>
           <p className="text-secondary-600">Gerenciamento completo do sistema</p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-beige-100 border border-beige-200 rounded-xl p-2 mb-6 shadow-md">
+        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-2 mb-6 shadow-md">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('users')}
               className={`flex-1 min-w-[120px] py-3 px-4 rounded-lg font-semibold transition-colors ${
                 activeTab === 'users'
                   ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-secondary-600 hover:text-secondary-500 hover:bg-beige-50'
+                  : 'text-secondary-600 dark:text-gray-300 hover:text-secondary-500 hover:bg-beige-50'
               }`}
             >
               Usuários
@@ -157,7 +157,7 @@ const Admin = ({ onNavigate }) => {
               className={`flex-1 min-w-[120px] py-3 px-4 rounded-lg font-semibold transition-colors ${
                 activeTab === 'content'
                   ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-secondary-600 hover:text-secondary-500 hover:bg-beige-50'
+                  : 'text-secondary-600 dark:text-gray-300 hover:text-secondary-500 hover:bg-beige-50'
               }`}
             >
               Conteúdos
@@ -167,7 +167,7 @@ const Admin = ({ onNavigate }) => {
               className={`flex-1 min-w-[120px] py-3 px-4 rounded-lg font-semibold transition-colors ${
                 activeTab === 'roles'
                   ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-secondary-600 hover:text-secondary-500 hover:bg-beige-50'
+                  : 'text-secondary-600 dark:text-gray-300 hover:text-secondary-500 hover:bg-beige-50'
               }`}
             >
               Roles
@@ -177,7 +177,7 @@ const Admin = ({ onNavigate }) => {
               className={`flex-1 min-w-[120px] py-3 px-4 rounded-lg font-semibold transition-colors ${
                 activeTab === 'admins'
                   ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-secondary-600 hover:text-secondary-500 hover:bg-beige-50'
+                  : 'text-secondary-600 dark:text-gray-300 hover:text-secondary-500 hover:bg-beige-50'
               }`}
             >
               Admins
@@ -186,7 +186,7 @@ const Admin = ({ onNavigate }) => {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 shadow-lg">
+        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-lg">
           {/* Users Tab */}
           {activeTab === 'users' && (
             <div>
@@ -194,29 +194,29 @@ const Admin = ({ onNavigate }) => {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-beige-200">
-                      <th className="text-left py-3 px-4 text-secondary-600 font-semibold">ID</th>
-                      <th className="text-left py-3 px-4 text-secondary-600 font-semibold">Nome</th>
-                      <th className="text-left py-3 px-4 text-secondary-600 font-semibold">Email</th>
-                      <th className="text-left py-3 px-4 text-secondary-600 font-semibold">Roles</th>
-                      <th className="text-left py-3 px-4 text-secondary-600 font-semibold">Ações</th>
+                    <tr className="border-b border-beige-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300 font-semibold">ID</th>
+                      <th className="text-left py-3 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300 font-semibold">Nome</th>
+                      <th className="text-left py-3 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300 font-semibold">Email</th>
+                      <th className="text-left py-3 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300 font-semibold">Roles</th>
+                      <th className="text-left py-3 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300 font-semibold">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map(user => (
-                      <tr key={user.id} className="border-b border-beige-200 hover:bg-white border border-beige-200">
-                        <td className="py-4 px-4 text-secondary-700">#{user.id}</td>
-                        <td className="py-4 px-4 text-secondary-700">{user.name}</td>
-                        <td className="py-4 px-4 text-secondary-600">{user.email}</td>
+                      <tr key={user.id} className="border-b border-beige-200 dark:border-gray-700 hover:bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700">
+                        <td className="py-4 px-4 text-secondary-700 dark:text-gray-200 dark:text-gray-200">#{user.id}</td>
+                        <td className="py-4 px-4 text-secondary-700 dark:text-gray-200 dark:text-gray-200">{user.name}</td>
+                        <td className="py-4 px-4 text-secondary-600 dark:text-gray-300 dark:text-gray-300">{user.email}</td>
                         <td className="py-4 px-4">
                           <div className="flex flex-wrap gap-1">
                             {user.roles.slice(0, 2).map(role => (
-                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 px-2 py-1 rounded">
+                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 dark:text-primary-500 px-2 py-1 rounded">
                                 {role}
                               </span>
                             ))}
                             {user.roles.length > 2 && (
-                              <span className="text-xs bg-gray-700 text-secondary-600 px-2 py-1 rounded">
+                              <span className="text-xs bg-gray-700 text-secondary-600 dark:text-gray-300 dark:text-gray-300 px-2 py-1 rounded">
                                 +{user.roles.length - 2}
                               </span>
                             )}
@@ -261,7 +261,7 @@ const Admin = ({ onNavigate }) => {
                 <h3 className="text-xl font-bold text-white mb-4">Cursos</h3>
                 <div className="space-y-3">
                   {courses.map(course => (
-                    <div key={course.id} className="bg-white border border-beige-200 rounded-lg p-4 flex items-center justify-between">
+                    <div key={course.id} className="bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="text-white font-semibold">{course.title}</h4>
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -269,7 +269,7 @@ const Admin = ({ onNavigate }) => {
                             <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">Público</span>
                           ) : (
                             course.requiredRoles.map(role => (
-                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 px-2 py-1 rounded">
+                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 dark:text-primary-500 px-2 py-1 rounded">
                                 {role}
                               </span>
                             ))
@@ -294,7 +294,7 @@ const Admin = ({ onNavigate }) => {
                 <h3 className="text-xl font-bold text-white mb-4">Postagens</h3>
                 <div className="space-y-3">
                   {posts.map(post => (
-                    <div key={post.id} className="bg-white border border-beige-200 rounded-lg p-4 flex items-center justify-between">
+                    <div key={post.id} className="bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="text-white font-semibold">{post.title}</h4>
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -302,7 +302,7 @@ const Admin = ({ onNavigate }) => {
                             <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">Público</span>
                           ) : (
                             post.requiredRoles.map(role => (
-                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 px-2 py-1 rounded">
+                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 dark:text-primary-500 px-2 py-1 rounded">
                                 {role}
                               </span>
                             ))
@@ -327,16 +327,16 @@ const Admin = ({ onNavigate }) => {
                 <h3 className="text-xl font-bold text-white mb-4">Eventos</h3>
                 <div className="space-y-3">
                   {events.map(event => (
-                    <div key={event.id} className="bg-white border border-beige-200 rounded-lg p-4 flex items-center justify-between">
+                    <div key={event.id} className="bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="text-white font-semibold">{event.title}</h4>
-                        <p className="text-secondary-600 text-sm">{event.date} - {event.time}</p>
+                        <p className="text-secondary-600 dark:text-gray-300 text-sm">{event.date} - {event.time}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {event.requiredRoles.length === 0 ? (
                             <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">Público</span>
                           ) : (
                             event.requiredRoles.map(role => (
-                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 px-2 py-1 rounded">
+                              <span key={role} className="text-xs bg-primary-600/20 text-primary-700 dark:text-primary-500 px-2 py-1 rounded">
                                 {role}
                               </span>
                             ))
@@ -364,7 +364,7 @@ const Admin = ({ onNavigate }) => {
               <h2 className="text-2xl font-bold text-white mb-6">Gerenciamento de Roles</h2>
               
               {/* Create New Role */}
-              <div className="bg-white border border-beige-200 rounded-lg p-4 mb-6">
+              <div className="bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4 mb-6">
                 <h3 className="text-white font-semibold mb-3">Criar Nova Role</h3>
                 <div className="flex gap-3">
                   <input
@@ -376,7 +376,7 @@ const Admin = ({ onNavigate }) => {
                   />
                   <button
                     onClick={handleCreateRole}
-                    className="bg-primary-600 text-secondary-500 px-6 py-2 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
+                    className="bg-primary-600 text-secondary-500 dark:text-gray-400 px-6 py-2 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
                   >
                     Criar
                   </button>
@@ -391,7 +391,7 @@ const Admin = ({ onNavigate }) => {
                     className={`rounded-lg p-4 flex items-center justify-between ${
                       role === 'Admin' || role === 'user'
                         ? 'bg-primary-600/20 border border-primary-500'
-                        : 'bg-white border border-beige-200'
+                        : 'bg-white dark:bg-gray-800 border border-beige-200'
                     }`}
                   >
                     <span className={`font-semibold ${
@@ -410,7 +410,7 @@ const Admin = ({ onNavigate }) => {
                       </button>
                     )}
                     {(role === 'Admin' || role === 'user') && (
-                      <span className="text-xs bg-primary-600/20 text-primary-700 px-2 py-1 rounded">Sistema</span>
+                      <span className="text-xs bg-primary-600/20 text-primary-700 dark:text-primary-500 px-2 py-1 rounded">Sistema</span>
                     )}
                   </div>
                 ))}
@@ -422,14 +422,14 @@ const Admin = ({ onNavigate }) => {
           {activeTab === 'admins' && (
             <div>
               <h2 className="text-2xl font-bold text-white mb-6">Gerenciamento de Administradores</h2>
-              <p className="text-secondary-600 mb-6">
+              <p className="text-secondary-600 dark:text-gray-300 mb-6">
                 Conceda ou revogue permissões de administrador para usuários.
               </p>
               <div className="space-y-3">
                 {users.map(user => {
                   const isUserAdmin = user.roles.includes('Admin');
                   return (
-                    <div key={user.id} className="bg-white border border-beige-200 rounded-lg p-4 flex items-center justify-between">
+                    <div key={user.id} className="bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
                           <span className="text-black font-semibold">
@@ -438,10 +438,10 @@ const Admin = ({ onNavigate }) => {
                         </div>
                         <div>
                           <p className="text-white font-semibold">{user.name}</p>
-                          <p className="text-secondary-600 text-sm">{user.email}</p>
+                          <p className="text-secondary-600 dark:text-gray-300 text-sm">{user.email}</p>
                         </div>
                         {isUserAdmin && (
-                          <span className="text-xs bg-primary-600 text-secondary-500 px-3 py-1 rounded-full font-semibold">
+                          <span className="text-xs bg-primary-600 text-secondary-500 dark:text-gray-400 px-3 py-1 rounded-full font-semibold">
                             Admin
                           </span>
                         )}
@@ -462,7 +462,7 @@ const Admin = ({ onNavigate }) => {
                             ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                             : isUserAdmin
                             ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
-                            : 'bg-primary-600 text-secondary-500 hover:bg-primary-600'
+                            : 'bg-primary-600 text-secondary-500 dark:text-gray-400 hover:bg-primary-600'
                         }`}
                       >
                         {user.id === 0 ? 'Principal' : isUserAdmin ? 'Revogar Admin' : 'Tornar Admin'}
@@ -493,7 +493,7 @@ const Admin = ({ onNavigate }) => {
               
               <div className="mb-6">
                 <h3 className="text-white font-semibold mb-3">Roles do Usuário</h3>
-                <p className="text-secondary-600 text-sm mb-4">
+                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-4">
                   Selecione as roles que este usuário possui:
                 </p>
                 <div className="space-y-2">
@@ -503,7 +503,7 @@ const Admin = ({ onNavigate }) => {
                         type="checkbox"
                         checked={editingUser.roles.includes(role)}
                         onChange={() => handleToggleUserRole(role)}
-                        className="w-5 h-5 rounded bg-white border border-beige-200 border-gray-700 text-primary-700 focus:ring-primary-500"
+                        className="w-5 h-5 rounded bg-white dark:bg-gray-800 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 border-gray-700 text-primary-700 dark:text-primary-500 focus:ring-primary-500"
                       />
                       <span className="text-secondary-700">{role}</span>
                     </label>
@@ -514,7 +514,7 @@ const Admin = ({ onNavigate }) => {
               <div className="flex gap-3">
                 <button
                   onClick={handleSaveUser}
-                  className="flex-1 bg-primary-600 text-secondary-500 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
+                  className="flex-1 bg-primary-600 text-secondary-500 dark:text-gray-400 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
                 >
                   Salvar Alterações
                 </button>
@@ -523,7 +523,7 @@ const Admin = ({ onNavigate }) => {
                     setModalOpen(false);
                     setEditingUser(null);
                   }}
-                  className="flex-1 bg-white border border-beige-200 text-white py-3 rounded-lg font-semibold hover:bg-beige-50 transition-colors"
+                  className="flex-1 bg-white dark:bg-gray-800 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-beige-50 dark:bg-gray-950 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -545,7 +545,7 @@ const Admin = ({ onNavigate }) => {
             <div>
               <div className="mb-6">
                 <p className="text-white font-semibold text-lg mb-2">{editingContent.title}</p>
-                <p className="text-secondary-600 text-sm">
+                <p className="text-secondary-600 dark:text-gray-300 text-sm">
                   {editingContent.contentType === 'course' && 'Curso'}
                   {editingContent.contentType === 'post' && 'Postagem'}
                   {editingContent.contentType === 'event' && 'Evento'}
@@ -554,7 +554,7 @@ const Admin = ({ onNavigate }) => {
               
               <div className="mb-6">
                 <h3 className="text-white font-semibold mb-3">Roles Necessárias</h3>
-                <p className="text-secondary-600 text-sm mb-4">
+                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-4">
                   Selecione as roles necessárias para acessar este conteúdo. Deixe tudo desmarcado para conteúdo público.
                 </p>
                 <div className="space-y-2">
@@ -564,7 +564,7 @@ const Admin = ({ onNavigate }) => {
                         type="checkbox"
                         checked={(editingContent.requiredRoles || []).includes(role)}
                         onChange={() => handleToggleContentRole(role)}
-                        className="w-5 h-5 rounded bg-white border border-beige-200 border-gray-700 text-primary-700 focus:ring-primary-500"
+                        className="w-5 h-5 rounded bg-white dark:bg-gray-800 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 border-gray-700 text-primary-700 dark:text-primary-500 focus:ring-primary-500"
                       />
                       <span className="text-secondary-700">{role}</span>
                     </label>
@@ -575,7 +575,7 @@ const Admin = ({ onNavigate }) => {
               <div className="flex gap-3">
                 <button
                   onClick={handleSaveContent}
-                  className="flex-1 bg-primary-600 text-secondary-500 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
+                  className="flex-1 bg-primary-600 text-secondary-500 dark:text-gray-400 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
                 >
                   Salvar Alterações
                 </button>
@@ -584,7 +584,7 @@ const Admin = ({ onNavigate }) => {
                     setModalOpen(false);
                     setEditingContent(null);
                   }}
-                  className="flex-1 bg-white border border-beige-200 text-white py-3 rounded-lg font-semibold hover:bg-beige-50 transition-colors"
+                  className="flex-1 bg-white dark:bg-gray-800 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-beige-50 dark:bg-gray-950 transition-colors"
                 >
                   Cancelar
                 </button>

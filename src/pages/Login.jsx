@@ -54,7 +54,7 @@ const Login = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-beige-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -65,20 +65,20 @@ const Login = ({ onNavigate }) => {
               className="w-full h-full object-contain drop-shadow-xl"
             />
           </div>
-          <h2 className="text-3xl font-bold text-secondary-700">
+          <h2 className="text-3xl font-bold text-secondary-700 dark:text-gray-200">
             {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
           </h2>
-          <p className="mt-2 text-secondary-600">
+          <p className="mt-2 text-secondary-600 dark:text-gray-300 dark:text-gray-300">
             {isLogin ? 'Entre com suas credenciais' : 'Junte-se ao apostolado'}
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-beige-100 border border-beige-200 rounded-xl p-8 shadow-lg">
+        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-secondary-500 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-secondary-500 dark:text-gray-400 mb-2">
                   Nome Completo
                 </label>
                 <input
@@ -87,14 +87,14 @@ const Login = ({ onNavigate }) => {
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full bg-white text-secondary-500 rounded-lg px-4 py-3 border border-beige-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                  className="w-full bg-white dark:bg-gray-800 text-secondary-500 dark:text-gray-400 rounded-lg px-4 py-3 border border-beige-200 dark:border-gray-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
                   placeholder="Seu nome"
                 />
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-secondary-500 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-secondary-500 dark:text-gray-400 mb-2">
                 Email
               </label>
               <input
@@ -103,13 +103,13 @@ const Login = ({ onNavigate }) => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full bg-white text-secondary-500 rounded-lg px-4 py-3 border border-beige-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                className="w-full bg-white dark:bg-gray-800 text-secondary-500 dark:text-gray-400 rounded-lg px-4 py-3 border border-beige-200 dark:border-gray-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
                 placeholder="seu@email.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-secondary-500 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-secondary-500 dark:text-gray-400 mb-2">
                 Senha
               </label>
               <input
@@ -118,7 +118,7 @@ const Login = ({ onNavigate }) => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full bg-white text-secondary-500 rounded-lg px-4 py-3 border border-beige-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                className="w-full bg-white dark:bg-gray-800 text-secondary-500 dark:text-gray-400 rounded-lg px-4 py-3 border border-beige-200 dark:border-gray-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
                 placeholder="••••••••"
               />
             </div>
@@ -151,18 +151,18 @@ const Login = ({ onNavigate }) => {
           </div>
 
           {/* Quick Login Buttons (for testing) */}
-          <div className="mt-8 pt-6 border-t border-beige-200">
-            <p className="text-secondary-600 text-sm text-center mb-4">Login Rápido (Demonstração)</p>
+          <div className="mt-8 pt-6 border-t border-beige-200 dark:border-gray-700">
+            <p className="text-secondary-600 dark:text-gray-300 text-sm text-center mb-4">Login Rápido (Demonstração)</p>
             <div className="space-y-3">
               <button
                 onClick={() => handleQuickLogin('member')}
-                className="w-full bg-white border border-beige-200 text-secondary-500 py-2 rounded-lg hover:bg-beige-50 transition-colors text-sm shadow-sm"
+                className="w-full bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-secondary-500 dark:text-gray-400 py-2 rounded-lg hover:bg-beige-50 dark:bg-gray-950 transition-colors text-sm shadow-sm"
               >
                 Login como Membro
               </button>
               <button
                 onClick={() => handleQuickLogin('admin')}
-                className="w-full bg-white border border-beige-200 text-secondary-500 py-2 rounded-lg hover:bg-beige-50 transition-colors text-sm shadow-sm"
+                className="w-full bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-secondary-500 dark:text-gray-400 py-2 rounded-lg hover:bg-beige-50 dark:bg-gray-950 transition-colors text-sm shadow-sm"
               >
                 Login como Admin
               </button>
@@ -170,8 +170,8 @@ const Login = ({ onNavigate }) => {
           </div>
 
           {isLogin && (
-            <div className="mt-6 bg-white border border-beige-200 rounded-lg p-4">
-              <p className="text-secondary-600 text-xs mb-2">Credenciais de teste:</p>
+            <div className="mt-6 bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4">
+              <p className="text-secondary-600 dark:text-gray-300 text-xs mb-2">Credenciais de teste:</p>
               <p className="text-secondary-500 text-xs"><strong>Membro:</strong> membro@apostolado.com / membro123</p>
               <p className="text-secondary-500 text-xs"><strong>Admin:</strong> admin@apostolado.com / admin123</p>
             </div>

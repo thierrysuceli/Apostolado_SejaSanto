@@ -6,10 +6,10 @@ const Profile = ({ onNavigate }) => {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-beige-50 flex items-center justify-center">
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-secondary-500 mb-4">Acesso Restrito</h2>
-          <p className="text-secondary-600 mb-6">Você precisa estar logado para acessar o perfil.</p>
+          <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Acesso Restrito</h2>
+          <p className="text-secondary-600 dark:text-gray-300 mb-6">Você precisa estar logado para acessar o perfil.</p>
           <button
             onClick={() => onNavigate('login')}
             className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors shadow-md"
@@ -27,7 +27,7 @@ const Profile = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-beige-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -36,34 +36,34 @@ const Profile = ({ onNavigate }) => {
               {currentUser.name.charAt(0).toUpperCase()}
             </span>
           </div>
-          <h1 className="text-4xl font-bold text-secondary-500 mb-2">{currentUser.name}</h1>
+          <h1 className="text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">{currentUser.name}</h1>
           <p className="text-secondary-600">{currentUser.email}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User Info */}
-          <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-secondary-500 mb-4">Informações do Usuário</h2>
+          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Informações do Usuário</h2>
             <div className="space-y-3">
               <div>
-                <p className="text-secondary-600 text-sm mb-1">ID do Usuário</p>
+                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">ID do Usuário</p>
                 <p className="text-secondary-500 font-semibold">#{currentUser.id}</p>
               </div>
               <div>
-                <p className="text-secondary-600 text-sm mb-1">Nome</p>
+                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">Nome</p>
                 <p className="text-secondary-500 font-semibold">{currentUser.name}</p>
               </div>
               <div>
-                <p className="text-secondary-600 text-sm mb-1">Email</p>
+                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">Email</p>
                 <p className="text-secondary-500 font-semibold">{currentUser.email}</p>
               </div>
             </div>
           </div>
 
           {/* Roles */}
-          <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-secondary-500 mb-4">Permissões de Acesso</h2>
-            <p className="text-secondary-600 text-sm mb-4">
+          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Permissões de Acesso</h2>
+            <p className="text-secondary-600 dark:text-gray-300 text-sm mb-4">
               Suas classes e níveis de acesso no apostolado:
             </p>
             <div className="flex flex-wrap gap-2">
@@ -73,7 +73,7 @@ const Profile = ({ onNavigate }) => {
                   className={`px-4 py-2 rounded-lg font-semibold shadow-sm ${
                     role === 'Admin'
                       ? 'bg-primary-600 text-white'
-                      : 'bg-white border border-beige-200 text-primary-600'
+                      : 'bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-primary-600'
                   }`}
                 >
                   {role}
@@ -92,8 +92,8 @@ const Profile = ({ onNavigate }) => {
         </div>
 
         {/* Actions */}
-        <div className="mt-6 bg-beige-100 border border-beige-200 rounded-xl p-6 shadow-md">
-          <h2 className="text-xl font-bold text-secondary-500 mb-4">Ações</h2>
+        <div className="mt-6 bg-beige-100 dark:bg-gray-900 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md">
+          <h2 className="text-xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Ações</h2>
           <div className="flex flex-col sm:flex-row gap-4">
             {currentUser.roles && currentUser.roles.includes('Admin') && (
               <button
@@ -105,7 +105,7 @@ const Profile = ({ onNavigate }) => {
             )}
             <button
               onClick={handleLogout}
-              className="flex-1 bg-white border border-beige-200 text-secondary-500 py-3 rounded-lg font-semibold hover:bg-beige-50 transition-colors shadow-sm"
+              className="flex-1 bg-white dark:bg-gray-800 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-secondary-500 dark:text-gray-400 py-3 rounded-lg font-semibold hover:bg-beige-50 dark:bg-gray-950 transition-colors shadow-sm"
             >
               Sair da Conta
             </button>
@@ -114,17 +114,17 @@ const Profile = ({ onNavigate }) => {
 
         {/* Statistics (optional) */}
         <div className="mt-6 grid grid-cols-3 gap-4">
-          <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 text-center shadow-md">
-            <p className="text-3xl font-bold text-primary-700 mb-2">12</p>
-            <p className="text-secondary-600 text-sm">Cursos Acessados</p>
+          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-md">
+            <p className="text-3xl font-bold text-primary-700 dark:text-primary-500 mb-2">12</p>
+            <p className="text-secondary-600 dark:text-gray-300 text-sm">Cursos Acessados</p>
           </div>
-          <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 text-center shadow-md">
-            <p className="text-3xl font-bold text-primary-700 mb-2">45</p>
-            <p className="text-secondary-600 text-sm">Horas Assistidas</p>
+          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-md">
+            <p className="text-3xl font-bold text-primary-700 dark:text-primary-500 mb-2">45</p>
+            <p className="text-secondary-600 dark:text-gray-300 text-sm">Horas Assistidas</p>
           </div>
-          <div className="bg-beige-100 border border-beige-200 rounded-xl p-6 text-center shadow-md">
-            <p className="text-3xl font-bold text-primary-700 mb-2">8</p>
-            <p className="text-secondary-600 text-sm">Comentários</p>
+          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-md">
+            <p className="text-3xl font-bold text-primary-700 dark:text-primary-500 mb-2">8</p>
+            <p className="text-secondary-600 dark:text-gray-300 text-sm">Comentários</p>
           </div>
         </div>
       </div>

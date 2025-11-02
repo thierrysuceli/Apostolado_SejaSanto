@@ -28,7 +28,7 @@ const Home = ({ onNavigate }) => {
             />
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-secondary-500 mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-secondary-500 dark:text-gray-400 mb-6">
             Apostolado
             <span className="block text-primary-500">Seja Santo</span>
           </h1>
@@ -50,7 +50,7 @@ const Home = ({ onNavigate }) => {
             </button>
             <button
               onClick={() => onNavigate('calendario')}
-              className="bg-beige-50 border-2 border-primary-500 text-primary-500 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-500 hover:text-white transition-colors shadow-md hover:shadow-lg"
+              className="bg-beige-50 dark:bg-gray-950 border-2 border-primary-500 text-primary-500 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-500 hover:text-white transition-colors shadow-md hover:shadow-lg"
             >
               Ver Calendário
             </button>
@@ -59,11 +59,11 @@ const Home = ({ onNavigate }) => {
       </section>
 
       {/* Featured Courses Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-50">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-50 dark:bg-gray-950 dark:bg-gray-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 mb-2">Cursos em Destaque</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">Cursos em Destaque</h2>
               <p className="text-secondary-400">Conteúdos de formação católica de qualidade</p>
             </div>
             <button
@@ -92,11 +92,11 @@ const Home = ({ onNavigate }) => {
       </section>
 
       {/* Latest Posts Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-100">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-100 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 mb-2">Últimas Postagens</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">Últimas Postagens</h2>
               <p className="text-secondary-400">Reflexões e ensinamentos para sua vida espiritual</p>
             </div>
             <button
@@ -135,7 +135,7 @@ const Home = ({ onNavigate }) => {
           </p>
           <button
             onClick={() => onNavigate('login')}
-            className="bg-primary-500 text-secondary-500 px-10 py-4 rounded-lg font-bold text-lg hover:bg-primary-600 transition-colors shadow-xl"
+            className="bg-primary-500 text-secondary-500 dark:text-gray-400 px-10 py-4 rounded-lg font-bold text-lg hover:bg-primary-600 transition-colors shadow-xl"
           >
             Criar Conta Grátis
           </button>
