@@ -6,10 +6,11 @@ Single-Page Application (SPA) completa para um apostolado de formação religios
 
 ## 🎨 Design & Tema
 
-- **Tema Dark Premium**: Fundo preto (`bg-black`) e cinza escuro (`bg-gray-950`)
-- **Cor de Destaque**: Dourado/Âmbar (`amber-500`)
+- **Tema Claro Premium**: Fundo bege quente (`beige-50`) com cards brancos
+- **Cores**: Marrom rústico (`secondary`) + Dourado (`primary`)
 - **Fonte**: Inter (Google Fonts)
 - **Totalmente Responsivo**: Design mobile-first
+- **Contraste Otimizado**: Seguindo WCAG 2.1 AA
 
 ## ✨ Funcionalidades Principais
 
@@ -184,13 +185,22 @@ Apostolado/
 ## 🎨 Paleta de Cores
 
 ```css
---black: #000000
---gray-950: #030712
---gray-900: #111827
---gray-800: #1f2937
---gray-700: #374151
---amber-500: #f59e0b
---amber-600: #d97706
+/* Primary (Dourado) */
+--primary-600: #E6A400
+--primary-700: #CC9200
+
+/* Secondary (Marrom Rústico) */
+--secondary-500: #6B4F3A
+--secondary-600: #5A4230
+--secondary-700: #4A3627
+--secondary-800: #3A2B1F
+
+/* Beige (Fundos) */
+--beige-50: #FAF7F4
+--beige-100: #F0E8DF
+--beige-200: #E3D5C5
+--beige-300: #D4C2AD
+--white: #FFFFFF
 ```
 
 ## 🔄 Fluxo de Autenticação & RBAC
