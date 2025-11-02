@@ -14,10 +14,10 @@ const Home = ({ onNavigate }) => {
   const latestPosts = dbPosts.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-beige-50 to-beige-100">
+    <div className="min-h-screen bg-gradient-to-b from-beige-50 to-beige-100 dark:from-gray-950 dark:to-gray-900">
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-500/5 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-500/5 to-transparent dark:from-primary-500/10" />
         
         <div className="relative max-w-7xl mx-auto text-center">
           <div className="mb-8 flex justify-center">
@@ -28,29 +28,29 @@ const Home = ({ onNavigate }) => {
             />
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-secondary-500 dark:text-gray-400 mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-secondary-700 dark:text-gray-200 mb-6">
             Apostolado
-            <span className="block text-primary-500">Seja Santo</span>
+            <span className="block text-primary-600 dark:text-primary-500">Seja Santo</span>
           </h1>
           
-          <p className="text-xl sm:text-2xl text-primary-600 italic mb-8 max-w-3xl mx-auto">
+          <p className="text-xl sm:text-2xl text-primary-700 dark:text-primary-500 italic mb-8 max-w-3xl mx-auto font-semibold">
             "Os que não querem ser vencidos pela verdade, serão vencidos pelo erro."
           </p>
           
-          <p className="text-secondary-400 text-lg mb-10 max-w-2xl mx-auto">
+          <p className="text-secondary-600 dark:text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
             Cursos, formação e conteúdos para aprofundar sua fé e conhecimento da doutrina católica.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => onNavigate('cursos')}
-              className="bg-primary-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl"
+              className="bg-primary-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
             >
               Explorar Cursos
             </button>
             <button
               onClick={() => onNavigate('calendario')}
-              className="bg-beige-50 dark:bg-gray-950 border-2 border-primary-500 text-primary-500 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-500 hover:text-white transition-colors shadow-md hover:shadow-lg"
+              className="bg-white dark:bg-gray-800 border-2 border-primary-600 dark:border-primary-500 text-primary-600 dark:text-primary-500 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-600 hover:text-white dark:hover:bg-primary-600 transition-colors shadow-md hover:shadow-lg"
             >
               Ver Calendário
             </button>
@@ -59,16 +59,16 @@ const Home = ({ onNavigate }) => {
       </section>
 
       {/* Featured Courses Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-50 dark:bg-gray-950 dark:bg-gray-950">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-beige-50 dark:bg-gray-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">Cursos em Destaque</h2>
-              <p className="text-secondary-400">Conteúdos de formação católica de qualidade</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-800 dark:text-gray-100 mb-2">Cursos em Destaque</h2>
+              <p className="text-secondary-600 dark:text-gray-300">Conteúdos de formação católica de qualidade</p>
             </div>
             <button
               onClick={() => onNavigate('cursos')}
-              className="hidden sm:block text-primary-500 hover:text-primary-600 font-semibold"
+              className="hidden sm:block text-primary-700 dark:text-primary-500 hover:text-primary-800 dark:hover:text-primary-400 font-semibold transition-colors"
             >
               Ver todos →
             </button>
@@ -83,7 +83,7 @@ const Home = ({ onNavigate }) => {
           <div className="mt-8 text-center sm:hidden">
             <button
               onClick={() => onNavigate('cursos')}
-              className="text-primary-500 hover:text-primary-400 font-semibold"
+              className="text-primary-700 dark:text-primary-500 hover:text-primary-800 dark:hover:text-primary-400 font-semibold transition-colors"
             >
               Ver todos os cursos →
             </button>
@@ -96,12 +96,12 @@ const Home = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">Últimas Postagens</h2>
-              <p className="text-secondary-400">Reflexões e ensinamentos para sua vida espiritual</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-secondary-800 dark:text-gray-100 mb-2">Últimas Postagens</h2>
+              <p className="text-secondary-600 dark:text-gray-300">Reflexões e ensinamentos para sua vida espiritual</p>
             </div>
             <button
               onClick={() => onNavigate('postagens')}
-              className="hidden sm:block text-primary-500 hover:text-primary-600 font-semibold"
+              className="hidden sm:block text-primary-700 dark:text-primary-500 hover:text-primary-800 dark:hover:text-primary-400 font-semibold transition-colors"
             >
               Ver todas →
             </button>
@@ -116,7 +116,7 @@ const Home = ({ onNavigate }) => {
           <div className="mt-8 text-center sm:hidden">
             <button
               onClick={() => onNavigate('postagens')}
-              className="text-primary-500 hover:text-primary-400 font-semibold"
+              className="text-primary-700 dark:text-primary-500 hover:text-primary-800 dark:hover:text-primary-400 font-semibold transition-colors"
             >
               Ver todas as postagens →
             </button>
@@ -125,17 +125,17 @@ const Home = ({ onNavigate }) => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-950 to-black">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-secondary-900 to-secondary-950 dark:from-gray-900 dark:to-gray-950">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white dark:text-gray-100 mb-6">
             Faça Parte da Nossa Comunidade
           </h2>
-          <p className="text-gray-300 text-lg mb-8">
+          <p className="text-beige-200 dark:text-gray-300 text-lg mb-8">
             Cadastre-se gratuitamente e tenha acesso a conteúdos exclusivos de formação católica.
           </p>
           <button
             onClick={() => onNavigate('login')}
-            className="bg-primary-500 text-secondary-500 dark:text-gray-400 px-10 py-4 rounded-lg font-bold text-lg hover:bg-primary-600 transition-colors shadow-xl"
+            className="bg-primary-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-primary-700 transition-colors shadow-xl"
           >
             Criar Conta Grátis
           </button>
