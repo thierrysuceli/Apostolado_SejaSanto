@@ -117,6 +117,10 @@
       "destination": "/api/admin/roles-consolidated"
     },
     {
+      "source": "/api/admin/permissions",
+      "destination": "/api/public-data?type=permissions"
+    },
+    {
       "source": "/api/courses/create",
       "destination": "/api/content?type=courses"
     },

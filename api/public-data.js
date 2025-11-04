@@ -14,6 +14,31 @@ export default async function handler(req, res) {
       return res.status(200).json({ roles: data || [] });
     }
     
+    // PERMISSIONS (admin only)
+    if (type === 'permissions' && req.method === 'GET') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem visualizar permissões' });
+      const { data: permissions, error } = await supabaseAdmin
+        .from('permissions')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
+      if (error) throw error;
+      const grouped = permissions?.reduce((acc, perm) => {
+        if (!acc[perm.category]) {
+          acc[perm.category] = [];
+        }
+        acc[perm.category].push(perm);
+        return acc;
+      }, {});
+      return res.status(200).json({ 
+        permissions: permissions || [],
+        grouped: grouped || {}
+      });
+    }
+    
     // TAGS
     if (type === 'tags' && req.method === 'GET') {
       const { data, error } = await supabaseAdmin.from('tags').select('*').order('name');
@@ -131,6 +156,8 @@ export default async function handler(req, res) {
       if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem editar módulos' });
       const { data, error } = await supabaseAdmin.from('modules').update(req.body).eq('id', id).select().single();
       if (error) throw error;
+      return res.status(200).json({ module: data });
+    }
     if (type === 'modules' && req.method === 'DELETE' && id) {
       await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
