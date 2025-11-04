@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ comment: data });
     }
     if (type === 'comments' && req.method === 'POST') {
-      await new Promise((resolve) => authenticate(req, res, resolve));
+      await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
       const { content, post_id } = req.body;
       const { data, error } = await supabaseAdmin.from('comments').insert({ content, post_id, author_id: req.user.id }).select().single();
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       return res.status(201).json({ comment: data });
     }
     if (type === 'comments' && req.method === 'DELETE' && id) {
-      await new Promise((resolve) => authenticate(req, res, resolve));
+      await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
       const { error } = await supabaseAdmin.from('comments').delete().eq('id', id);
       if (error) throw error;

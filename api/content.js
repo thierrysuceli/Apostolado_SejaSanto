@@ -37,12 +37,13 @@ export default async function handler(req, res) {
     }
     
     // Rotas protegidas
-    await new Promise((resolve) => authenticate(req, res, resolve));
+    await authenticate(req, res);
     if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
-    await new Promise((resolve) => hasPermission(req, res, resolve));
     
+    // Verificar permissão inline (hasPermission não é middleware aqui)
     const requiredPermission = type === 'events' ? 'manage_events' : 'manage_content';
-    if (!req.userPermissions?.includes(requiredPermission)) {
+    const userHasPermission = await hasPermission(req.user.id, requiredPermission);
+    if (!userHasPermission) {
       return res.status(403).json({ error: 'Sem permissão' });
     }
     

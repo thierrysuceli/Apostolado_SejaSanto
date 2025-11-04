@@ -9,21 +9,22 @@ import { supabaseAdmin } from '../lib-api/supabaseServer.js';
 /**
  * Middleware para autenticar usuário
  * Adiciona req.user se autenticado
+ * VERSÃO ASYNC PARA VERCEL SERVERLESS (sem callback next)
  */
-export async function authenticate(req, res, next) {
+export async function authenticate(req, res) {
   try {
     const token = extractToken(req);
     
     if (!token) {
       req.user = null;
-      return next();
+      return;
     }
     
     const payload = verifyJWT(token);
     
     if (!payload) {
       req.user = null;
-      return next();
+      return;
     }
     
     // Buscar usuário do banco
@@ -46,7 +47,7 @@ export async function authenticate(req, res, next) {
     
     if (error || !user) {
       req.user = null;
-      return next();
+      return;
     }
     
     // Formatar roles
@@ -55,11 +56,9 @@ export async function authenticate(req, res, next) {
     delete user.password_hash;
     
     req.user = user;
-    next();
   } catch (error) {
     console.error('Authentication error:', error);
     req.user = null;
-    next();
   }
 }
 

@@ -8,7 +8,7 @@ import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
   // Autenticação obrigatória
-  await new Promise((resolve) => authenticate(req, res, resolve));
+  await authenticate(req, res);
   
   if (!req.user) {
     return res.status(401).json({ error: 'Autenticação necessária' });
