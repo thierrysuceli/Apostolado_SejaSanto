@@ -195,10 +195,15 @@
     {
       "source": "/api/comments",
       "destination": "/api/public-data?type=comments"
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
     },
     {
-      "source": "/((?!api|_next|static|favicon.ico|manifest.json|.*\\.).)*",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
