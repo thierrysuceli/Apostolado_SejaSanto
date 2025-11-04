@@ -13,6 +13,14 @@
       "destination": "/api/central/groups-consolidated?id=:id&resource=posts"
     },
     {
+      "source": "/api/central/groups/:id",
+      "destination": "/api/central/groups-consolidated?id=:id"
+    },
+    {
+      "source": "/api/central/groups",
+      "destination": "/api/central/groups-consolidated"
+    },
+    {
       "source": "/api/central/groups/:id/polls",
       "destination": "/api/central/groups-consolidated?id=:id&resource=polls"
     },
@@ -183,10 +191,6 @@
     {
       "source": "/api/comments",
       "destination": "/api/public-data?type=comments"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
     }
   ],
   "headers": [

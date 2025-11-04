@@ -137,8 +137,6 @@ export default async function handler(req, res) {
       const isAdmin = await hasRole(req.user.id, 'ADMIN');
       if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem deletar módulos' });
       const { error } = await supabaseAdmin.from('modules').delete().eq('id', id);
-      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
-      const { error } = await supabaseAdmin.from('modules').delete().eq('id', id);
       if (error) throw error;
       return res.status(200).json({ message: 'Módulo deletado' });
     }

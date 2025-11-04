@@ -68,14 +68,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: `${type.slice(0, -1)} deletado com sucesso` });
     }
     
-    // PUT /:type/:id/tags - Atualizar tags
-    if (req.method === 'PUT' && id && resource === 'tags') {
-      const { tags } = req.body;
-      if (!Array.isArray(tags)) return res.status(400).json({ error: 'Tags deve ser um array' });
-      const { data, error } = await supabaseAdmin.from(table).update({ tags }).eq('id', id).select().single();
-      if (error) throw error;
-      return res.status(200).json({ [type.slice(0, -1)]: data });
-    }
+    // Nota: Tags para courses/posts usam tabelas relacionais (course_tags/post_tags)
+    // não uma coluna 'tags'. Remover endpoint incorreto que causava erro.
     
     return res.status(405).json({ error: 'Método não permitido' });
   } catch (error) {

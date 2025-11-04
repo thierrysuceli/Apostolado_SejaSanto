@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         .from('users')
         .select(`
           id, name, email, avatar_url, created_at,
-          user_roles(role_id, roles(id, name, display_name, color))
+          user_roles!user_roles_user_id_fkey(role_id, roles(id, name, display_name, color))
         `)
         .order('created_at', { ascending: false });
 
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
         .from('users')
         .select(`
           *,
-          user_roles(role_id, roles(id, name, display_name, color))
+          user_roles!user_roles_user_id_fkey(role_id, roles(id, name, display_name, color))
         `)
         .eq('id', id)
         .single();
