@@ -3,8 +3,8 @@
 // GET /api/auth/me
 // =====================================================
 
-import { verifyJWT, extractToken } from '../lib/jwt.js';
-import { supabaseAdmin } from '../lib/supabaseServer.js';
+import { verifyJWT, extractToken } from '../../lib-api/jwt.js';
+import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
   // Apenas GET

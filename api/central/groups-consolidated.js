@@ -3,8 +3,8 @@
 // Combina 7 endpoints em 1 função usando query params
 // =====================================================
 
-import { authenticate } from '../middleware/auth.js';
-import { supabaseAdmin } from '../lib/supabaseServer.js';
+import { authenticate } from '../../middleware-api/auth.js';
+import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
   // Autenticação obrigatória

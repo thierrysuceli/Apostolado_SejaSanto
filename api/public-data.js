@@ -1,7 +1,7 @@
 // API - PUBLIC DATA CONSOLIDATED
 // Consolida: comments, event-categories, modules, topics, misc (roles/tags)
-import { authenticate } from './middleware/auth.js';
-import { supabaseAdmin } from './lib/supabaseServer.js';
+import { authenticate } from '../middleware-api/auth.js';
+import { supabaseAdmin } from '../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
   const { type, id } = req.query;

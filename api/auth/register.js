@@ -4,9 +4,9 @@
 // =====================================================
 
 import { hash } from 'bcryptjs';
-import { supabaseAdmin } from '../lib/supabaseServer.js';
-import { generateJWT } from '../lib/jwt.js';
-import { sanitizeEmail, sanitizeName, isValidEmail, validatePassword } from '../lib/sanitize.js';
+import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
+import { generateJWT } from '../../lib-api/jwt.js';
+import { sanitizeEmail, sanitizeName, isValidEmail, validatePassword } from '../../lib-api/sanitize.js';
 
 export default async function handler(req, res) {
   // Apenas POST

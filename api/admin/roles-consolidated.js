@@ -3,8 +3,8 @@
 // Combina GET/POST roles + GET/PUT/DELETE roles/[id]
 // =====================================================
 
-import { authenticate, hasPermission } from '../middleware/auth.js';
-import { supabaseAdmin } from '../lib/supabaseServer.js';
+import { authenticate, hasPermission } from '../../middleware-api/auth.js';
+import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
   await new Promise((resolve) => authenticate(req, res, resolve));
