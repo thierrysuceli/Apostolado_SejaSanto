@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Header = ({ onNavigate, currentPage }) => {
   const { currentUser, isAdmin } = useAuth();
@@ -9,14 +9,12 @@ const Header = ({ onNavigate, currentPage }) => {
 
   const menuItems = [
     { id: 'home', label: 'Home' },
+    { id: 'central', label: 'Central' },
     { id: 'cursos', label: 'Cursos' },
     { id: 'postagens', label: 'Postagens' },
     { id: 'calendario', label: 'Calendário' },
+    ...(isAdmin() ? [{ id: 'admin', label: 'Admin Panel' }] : []),
   ];
-
-  if (isAdmin()) {
-    menuItems.push({ id: 'admin', label: 'Admin Panel' });
-  }
 
   const handleNavigate = (page) => {
     onNavigate(page);
