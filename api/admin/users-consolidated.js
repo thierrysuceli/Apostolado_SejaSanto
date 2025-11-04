@@ -13,9 +13,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Autenticação necessária' });
   }
 
-  await new Promise((resolve) => hasPermission(req, res, resolve));
-  
-  if (!req.userPermissions?.includes('manage_users')) {
+  const userHasPermission = await hasPermission(req.user.id, 'manage_users');
+  if (!userHasPermission) {
     return res.status(403).json({ error: 'Sem permissão para gerenciar usuários' });
   }
 
@@ -35,6 +34,42 @@ export default async function handler(req, res) {
       if (error) throw error;
 
       return res.status(200).json({ users: users || [] });
+    }
+
+    // POST /admin/users - Criar novo usuário
+    if (req.method === 'POST' && !id) {
+      const { name, email, password, role_ids } = req.body;
+      
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
+      }
+
+      const bcrypt = await import('bcryptjs');
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const { data: user, error: userError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          name,
+          email,
+          password_hash: passwordHash
+        })
+        .select()
+        .single();
+
+      if (userError) throw userError;
+
+      // Adicionar roles se fornecidas
+      if (role_ids && Array.isArray(role_ids) && role_ids.length > 0) {
+        const inserts = role_ids.map(role_id => ({
+          user_id: user.id,
+          role_id
+        }));
+        
+        await supabaseAdmin.from('user_roles').insert(inserts);
+      }
+
+      return res.status(201).json({ user });
     }
 
     // GET /admin/users/:id - Buscar usuário específico

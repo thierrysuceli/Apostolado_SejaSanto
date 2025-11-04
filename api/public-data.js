@@ -15,17 +15,79 @@ export default async function handler(req, res) {
     }
     
     // TAGS
-    if (type === 'tags') {
+    if (type === 'tags' && req.method === 'GET') {
       const { data, error } = await supabaseAdmin.from('tags').select('*').order('name');
       if (error) throw error;
       return res.status(200).json({ tags: data || [] });
     }
+    if (type === 'tags' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { name, description, color } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nome é obrigatório' });
+      const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const { data, error } = await supabaseAdmin.from('tags').insert({ name, slug, description: description || null, color: color || '#6b7280' }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ tag: data });
+    }
+    if (type === 'tags' && req.method === 'PUT') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { id, name, description, color } = req.body;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const updateData = {};
+      if (name) {
+        updateData.name = name;
+        updateData.slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      }
+      if (description !== undefined) updateData.description = description;
+      if (color) updateData.color = color;
+      const { data, error } = await supabaseAdmin.from('tags').update(updateData).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ tag: data });
+    }
+    if (type === 'tags' && req.method === 'DELETE') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const { error } = await supabaseAdmin.from('tags').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Tag deletada' });
+    }
     
     // EVENT CATEGORIES
-    if (type === 'event-categories') {
+    if (type === 'event-categories' && req.method === 'GET') {
       const { data, error } = await supabaseAdmin.from('event_categories').select('*').order('name');
       if (error) throw error;
       return res.status(200).json({ categories: data || [] });
+    }
+    if (type === 'event-categories' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { name, description, color, icon } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nome é obrigatório' });
+      const { data, error } = await supabaseAdmin.from('event_categories').insert({ name, description, color: color || '#6b7280', icon }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ category: data });
+    }
+    if (type === 'event-categories' && req.method === 'PUT') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const { data, error } = await supabaseAdmin.from('event_categories').update(req.body).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ category: data });
+    }
+    if (type === 'event-categories' && req.method === 'DELETE') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const { error } = await supabaseAdmin.from('event_categories').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Categoria deletada' });
     }
     
     // MODULES
