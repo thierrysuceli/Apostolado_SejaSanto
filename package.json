@@ -5,12 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend": "node server-dev-new.js",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/list": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@supabase/supabase-js": "^2.78.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "isomorphic-dompurify": "^2.31.0",
+    "jsonwebtoken": "^9.0.2",
+    "quill": "^2.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^6.22.0"
   },
   "devDependencies": {

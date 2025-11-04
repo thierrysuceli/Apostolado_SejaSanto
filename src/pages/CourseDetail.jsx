@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { dbCourses, dbComments } from '../data/mockDatabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const CourseDetail = ({ courseId, onNavigate }) => {
   const { currentUser, hasAccess } = useAuth();
@@ -100,7 +100,30 @@ const CourseDetail = ({ courseId, onNavigate }) => {
             {course.category}
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">{course.title}</h1>
-          <p className="text-gray-300 text-lg mb-6">{course.description}</p>
+          <div 
+            className="text-gray-300 text-lg mb-6"
+            dangerouslySetInnerHTML={{ __html: course.description }}
+          />
+          
+          {/* Thematic Tags */}
+          {course.course_content_tags && course.course_content_tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {course.course_content_tags.map((contentTag) => (
+                <span
+                  key={contentTag.tag_id}
+                  className="inline-flex items-center text-sm font-medium px-3 py-1 rounded-full"
+                  style={{
+                    backgroundColor: contentTag.tags?.color + '20' || '#6b728020',
+                    color: contentTag.tags?.color || '#6b7280',
+                    border: `1px solid ${contentTag.tags?.color || '#6b7280'}40`
+                  }}
+                  title={contentTag.tags?.description}
+                >
+                  {contentTag.tags?.name || 'Tag'}
+                </span>
+              ))}
+            </div>
+          )}
           
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">

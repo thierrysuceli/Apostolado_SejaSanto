@@ -16,6 +16,12 @@ self.addEventListener('install', (event) => {
 
 // Fetch with cache-first strategy
 self.addEventListener('fetch', (event) => {
+  // Ignorar requisições externas (Google Fonts, APIs externas, etc)
+  const url = new URL(event.request.url);
+  if (url.origin !== location.origin) {
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

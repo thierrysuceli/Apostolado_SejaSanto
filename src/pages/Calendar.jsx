@@ -1,49 +1,326 @@
-import React, { useState } from 'react';
-import { dbEvents } from '../data/mockDatabase';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useRef } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
+import interactionPlugin from '@fullcalendar/interaction';
+import ptBrLocale from '@fullcalendar/core/locales/pt-br';
+import { useApi } from '../contexts/ApiContext';
+import { useAuth } from '../contexts/AuthContext';
+import EventModal from '../components/EventModal';
+import '../styles/fullcalendar-custom.css';
 
 const Calendar = () => {
-  const { hasAccess } = useAuth();
-  const [currentDate] = useState(new Date(2025, 10, 1)); // November 2025
+  const api = useApi();
+  const { user, isAdmin, hasPermission } = useAuth();
+  const calendarRef = useRef(null);
+  
+  const [allEvents, setAllEvents] = useState([]); // Store all events
+  const [events, setEvents] = useState([]); // Filtered events for display
+  const [categories, setCategories] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Modal states
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [showCreateEditModal, setShowCreateEditModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  
+  // Form state
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    all_day: false,
+    location: '',
+    meeting_link: '',
+    color: '',
+    categories: [],
+    roles: [],
+    users: []
+  });
 
-  // Get days in month
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+  // Load events and categories on mount
+  useEffect(() => {
+    loadData();
+  }, []);
 
-    return { daysInMonth, startingDayOfWeek };
+  // Filter events locally when categories change
+  useEffect(() => {
+    if (selectedCategories.length === 0) {
+      setEvents(allEvents);
+    } else {
+      const filtered = allEvents.filter(event =>
+        event.extendedProps.categories.some(cat =>
+          selectedCategories.includes(cat.category_id)
+        )
+      );
+      setEvents(filtered);
+    }
+  }, [selectedCategories, allEvents]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Load events
+      const eventsData = await api.events.getAll();
+      const loadedEvents = eventsData.events || [];
+      
+      // Load categories
+      const categoriesData = await api.eventCategories.getAll();
+      setCategories(categoriesData.categories || []);
+      
+      // Load ALL roles (admin endpoint to get all, not just public)
+      if (isAdmin() || hasPermission('manage_events')) {
+        try {
+          const rolesData = await api.admin.roles.getAll();
+          setRoles(rolesData.roles || []);
+        } catch (err) {
+          console.error('Error loading roles:', err);
+          // Fallback to public roles if admin fails
+          const publicRolesData = await api.roles.getAll();
+          setRoles(publicRolesData.roles || []);
+        }
+      } else {
+        const rolesData = await api.roles.getAll();
+        setRoles(rolesData.roles || []);
+      }
+      
+      // Load all users (admin only)
+      if (isAdmin() || hasPermission('manage_events')) {
+        try {
+          const usersData = await api.admin.users.getAll();
+          setUsers(usersData.users || []);
+          console.log('Loaded users:', usersData.users?.length); // Debug
+        } catch (err) {
+          console.error('Error loading users:', err);
+        }
+      }
+      
+      // Transform events for FullCalendar
+      const transformedEvents = loadedEvents.map(event => {
+        console.log('Event data:', event); // Debug
+        return {
+          id: event.id,
+          title: event.title,
+          start: event.start_date,
+          end: event.end_date || event.start_date,
+          allDay: event.all_day || false,
+          backgroundColor: event.color || getEventColor(event),
+          borderColor: event.color || getEventColor(event),
+          extendedProps: {
+            description: event.description,
+            location: event.location,
+            meeting_link: event.meeting_link,
+            categories: event.event_category_tags || [],
+            // Extrair roles do event_tags.roles
+            roles: (event.event_tags || []).map(et => et.roles).filter(Boolean),
+            created_by: event.created_by
+          }
+        };
+      });
+      
+      // Store all events
+      setAllEvents(transformedEvents);
+      setEvents(transformedEvents);
+    } catch (err) {
+      console.error('Error loading calendar data:', err);
+      setError('Erro ao carregar eventos');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
-  const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
-  // Get events for a specific day
-  const getEventsForDay = (day) => {
-    const dateStr = `2025-11-${String(day).padStart(2, '0')}`;
-    return dbEvents.filter(event => event.date === dateStr);
+  const getEventColor = (event) => {
+    // Return color from first category or default
+    if (event.event_category_tags && event.event_category_tags.length > 0) {
+      return event.event_category_tags[0].event_categories?.color || '#6b7280';
+    }
+    return '#6b7280';
   };
 
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  // Event handlers
+  const handleEventClick = (clickInfo) => {
+    const event = clickInfo.event;
+    setSelectedEvent({
+      id: event.id,
+      title: event.title,
+      start: event.start,
+      end: event.end,
+      allDay: event.allDay,
+      color: event.backgroundColor,
+      ...event.extendedProps
+    });
+    setShowEventModal(true);
+  };
 
-  // Create array of days including empty slots for proper alignment
-  const calendarDays = [];
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    calendarDays.push(null);
+  const handleDateClick = (arg) => {
+    if (isAdmin() || hasPermission('manage_events')) {
+      setEventForm({
+        title: '',
+        description: '',
+        start_date: arg.dateStr,
+        end_date: arg.dateStr,
+        all_day: arg.allDay,
+        location: '',
+        meeting_link: '',
+        color: '',
+        categories: [],
+        roles: [],
+        users: []
+      });
+      setIsEditMode(false);
+      setShowCreateEditModal(true);
+    }
+  };
+
+  const handleEventDrop = async (info) => {
+    if (!isAdmin() && !hasPermission('manage_events')) {
+      info.revert();
+      return;
+    }
+
+    try {
+      await api.events.update(info.event.id, {
+        start_date: info.event.start.toISOString(),
+        end_date: info.event.end ? info.event.end.toISOString() : info.event.start.toISOString(),
+        all_day: info.event.allDay
+      });
+    } catch (err) {
+      console.error('Error updating event:', err);
+      alert('Erro ao mover evento');
+      info.revert();
+    }
+  };
+
+  const handleEventResize = async (info) => {
+    if (!isAdmin() && !hasPermission('manage_events')) {
+      info.revert();
+      return;
+    }
+
+    try {
+      await api.events.update(info.event.id, {
+        end_date: info.event.end ? info.event.end.toISOString() : info.event.start.toISOString()
+      });
+    } catch (err) {
+      console.error('Error resizing event:', err);
+      alert('Erro ao redimensionar evento');
+      info.revert();
+    }
+  };
+
+  const handleEditEvent = () => {
+    console.log('Editing event:', selectedEvent); // Debug
+    setEventForm({
+      title: selectedEvent.title,
+      description: selectedEvent.description || '',
+      start_date: selectedEvent.start,
+      end_date: selectedEvent.end || selectedEvent.start,
+      all_day: selectedEvent.allDay || false,
+      location: selectedEvent.location || '',
+      meeting_link: selectedEvent.meeting_link || '',
+      color: selectedEvent.color || '',
+      categories: Array.isArray(selectedEvent.categories) 
+        ? selectedEvent.categories.map(c => c.category_id || c.event_categories?.id).filter(Boolean)
+        : [],
+      roles: Array.isArray(selectedEvent.roles) 
+        ? selectedEvent.roles.map(r => r.id || r.role_id).filter(Boolean)
+        : []
+    });
+    setIsEditMode(true);
+    setShowEventModal(false);
+    setShowCreateEditModal(true);
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!confirm('Tem certeza que deseja deletar este evento?')) return;
+
+    try {
+      await api.events.delete(selectedEvent.id);
+      setShowEventModal(false);
+      loadData();
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      alert('Erro ao deletar evento');
+    }
+  };
+
+  const handleSaveEvent = async (formData) => {
+    if (!formData.title.trim()) {
+      alert('Título é obrigatório');
+      return;
+    }
+
+    try {
+      const eventData = {
+        ...formData,
+        start_date: new Date(formData.start_date).toISOString(),
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date(formData.start_date).toISOString(),
+      };
+
+      if (isEditMode) {
+        await api.events.update(selectedEvent.id, eventData);
+      } else {
+        await api.events.create(eventData);
+      }
+
+      setShowCreateEditModal(false);
+      loadData();
+    } catch (err) {
+      console.error('Error saving event:', err);
+      alert(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} evento`);
+    }
+  };
+
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-secondary-600 dark:text-gray-300">Carregando calendário...</p>
+        </div>
+      </div>
+    );
   }
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push(day);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={loadData}
+            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-500 dark:text-gray-400 mb-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-700 dark:text-gray-200 mb-4">
             Calendário de Eventos
           </h1>
           <p className="text-secondary-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -51,127 +328,224 @@ const Calendar = () => {
           </p>
         </div>
 
-        {/* Calendar */}
-        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 md:p-8 shadow-lg">
-          {/* Month Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 capitalize">{monthName}</h2>
-            <div className="text-primary-700 font-semibold">Agenda de novembro</div>
-          </div>
-
-          {/* Week Days Header */}
-          <div className="grid grid-cols-7 gap-2 mb-4">
-            {weekDays.map(day => (
-              <div key={day} className="text-center py-3 text-primary-600 font-semibold text-sm">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
-            {calendarDays.map((day, index) => {
-              if (day === null) {
-                return <div key={`empty-${index}`} className="aspect-square" />;
-              }
-
-              const dayEvents = getEventsForDay(day);
-              const visibleEvents = dayEvents.filter(event => hasAccess(event.requiredRoles));
-              const hasEvents = visibleEvents.length > 0;
-              const isToday = day === 1; // Mock: treating day 1 as today
-
-              return (
-                <div
-                  key={day}
-                  className={`aspect-square border rounded-lg p-2 ${
-                    isToday ? 'bg-primary-100 border-primary-500 shadow-md' : 'bg-white dark:bg-gray-800 border-beige-200'
-                  } ${hasEvents ? 'cursor-pointer hover:bg-beige-50' : ''}`}
+        {/* Category Filters */}
+        {categories.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 shadow-md border border-beige-200 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-secondary-700 dark:text-gray-200 mb-3">Filtrar por Categoria:</h3>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(category => {
+                const isSelected = selectedCategories.includes(category.id);
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => toggleCategory(category.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      isSelected
+                        ? 'shadow-md scale-105'
+                        : 'opacity-60 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: isSelected ? category.color : category.color + '40',
+                      color: isSelected ? '#ffffff' : category.color,
+                      border: `2px solid ${category.color}`
+                    }}
+                  >
+                    {category.name}
+                  </button>
+                );
+              })}
+              {selectedCategories.length > 0 && (
+                <button
+                  onClick={() => setSelectedCategories([])}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
-                  <div className="h-full flex flex-col">
-                    <div className={`text-sm font-semibold mb-1 ${
-                      isToday ? 'text-primary-600' : 'text-secondary-700'
-                    }`}>
-                      {day}
-                    </div>
-                    
-                    {visibleEvents.length > 0 && (
-                      <div className="flex-1 space-y-1 overflow-hidden">
-                        {visibleEvents.slice(0, 2).map(event => (
-                          <div
-                            key={event.id}
-                            className="bg-primary-600 text-white text-xs px-1 py-0.5 rounded truncate shadow-sm"
-                            title={event.title}
-                          >
-                            {event.title}
-                          </div>
-                        ))}
-                        {visibleEvents.length > 2 && (
-                          <div className="text-primary-600 text-xs font-medium">
-                            +{visibleEvents.length - 2} mais
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                  Limpar Filtros
+                </button>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* FullCalendar */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-6 shadow-lg border border-beige-200 dark:border-gray-700 fullcalendar-container">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+            initialView={window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth'}
+            locale={ptBrLocale}
+            headerToolbar={{
+              left: 'prev,next',
+              center: 'title',
+              right: window.innerWidth < 768 ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            }}
+            buttonText={{
+              today: 'Hoje',
+              month: 'Mês',
+              week: 'Semana',
+              day: 'Dia',
+              list: 'Lista'
+            }}
+            events={events}
+            eventClick={handleEventClick}
+            dateClick={handleDateClick}
+            editable={isAdmin() || hasPermission('manage_events')}
+            eventDrop={handleEventDrop}
+            eventResize={handleEventResize}
+            selectable={isAdmin() || hasPermission('manage_events')}
+            selectMirror={true}
+            dayMaxEvents={window.innerWidth < 768 ? 2 : true}
+            weekends={true}
+            height="auto"
+            contentHeight="auto"
+            aspectRatio={window.innerWidth < 768 ? 1.0 : 1.8}
+            eventTimeFormat={{
+              hour: '2-digit',
+              minute: '2-digit',
+              meridiem: false,
+              hour12: false
+            }}
+          />
         </div>
 
-        {/* Events List */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 mb-6">Próximos Eventos</h2>
-          <div className="space-y-4">
-            {dbEvents.map(event => {
-              const canAccess = hasAccess(event.requiredRoles);
-              
-              return (
-                <div
-                  key={event.id}
-                  className={`bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md ${
-                    !canAccess ? 'opacity-50' : ''
-                  }`}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-2">
-                        <div className="bg-primary-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm">
-                          {new Date(event.date).getDate()}
-                        </div>
-                        <div>
-                          <h3 className="text-secondary-500 font-bold text-lg flex items-center">
-                            {event.title}
-                            {!canAccess && (
-                              <svg className="w-5 h-5 text-primary-700 dark:text-primary-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                              </svg>
-                            )}
-                          </h3>
-                          <p className="text-secondary-600 dark:text-gray-300 text-sm">{event.time}</p>
-                        </div>
-                      </div>
-                      {canAccess && (
-                        <p className="text-secondary-500 ml-0 md:ml-20">{event.description}</p>
-                      )}
-                      {!canAccess && (
-                        <p className="text-secondary-600 dark:text-gray-300 italic ml-0 md:ml-20">
-                          Este evento é restrito a membros com acesso especial.
+        {/* Event Detail Modal */}
+        {showEventModal && selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto" onClick={() => setShowEventModal(false)}>
+            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full my-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+                <div className="flex justify-between items-start mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-secondary-700 dark:text-gray-200 pr-8">
+                    {selectedEvent.title}
+                  </h2>
+                  <button
+                    onClick={() => setShowEventModal(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Event Details */}
+                <div className="space-y-4">
+                  {/* Date/Time */}
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                      <p className="text-secondary-700 dark:text-gray-200 font-medium">
+                        {new Date(selectedEvent.start).toLocaleDateString('pt-BR', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                      {!selectedEvent.allDay && (
+                        <p className="text-secondary-600 dark:text-gray-400 text-sm">
+                          {new Date(selectedEvent.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {selectedEvent.end && ` - ${new Date(selectedEvent.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
                         </p>
                       )}
                     </div>
-                    
-                    {canAccess && (
-                      <button className="mt-4 md:mt-0 bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-600 transition-colors shadow-md whitespace-nowrap">
-                        Participar
-                      </button>
-                    )}
                   </div>
+
+                  {/* Location */}
+                  {selectedEvent.location && (
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <p className="text-secondary-700 dark:text-gray-200">{selectedEvent.location}</p>
+                    </div>
+                  )}
+
+                  {/* Meeting Link */}
+                  {selectedEvent.meeting_link && (
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      <a
+                        href={selectedEvent.meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:text-primary-700 hover:underline"
+                      >
+                        Link da Reunião
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Categories */}
+                  {selectedEvent.categories && selectedEvent.categories.length > 0 && (
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedEvent.categories.map(cat => (
+                          <span
+                            key={cat.category_id}
+                            className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                            style={{ backgroundColor: cat.event_categories?.color || '#6b7280' }}
+                          >
+                            {cat.event_categories?.name || 'Categoria'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {selectedEvent.description && (
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h3 className="text-sm font-semibold text-secondary-700 dark:text-gray-200 mb-2">Descrição:</h3>
+                      <div 
+                        className="prose prose-sm max-w-none dark:prose-invert text-secondary-600 dark:text-gray-300"
+                        dangerouslySetInnerHTML={{ __html: selectedEvent.description }}
+                      />
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+
+                {/* Actions */}
+                {(isAdmin() || hasPermission('manage_events')) && (
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={handleEditEvent}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm sm:text-base"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={handleDeleteEvent}
+                      className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm sm:text-base"
+                    >
+                      Deletar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Create/Edit Event Modal */}
+        <EventModal
+          show={showCreateEditModal}
+          isEditMode={isEditMode}
+          eventForm={eventForm}
+          setEventForm={setEventForm}
+          categories={categories}
+          roles={roles}
+          users={users}
+          onSave={handleSaveEvent}
+          onClose={() => setShowCreateEditModal(false)}
+          onCategoryCreated={loadData}
+        />
       </div>
     </div>
   );

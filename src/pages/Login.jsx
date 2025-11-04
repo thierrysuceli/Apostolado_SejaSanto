@@ -1,38 +1,55 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-const Login = ({ onNavigate }) => {
-  const { login, register, loginAsMember, loginAsAdmin } = useAuth();
+const Login = () => {
+  const navigate = useNavigate();
+  const { login, register, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+
+  // Redirecionar se já estiver logado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (isLogin) {
-      const result = login(formData.email, formData.password);
-      if (result.success) {
-        onNavigate('home');
+    try {
+      if (isLogin) {
+        const result = await login(formData.email, formData.password);
+        if (result.success) {
+          navigate('/');
+        } else {
+          setError(result.error);
+        }
       } else {
-        setError(result.error);
+        if (!formData.name || !formData.email || !formData.password) {
+          setError('Todos os campos são obrigatórios');
+          return;
+        }
+        const result = await register(formData.name, formData.email, formData.password);
+        if (result.success) {
+          navigate('/');
+        } else {
+          setError(result.error);
+        }
       }
-    } else {
-      if (!formData.name || !formData.email || !formData.password) {
-        setError('Todos os campos são obrigatórios');
-        return;
-      }
-      const result = register(formData.name, formData.email, formData.password);
-      if (result.success) {
-        onNavigate('home');
-      } else {
-        setError(result.error);
-      }
+    } catch (err) {
+      setError('Erro ao processar sua solicitação');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,15 +59,6 @@ const Login = ({ onNavigate }) => {
       [e.target.name]: e.target.value
     });
     setError('');
-  };
-
-  const handleQuickLogin = (type) => {
-    if (type === 'member') {
-      loginAsMember();
-    } else {
-      loginAsAdmin();
-    }
-    onNavigate('home');
   };
 
   return (
@@ -131,9 +139,10 @@ const Login = ({ onNavigate }) => {
 
             <button
               type="submit"
-              className="w-full bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-600 transition-colors shadow-md"
+              disabled={loading}
+              className="w-full bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-600 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLogin ? 'Entrar' : 'Criar Conta'}
+              {loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Criar Conta')}
             </button>
           </form>
 
@@ -150,30 +159,10 @@ const Login = ({ onNavigate }) => {
             </button>
           </div>
 
-          {/* Quick Login Buttons (for testing) */}
-          <div className="mt-8 pt-6 border-t border-beige-200 dark:border-gray-700">
-            <p className="text-secondary-600 dark:text-gray-300 text-sm text-center mb-4">Login Rápido (Demonstração)</p>
-            <div className="space-y-3">
-              <button
-                onClick={() => handleQuickLogin('member')}
-                className="w-full bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-secondary-500 dark:text-gray-400 py-2 rounded-lg hover:bg-beige-50 dark:bg-gray-950 transition-colors text-sm shadow-sm"
-              >
-                Login como Membro
-              </button>
-              <button
-                onClick={() => handleQuickLogin('admin')}
-                className="w-full bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 text-secondary-500 dark:text-gray-400 py-2 rounded-lg hover:bg-beige-50 dark:bg-gray-950 transition-colors text-sm shadow-sm"
-              >
-                Login como Admin
-              </button>
-            </div>
-          </div>
-
           {isLogin && (
             <div className="mt-6 bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-secondary-600 dark:text-gray-300 text-xs mb-2">Credenciais de teste:</p>
-              <p className="text-secondary-500 text-xs"><strong>Membro:</strong> membro@apostolado.com / membro123</p>
-              <p className="text-secondary-500 text-xs"><strong>Admin:</strong> admin@apostolado.com / admin123</p>
+              <p className="text-secondary-600 dark:text-gray-300 text-xs mb-2">Credencial de teste:</p>
+              <p className="text-secondary-500 text-xs"><strong>Admin:</strong> admin@apostolado.com / Admin@123</p>
             </div>
           )}
         </div>

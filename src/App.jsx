@@ -1,63 +1,71 @@
-import React, { useState } from 'react';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import Header from './components/Header';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ApiProvider } from './contexts/ApiContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import HeaderNew from './components/HeaderNew';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Courses from './pages/Courses';
-import CourseDetail from './pages/CourseDetail';
+import CourseDetailNew from './pages/CourseDetailNew';
 import Posts from './pages/Posts';
+import PostDetail from './pages/PostDetail';
+import TopicDetail from './pages/TopicDetail';
 import Calendar from './pages/Calendar';
+import Central from './pages/Central';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import AdminContentEditor from './pages/AdminContentEditor';
+import AdminCourseCreate from './pages/AdminCourseCreate';
+import AdminPostCreate from './pages/AdminPostCreate';
+import AdminEventCreate from './pages/AdminEventCreate';
+import AdminCourseEdit from './pages/AdminCourseEdit';
+import AdminPostEdit from './pages/AdminPostEdit';
+import AdminEventEdit from './pages/AdminEventEdit';
+import AdminCourseModules from './pages/AdminCourseModules';
+import AdminTags from './pages/AdminTags';
+import AdminUsers from './pages/AdminUsers';
+import AdminRoles from './pages/AdminRoles';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [selectedCourseId, setSelectedCourseId] = useState(null);
-
-  const handleNavigate = (page, courseId = null) => {
-    setCurrentPage(page);
-    if (courseId) {
-      setSelectedCourseId(courseId);
-    }
-    // Scroll to top on navigation
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <Home onNavigate={handleNavigate} />;
-      case 'cursos':
-        return <Courses onNavigate={handleNavigate} />;
-      case 'curso-detalhe':
-        return <CourseDetail courseId={selectedCourseId} onNavigate={handleNavigate} />;
-      case 'postagens':
-        return <Posts onNavigate={handleNavigate} />;
-      case 'calendario':
-        return <Calendar onNavigate={handleNavigate} />;
-      case 'login':
-        return <Login onNavigate={handleNavigate} />;
-      case 'perfil':
-        return <Profile onNavigate={handleNavigate} />;
-      case 'admin':
-        return <Admin onNavigate={handleNavigate} />;
-      default:
-        return <Home onNavigate={handleNavigate} />;
-    }
-  };
-
   return (
     <ThemeProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
-          <Header onNavigate={handleNavigate} currentPage={currentPage} />
-          <main>
-            {renderPage()}
-          </main>
-          <Footer />
-        </div>
+        <ApiProvider>
+          <BrowserRouter>
+            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+              <HeaderNew />
+              <main>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/courses/:id" element={<CourseDetailNew />} />
+                  <Route path="/courses/:courseId/topics/:topicId" element={<TopicDetail />} />
+                  <Route path="/courses/:courseId/modules/:moduleId/topics/:topicId" element={<TopicDetail />} />
+                  <Route path="/posts" element={<Posts />} />
+                  <Route path="/posts/:id" element={<PostDetail />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/central" element={<Central />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/admin/content-editor" element={<AdminContentEditor />} />
+                  <Route path="/admin/courses/create" element={<AdminCourseCreate />} />
+                  <Route path="/admin/posts/create" element={<AdminPostCreate />} />
+                  <Route path="/admin/events/create" element={<AdminEventCreate />} />
+                  <Route path="/admin/courses/:id/edit" element={<AdminCourseEdit />} />
+                  <Route path="/admin/courses/:id/modules" element={<AdminCourseModules />} />
+                  <Route path="/admin/posts/:id/edit" element={<AdminPostEdit />} />
+                  <Route path="/admin/events/:id/edit" element={<AdminEventEdit />} />
+                  <Route path="/admin/tags" element={<AdminTags />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/roles" element={<AdminRoles />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </BrowserRouter>
+        </ApiProvider>
       </AuthProvider>
     </ThemeProvider>
   );

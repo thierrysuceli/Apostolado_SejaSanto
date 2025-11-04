@@ -1,0 +1,131 @@
+/* =====================================================
+   QUILL EDITOR - Dark Theme Customization
+   ===================================================== */
+
+/* Container do editor */
+.ql-container {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  min-height: 200px;
+}
+
+/* Toolbar */
+.ql-toolbar {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  border-bottom: none !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+/* Editor area */
+.ql-container.ql-snow {
+  background: #111827 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 0 0 8px 8px !important;
+  min-height: 200px;
+}
+
+/* Texto dentro do editor */
+.ql-editor {
+  color: #f3f4f6 !important;
+  min-height: 200px;
+  padding: 16px;
+}
+
+/* Placeholder */
+.ql-editor.ql-blank::before {
+  color: #9ca3af !important;
+  font-style: normal;
+}
+
+/* Botões da toolbar */
+.ql-toolbar button,
+.ql-toolbar .ql-picker-label {
+  color: #d1d5db !important;
+}
+
+.ql-toolbar button:hover,
+.ql-toolbar .ql-picker-label:hover {
+  color: #fbbf24 !important;
+}
+
+.ql-toolbar button.ql-active,
+.ql-toolbar .ql-picker-label.ql-active {
+  color: #fbbf24 !important;
+}
+
+/* Ícones SVG */
+.ql-toolbar button svg,
+.ql-toolbar .ql-picker-label svg {
+  stroke: currentColor;
+}
+
+.ql-stroke {
+  stroke: currentColor !important;
+}
+
+.ql-fill {
+  fill: currentColor !important;
+}
+
+/* Dropdowns */
+.ql-picker-options {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+}
+
+.ql-picker-item {
+  color: #d1d5db !important;
+}
+
+.ql-picker-item:hover {
+  background: #374151 !important;
+  color: #fbbf24 !important;
+}
+
+/* Color picker */
+.ql-color-picker .ql-picker-options,
+.ql-background .ql-picker-options {
+  padding: 8px;
+}
+
+/* Links */
+.ql-editor a {
+  color: #fbbf24;
+}
+
+/* Código */
+.ql-editor pre {
+  background: #1f2937;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.ql-editor code {
+  background: #1f2937;
+  color: #fbbf24;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Blockquote */
+.ql-editor blockquote {
+  border-left: 4px solid #fbbf24;
+  padding-left: 16px;
+  color: #d1d5db;
+}
+
+/* Listas */
+.ql-editor ul,
+.ql-editor ol {
+  padding-left: 24px;
+}
+
+/* Imagens */
+.ql-editor img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}

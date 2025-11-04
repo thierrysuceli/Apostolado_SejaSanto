@@ -1,15 +1,15 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
-const CourseCard = ({ course, onNavigate }) => {
-  const { hasAccess } = useAuth();
-  const isLocked = !hasAccess(course.requiredRoles);
+const CourseCard = ({ course }) => {
+  // Com a API, todos os cursos já vêm filtrados por permissão
+  const isLocked = false;
 
-  return (
-    <div className="relative bg-white rounded-xl overflow-hidden group cursor-pointer transform transition-transform hover:scale-105 shadow-md hover:shadow-xl border border-beige-200 dark:border-gray-700">
-      <div className="relative aspect-video">
+  const cardContent = (
+    <div className="relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden group cursor-pointer transform transition-transform hover:scale-105 shadow-md hover:shadow-xl border border-beige-200 dark:border-gray-700 transition-colors duration-300 h-full flex flex-col">
+      <div className="relative aspect-video flex-shrink-0">
         <img 
-          src={course.image} 
+          src={course.cover_image_url || course.image || '/Apostolado_PNG.png'} 
           alt={course.title}
           className={`w-full h-full object-cover ${isLocked ? 'opacity-50' : ''}`}
         />
@@ -29,46 +29,78 @@ const CourseCard = ({ course, onNavigate }) => {
         )}
       </div>
 
-      <div className="p-5 bg-beige-50 dark:bg-gray-900">
-        <div className="text-primary-700 dark:text-primary-500 text-xs font-bold mb-2 uppercase tracking-wider">
-          {course.category}
-        </div>
-        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 leading-tight">
+      <div className="p-5 bg-beige-50 dark:bg-gray-900 flex-grow flex flex-col">
+        {course.category && (
+          <div className="text-primary-700 dark:text-primary-500 text-xs font-bold mb-2 uppercase tracking-wider flex-shrink-0">
+            {course.category}
+          </div>
+        )}
+        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 leading-tight flex-shrink-0">
           {course.title}
         </h3>
-        <p className="text-secondary-500 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
-          {course.description}
-        </p>
+        <div 
+          className="text-secondary-500 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed overflow-hidden flex-shrink-0"
+          dangerouslySetInnerHTML={{ __html: course.description }}
+        />
 
-        {!isLocked && (
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-1">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-secondary-700 dark:text-gray-200 text-sm font-bold ml-1">{course.rating}</span>
-              <span className="text-secondary-500 dark:text-gray-400 text-xs ml-1">({course.reviews})</span>
-            </div>
+        {/* Thematic Tags */}
+        {course.course_content_tags && course.course_content_tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {course.course_content_tags.slice(0, 3).map((contentTag) => (
+              <span
+                key={contentTag.tag_id}
+                className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: contentTag.tags?.color + '20' || '#6b728020',
+                  color: contentTag.tags?.color || '#6b7280',
+                  border: `1px solid ${contentTag.tags?.color || '#6b7280'}30`
+                }}
+                title={contentTag.tags?.description}
+              >
+                {contentTag.tags?.name || 'Tag'}
+              </span>
+            ))}
+            {course.course_content_tags.length > 3 && (
+              <span className="text-xs text-secondary-500 dark:text-gray-400 px-2 py-0.5">
+                +{course.course_content_tags.length - 3}
+              </span>
+            )}
           </div>
         )}
 
-        <button
-          onClick={() => !isLocked && onNavigate('curso-detalhe', course.id)}
-          disabled={isLocked}
-          className={`w-full py-3 rounded-lg font-bold transition-all ${
-            isLocked
-              ? 'bg-beige-200 text-secondary-400 cursor-not-allowed'
-              : 'bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg'
-          }`}
-        >
-          {isLocked ? 'Acesso Restrito' : 'Assistir ao curso'}
-        </button>
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div className="text-secondary-600 dark:text-gray-300 text-sm">
+            {course.modules?.length || 0} módulos
+          </div>
+        </div>
+
+        <div className="mt-auto flex-shrink-0">
+          {isLocked ? (
+            <div className="w-full py-3 rounded-lg font-bold bg-beige-200 dark:bg-gray-700 text-secondary-400 dark:text-gray-500 cursor-not-allowed text-center transition-colors duration-300">
+              Acesso Restrito
+            </div>
+          ) : (
+            <button
+              className="w-full py-3 rounded-lg font-bold bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all"
+            >
+              Assistir ao curso
+            </button>
+          )}
+        </div>
       </div>
     </div>
+  );
+
+  // Se está bloqueado, retorna o card sem Link wrapper
+  if (isLocked) {
+    return cardContent;
+  }
+
+  // Se não está bloqueado, envolve em Link para navegação ao clicar no card
+  return (
+    <Link to={`/courses/${course.id}`} className="block">
+      {cardContent}
+    </Link>
   );
 };
 

@@ -1,17 +1,18 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
-const PostCard = ({ post, onNavigate }) => {
-  const { hasAccess } = useAuth();
-  const isLocked = !hasAccess(post.requiredRoles);
+const PostCard = ({ post }) => {
+  // Com a API, todos os posts já vêm filtrados por permissão
+  const isLocked = false;
 
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:shadow-xl transition-all shadow-md border border-beige-200 dark:border-gray-700">
-      <div className="relative aspect-video">
+  const cardContent = (
+    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:shadow-xl transition-all shadow-md border border-beige-200 dark:border-gray-700 h-full flex flex-col">
+      <div className="relative aspect-video bg-gray-200 dark:bg-gray-700 flex-shrink-0">
         <img 
-          src={post.image} 
+          src={post.cover_image_url || post.image || '/Apostolado_PNG.png'} 
           alt={post.title}
           className={`w-full h-full object-cover ${isLocked ? 'opacity-50' : ''}`}
+          onError={(e) => { e.target.src = '/Apostolado_PNG.png'; }}
         />
         
         {isLocked && (
@@ -23,24 +24,25 @@ const PostCard = ({ post, onNavigate }) => {
         )}
       </div>
 
-      <div className="p-5 bg-beige-50 dark:bg-gray-900">
-        <div className="flex items-center justify-between mb-2">
+      <div className="p-5 bg-beige-50 dark:bg-gray-900 flex-grow flex flex-col">
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <span className="text-primary-700 dark:text-primary-500 text-xs font-bold uppercase tracking-wider">
             {post.category}
           </span>
           <span className="text-secondary-500 dark:text-gray-400 text-xs font-medium">
-            {post.date}
+            {post.published_at ? new Date(post.published_at).toLocaleDateString('pt-BR') : ''}
           </span>
         </div>
         
-        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors leading-tight">
+        <h3 className="text-secondary-700 dark:text-gray-200 font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors leading-tight flex-shrink-0">
           {post.title}
         </h3>
         
-        {!isLocked && (
-          <p className="text-secondary-600 dark:text-gray-300 text-sm line-clamp-3 leading-relaxed">
-            {post.excerpt}
-          </p>
+        {!isLocked && post.excerpt && (
+          <div 
+            className="text-secondary-600 dark:text-gray-300 text-sm line-clamp-3 leading-relaxed prose prose-sm max-w-none dark:prose-invert overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: post.excerpt }}
+          />
         )}
 
         {isLocked && (
@@ -50,6 +52,18 @@ const PostCard = ({ post, onNavigate }) => {
         )}
       </div>
     </div>
+  );
+
+  // Se está bloqueado, não permite navegação
+  if (isLocked) {
+    return cardContent;
+  }
+
+  // Se não está bloqueado, envolve em Link
+  return (
+    <Link to={`/posts/${post.id}`}>
+      {cardContent}
+    </Link>
   );
 };
 
