@@ -13,9 +13,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Autenticação necessária' });
   }
 
-  await new Promise((resolve) => hasPermission(req, res, resolve));
-  
-  if (!req.userPermissions?.includes('manage_roles')) {
+  const userHasPermission = await hasPermission(req.user.id, 'manage_roles');
+  if (!userHasPermission) {
     return res.status(403).json({ error: 'Sem permissão para gerenciar roles' });
   }
 
