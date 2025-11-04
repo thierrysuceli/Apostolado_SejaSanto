@@ -29,6 +29,162 @@
       "destination": "/api/central/groups-consolidated?id=:id&resource=members"
     },
     {
+      "source": "/api/central/posts/:id/pin",
+      "destination": "/api/central/posts-actions?id=:id&action=pin"
+    },
+    {
+      "source": "/api/central/posts/:id/delete",
+      "destination": "/api/central/posts-actions?id=:id&action=delete"
+    },
+    {
+      "source": "/api/central/posts/:id/edit",
+      "destination": "/api/central/posts-actions?id=:id&action=edit"
+    },
+    {
+      "source": "/api/central/posts/:id/comments",
+      "destination": "/api/central/posts-actions?id=:id"
+    },
+    {
+      "source": "/api/central/polls/:id/vote",
+      "destination": "/api/central/polls-actions?id=:id&action=vote"
+    },
+    {
+      "source": "/api/central/polls/:id/delete",
+      "destination": "/api/central/polls-actions?id=:id&action=delete"
+    },
+    {
+      "source": "/api/central/polls/:id/edit",
+      "destination": "/api/central/polls-actions?id=:id&action=edit"
+    },
+    {
+      "source": "/api/central/polls/:id/comments",
+      "destination": "/api/central/polls-actions?id=:id"
+    },
+    {
+      "source": "/api/central/registrations/:id/subscribe",
+      "destination": "/api/central/registrations-actions?id=:id&action=subscribe"
+    },
+    {
+      "source": "/api/central/registrations/:id/delete",
+      "destination": "/api/central/registrations-actions?id=:id&action=delete"
+    },
+    {
+      "source": "/api/central/registrations/:id/edit",
+      "destination": "/api/central/registrations-actions?id=:id&action=edit"
+    },
+    {
+      "source": "/api/central/members/:id/remove",
+      "destination": "/api/central/management?id=:id&type=member"
+    },
+    {
+      "source": "/api/central/subscriptions/:id/approve",
+      "destination": "/api/central/management?id=:id&type=subscription"
+    },
+    {
+      "source": "/api/admin/users/create",
+      "destination": "/api/admin/users-consolidated"
+    },
+    {
+      "source": "/api/admin/users/:id/roles",
+      "destination": "/api/admin/users-consolidated?id=:id&resource=roles"
+    },
+    {
+      "source": "/api/admin/users/:id",
+      "destination": "/api/admin/users-consolidated?id=:id"
+    },
+    {
+      "source": "/api/admin/users",
+      "destination": "/api/admin/users-consolidated"
+    },
+    {
+      "source": "/api/admin/roles/create",
+      "destination": "/api/admin/roles-consolidated"
+    },
+    {
+      "source": "/api/admin/roles/:id",
+      "destination": "/api/admin/roles-consolidated?id=:id"
+    },
+    {
+      "source": "/api/admin/roles",
+      "destination": "/api/admin/roles-consolidated"
+    },
+    {
+      "source": "/api/courses/create",
+      "destination": "/api/content?type=courses"
+    },
+    {
+      "source": "/api/courses/:id/tags",
+      "destination": "/api/content?type=courses&id=:id&resource=tags"
+    },
+    {
+      "source": "/api/courses/:id",
+      "destination": "/api/content?type=courses&id=:id"
+    },
+    {
+      "source": "/api/courses",
+      "destination": "/api/content?type=courses"
+    },
+    {
+      "source": "/api/posts/create",
+      "destination": "/api/content?type=posts"
+    },
+    {
+      "source": "/api/posts/:id/tags",
+      "destination": "/api/content?type=posts&id=:id&resource=tags"
+    },
+    {
+      "source": "/api/posts/:id",
+      "destination": "/api/content?type=posts&id=:id"
+    },
+    {
+      "source": "/api/posts",
+      "destination": "/api/content?type=posts"
+    },
+    {
+      "source": "/api/events/:id",
+      "destination": "/api/content?type=events&id=:id"
+    },
+    {
+      "source": "/api/events",
+      "destination": "/api/content?type=events"
+    },
+    {
+      "source": "/api/roles",
+      "destination": "/api/public-data?type=roles"
+    },
+    {
+      "source": "/api/tags",
+      "destination": "/api/public-data?type=tags"
+    },
+    {
+      "source": "/api/event-categories",
+      "destination": "/api/public-data?type=event-categories"
+    },
+    {
+      "source": "/api/modules/:id",
+      "destination": "/api/public-data?type=modules&id=:id"
+    },
+    {
+      "source": "/api/modules",
+      "destination": "/api/public-data?type=modules"
+    },
+    {
+      "source": "/api/topics/:id",
+      "destination": "/api/public-data?type=topics&id=:id"
+    },
+    {
+      "source": "/api/topics",
+      "destination": "/api/public-data?type=topics"
+    },
+    {
+      "source": "/api/comments/:id",
+      "destination": "/api/public-data?type=comments&id=:id"
+    },
+    {
+      "source": "/api/comments",
+      "destination": "/api/public-data?type=comments"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
