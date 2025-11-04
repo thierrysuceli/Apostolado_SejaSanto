@@ -5,6 +5,30 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/central/groups/create",
+      "destination": "/api/central/groups-consolidated?action=create"
+    },
+    {
+      "source": "/api/central/groups/:id/posts",
+      "destination": "/api/central/groups-consolidated?id=:id&resource=posts"
+    },
+    {
+      "source": "/api/central/groups/:id/polls",
+      "destination": "/api/central/groups-consolidated?id=:id&resource=polls"
+    },
+    {
+      "source": "/api/central/groups/:id/registrations",
+      "destination": "/api/central/groups-consolidated?id=:id&resource=registrations"
+    },
+    {
+      "source": "/api/central/groups/:id/approvals",
+      "destination": "/api/central/groups-consolidated?id=:id&resource=approvals"
+    },
+    {
+      "source": "/api/central/groups/:id/members",
+      "destination": "/api/central/groups-consolidated?id=:id&resource=members"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
