@@ -18,7 +18,8 @@ export default async function handler(req, res) {
       if (type === 'courses') {
         query = supabaseAdmin.from(table).select(`
           *,
-          course_tags(role_id, roles(id, name, display_name, color))
+          course_tags(role_id, roles(id, name, display_name, color)),
+          modules(id, title, order_index)
         `);
       } else if (type === 'posts') {
         query = supabaseAdmin.from(table).select(`
@@ -51,6 +52,14 @@ export default async function handler(req, res) {
           item.author = item.users;
           delete item.users;
         }
+        // Ordenar módulos para courses
+        if (type === 'courses' && item.modules) {
+          item.modules.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        }
+        // Extrair tags (roles) para facilitar acesso no frontend
+        if (item[`${type.slice(0, -1)}_tags`]) {
+          item.tags = item[`${type.slice(0, -1)}_tags`].map(t => t.roles).filter(Boolean);
+        }
         return item;
       });
       
@@ -65,7 +74,10 @@ export default async function handler(req, res) {
         query = supabaseAdmin.from(table).select(`
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
-          modules(id, title, description, order, course_id, topics(id, title, description, content, order, module_id))
+          modules(
+            *,
+            topics(*)
+          )
         `).eq('id', id);
       } else if (type === 'posts') {
         query = supabaseAdmin.from(table).select(`
@@ -95,6 +107,27 @@ export default async function handler(req, res) {
         delete data.users;
       }
       
+      // Ordenar módulos e tópicos para courses
+      if (type === 'courses' && data.modules) {
+        data.modules.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        data.modules.forEach(module => {
+          if (module.topics) {
+            module.topics.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+          }
+        });
+      }
+      
+      // Extrair tags (roles) para facilitar acesso no frontend
+      const tagField = `${type.slice(0, -1)}_tags`;
+      if (data[tagField]) {
+        data.tags = data[tagField].map(t => t.roles).filter(Boolean);
+      }
+      
+      // Formatar event_category_tags para events
+      if (type === 'events' && data.event_category_tags) {
+        data.categories = data.event_category_tags.map(t => t.event_categories).filter(Boolean);
+      }
+      
       return res.status(200).json({ [type.slice(0, -1)]: data });
     }
     
@@ -111,16 +144,18 @@ export default async function handler(req, res) {
     
     // POST /:type - Criar item
     if (req.method === 'POST' && !id) {
-      const { tags, categories, thematicTags, ...itemData } = req.body;
+      const { tags, roles, categories, thematicTags, ...itemData } = req.body;
       
       // Criar item principal
       const { data, error } = await supabaseAdmin.from(table).insert(itemData).select().single();
       if (error) throw error;
       
       // Associar tags (roles) para posts/events/courses
-      if (tags && Array.isArray(tags) && tags.length > 0) {
+      // Aceita tanto 'tags' quanto 'roles' para compatibilidade
+      const roleTags = tags || roles || [];
+      if (Array.isArray(roleTags) && roleTags.length > 0) {
         const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
-        const itemTags = tags.map(roleId => ({
+        const itemTags = roleTags.map(roleId => ({
           [`${type.slice(0, -1)}_id`]: data.id,
           role_id: roleId
         }));
@@ -145,14 +180,16 @@ export default async function handler(req, res) {
     
     // PUT /:type/:id - Atualizar item
     if (req.method === 'PUT' && id && !resource) {
-      const { tags, categories, thematicTags, ...itemData } = req.body;
+      const { tags, roles, categories, thematicTags, ...itemData } = req.body;
       
       // Atualizar item principal
       const { data, error } = await supabaseAdmin.from(table).update(itemData).eq('id', id).select().single();
       if (error) throw error;
       
       // Atualizar tags (roles) se fornecidas
-      if (tags && Array.isArray(tags)) {
+      // Aceita tanto 'tags' quanto 'roles' para compatibilidade
+      const roleTags = tags || roles;
+      if (roleTags && Array.isArray(roleTags)) {
         const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
         const idField = `${type.slice(0, -1)}_id`;
         
@@ -160,8 +197,8 @@ export default async function handler(req, res) {
         await supabaseAdmin.from(tagTable).delete().eq(idField, id);
         
         // Adicionar novas tags
-        if (tags.length > 0) {
-          const itemTags = tags.map(roleId => ({
+        if (roleTags.length > 0) {
+          const itemTags = roleTags.map(roleId => ({
             [idField]: id,
             role_id: roleId
           }));
