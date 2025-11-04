@@ -3,7 +3,7 @@
 // Combina 7 endpoints em 1 função usando query params
 // =====================================================
 
-import { authenticate } from '../../middleware-api/auth.js';
+import { authenticate, hasRole } from '../../middleware-api/auth.js';
 import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
@@ -66,20 +66,8 @@ export default async function handler(req, res) {
   // ============================================
   if (req.method === 'POST' && action === 'create') {
     try {
-      // Verificar se é admin
-      const { data: adminRole } = await supabaseAdmin
-        .from('roles')
-        .select('id')
-        .eq('name', 'ADMIN')
-        .single();
-      
-      const { data: userRoles } = await supabaseAdmin
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', user.id);
-      
-      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
-      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+      // Verificar se é admin usando função auxiliar do middleware
+      const isAdmin = await hasRole(user.id, 'ADMIN');
       
       if (!isAdmin) {
         return res.status(403).json({ error: 'Apenas admins podem criar grupos' });
@@ -214,13 +202,8 @@ export default async function handler(req, res) {
       const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
       const hasAccess = userRoleIds.includes(group.role_id);
       
-      const { data: adminRole } = await supabaseAdmin
-        .from('roles')
-        .select('id')
-        .eq('name', 'ADMIN')
-        .single();
-      
-      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+      // Usar função auxiliar do middleware para verificar admin
+      const isAdmin = await hasRole(user.id, 'ADMIN');
       
       if (!hasAccess && !isAdmin) {
         return res.status(403).json({ error: 'Sem acesso a este grupo' });
