@@ -25,10 +25,22 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && !id) {
       const { data: roles, error } = await supabaseAdmin
         .from('roles')
-        .select('*')
-        .order('display_name');
+        .select(`
+          *,
+          role_permissions(
+            permissions(*)
+          )
+        `)
+        .order('is_system', { ascending: false })
+        .order('name', { ascending: true });
 
       if (error) throw error;
+
+      // Formatar permissões
+      roles?.forEach(role => {
+        role.permissions = role.role_permissions?.map(rp => rp.permissions) || [];
+        delete role.role_permissions;
+      });
 
       return res.status(200).json({ roles: roles || [] });
     }
@@ -41,6 +53,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Nome e nome de exibição são obrigatórios' });
       }
 
+      // Verificar se já existe
+      const { data: existing } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', name.toUpperCase())
+        .single();
+
+      if (existing) {
+        return res.status(409).json({ error: 'Já existe uma role com este nome' });
+      }
+
       const { data: role, error } = await supabaseAdmin
         .from('roles')
         .insert({
@@ -48,13 +71,26 @@ export default async function handler(req, res) {
           display_name,
           description: description || null,
           color: color || '#6b7280',
-          permissions: permissions || [],
           is_system: false
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Associar permissões
+      if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+        const rolePermissions = permissions.map(permId => ({
+          role_id: role.id,
+          permission_id: permId
+        }));
+
+        const { error: permError } = await supabaseAdmin
+          .from('role_permissions')
+          .insert(rolePermissions);
+        
+        if (permError) console.error('Error inserting role_permissions:', permError);
+      }
 
       return res.status(201).json({ role });
     }
@@ -74,13 +110,28 @@ export default async function handler(req, res) {
 
     // PUT /admin/roles/:id - Atualizar role
     if (req.method === 'PUT' && id) {
-      const { display_name, description, color, permissions } = req.body;
+      const { name, display_name, description, color, permissions } = req.body;
+
+      // Verificar se role existe e se pode ser editada
+      const { data: existingRole } = await supabaseAdmin
+        .from('roles')
+        .select('is_system')
+        .eq('id', id)
+        .single();
+
+      if (!existingRole) {
+        return res.status(404).json({ error: 'Role não encontrada' });
+      }
+
+      if (existingRole.is_system) {
+        return res.status(403).json({ error: 'Não é possível editar roles do sistema' });
+      }
 
       const updateData = {};
+      if (name) updateData.name = name.toUpperCase();
       if (display_name) updateData.display_name = display_name;
-      if (description !== undefined) updateData.description = description;
+      if (description !== undefined) updateData.description = description || null;
       if (color) updateData.color = color;
-      if (permissions) updateData.permissions = permissions;
 
       const { data: role, error } = await supabaseAdmin
         .from('roles')
@@ -90,6 +141,29 @@ export default async function handler(req, res) {
         .single();
 
       if (error) throw error;
+
+      // Atualizar permissões
+      if (permissions && Array.isArray(permissions)) {
+        // Remover permissões antigas
+        await supabaseAdmin
+          .from('role_permissions')
+          .delete()
+          .eq('role_id', id);
+
+        // Adicionar novas permissões
+        if (permissions.length > 0) {
+          const rolePermissions = permissions.map(permId => ({
+            role_id: id,
+            permission_id: permId
+          }));
+
+          const { error: permError } = await supabaseAdmin
+            .from('role_permissions')
+            .insert(rolePermissions);
+          
+          if (permError) console.error('Error updating role_permissions:', permError);
+        }
+      }
 
       return res.status(200).json({ role });
     }
@@ -105,6 +179,17 @@ export default async function handler(req, res) {
 
       if (role?.is_system) {
         return res.status(403).json({ error: 'Não é possível deletar roles de sistema' });
+      }
+
+      // Verificar se existem usuários com esta role
+      const { data: usersWithRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('id')
+        .eq('role_id', id)
+        .limit(1);
+
+      if (usersWithRole && usersWithRole.length > 0) {
+        return res.status(409).json({ error: 'Não é possível deletar role que possui usuários associados' });
       }
 
       const { error } = await supabaseAdmin

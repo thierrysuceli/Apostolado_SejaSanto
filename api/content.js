@@ -1,5 +1,5 @@
 // API - CONTENT CONSOLIDATED (courses + posts + events)
-import { authenticate, hasPermission } from '../middleware-api/auth.js';
+import { authenticate, hasPermission, hasRole } from '../middleware-api/auth.js';
 import { supabaseAdmin } from '../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
@@ -13,26 +13,88 @@ export default async function handler(req, res) {
     
     // GET /:type - Listar itens (público para courses/posts)
     if (req.method === 'GET' && !id) {
-      const query = supabaseAdmin.from(table).select('*');
-      // TODO: Adicionar filtro is_published quando a coluna existir no banco
-      // if (type !== 'events') query.eq('is_published', true);
-      // Removido order para courses pois coluna 'order' não existe no banco
-      // if (type === 'courses') query.order('order', { ascending: true });
+      let query;
+      
+      if (type === 'courses') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          course_tags(role_id, roles(id, name, display_name, color))
+        `);
+      } else if (type === 'posts') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          users!author_id(id, name, avatar_url),
+          post_tags(role_id, roles(id, name, display_name, color))
+        `);
+      } else if (type === 'events') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          users!created_by(id, name, email),
+          event_tags(role_id, roles(id, name, display_name)),
+          event_category_tags(category_id, event_categories(id, name, color, icon))
+        `);
+      }
+      
       if (type === 'events') query.order('start_date', { ascending: true });
       else query.order('created_at', { ascending: false });
       
       const { data, error } = await query;
       if (error) throw error;
-      return res.status(200).json({ [type]: data || [] });
+      
+      // Formatar dados
+      const formattedData = (data || []).map(item => {
+        if (type === 'posts' && item.users) {
+          item.author = item.users;
+          delete item.users;
+        }
+        if (type === 'events' && item.users) {
+          item.author = item.users;
+          delete item.users;
+        }
+        return item;
+      });
+      
+      return res.status(200).json({ [type]: formattedData });
     }
     
     // GET /:type/:id - Buscar item específico (público para courses/posts)
     if (req.method === 'GET' && id && !resource) {
-      const query = supabaseAdmin.from(table).select('*').eq('id', id);
-      // Removido filtro is_published pois coluna não existe no banco
-      // if (type !== 'events') query.eq('is_published', true);
+      let query;
+      
+      if (type === 'courses') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          course_tags(role_id, roles(id, name, display_name, color)),
+          modules(id, title, description, order, course_id, topics(id, title, description, content, order, module_id))
+        `).eq('id', id);
+      } else if (type === 'posts') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          users!author_id(id, name, avatar_url),
+          post_tags(role_id, roles(id, name, display_name, color))
+        `).eq('id', id);
+      } else if (type === 'events') {
+        query = supabaseAdmin.from(table).select(`
+          *,
+          users!created_by(id, name, email),
+          event_tags(role_id, roles(id, name, display_name)),
+          event_category_tags(category_id, event_categories(id, name, color, icon))
+        `).eq('id', id);
+      }
+      
       const { data, error } = await query.single();
       if (error) throw error;
+      
+      // Formatar dados
+      if (type === 'posts' && data.users) {
+        data.author = data.users;
+        delete data.users;
+      }
+      if (type === 'events' && data.users) {
+        data.author = data.users;
+        delete data.users;
+      }
+      
       return res.status(200).json({ [type.slice(0, -1)]: data });
     }
     
@@ -49,15 +111,83 @@ export default async function handler(req, res) {
     
     // POST /:type - Criar item
     if (req.method === 'POST' && !id) {
-      const { data, error } = await supabaseAdmin.from(table).insert(req.body).select().single();
+      const { tags, categories, thematicTags, ...itemData } = req.body;
+      
+      // Criar item principal
+      const { data, error } = await supabaseAdmin.from(table).insert(itemData).select().single();
       if (error) throw error;
+      
+      // Associar tags (roles) para posts/events/courses
+      if (tags && Array.isArray(tags) && tags.length > 0) {
+        const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
+        const itemTags = tags.map(roleId => ({
+          [`${type.slice(0, -1)}_id`]: data.id,
+          role_id: roleId
+        }));
+        
+        const { error: tagsError } = await supabaseAdmin.from(tagTable).insert(itemTags);
+        if (tagsError) console.error(`Error inserting ${tagTable}:`, tagsError);
+      }
+      
+      // Associar categorias para events
+      if (type === 'events' && categories && Array.isArray(categories) && categories.length > 0) {
+        const eventCategories = categories.map(categoryId => ({
+          event_id: data.id,
+          category_id: categoryId
+        }));
+        
+        const { error: catError } = await supabaseAdmin.from('event_category_tags').insert(eventCategories);
+        if (catError) console.error('Error inserting event_category_tags:', catError);
+      }
+      
       return res.status(201).json({ [type.slice(0, -1)]: data });
     }
     
     // PUT /:type/:id - Atualizar item
     if (req.method === 'PUT' && id && !resource) {
-      const { data, error } = await supabaseAdmin.from(table).update(req.body).eq('id', id).select().single();
+      const { tags, categories, thematicTags, ...itemData } = req.body;
+      
+      // Atualizar item principal
+      const { data, error } = await supabaseAdmin.from(table).update(itemData).eq('id', id).select().single();
       if (error) throw error;
+      
+      // Atualizar tags (roles) se fornecidas
+      if (tags && Array.isArray(tags)) {
+        const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
+        const idField = `${type.slice(0, -1)}_id`;
+        
+        // Remover tags antigas
+        await supabaseAdmin.from(tagTable).delete().eq(idField, id);
+        
+        // Adicionar novas tags
+        if (tags.length > 0) {
+          const itemTags = tags.map(roleId => ({
+            [idField]: id,
+            role_id: roleId
+          }));
+          
+          const { error: tagsError } = await supabaseAdmin.from(tagTable).insert(itemTags);
+          if (tagsError) console.error(`Error updating ${tagTable}:`, tagsError);
+        }
+      }
+      
+      // Atualizar categorias para events
+      if (type === 'events' && categories && Array.isArray(categories)) {
+        // Remover categorias antigas
+        await supabaseAdmin.from('event_category_tags').delete().eq('event_id', id);
+        
+        // Adicionar novas categorias
+        if (categories.length > 0) {
+          const eventCategories = categories.map(categoryId => ({
+            event_id: id,
+            category_id: categoryId
+          }));
+          
+          const { error: catError } = await supabaseAdmin.from('event_category_tags').insert(eventCategories);
+          if (catError) console.error('Error updating event_category_tags:', catError);
+        }
+      }
+      
       return res.status(200).json({ [type.slice(0, -1)]: data });
     }
     
