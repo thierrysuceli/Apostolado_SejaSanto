@@ -29,27 +29,73 @@ export default async function handler(req, res) {
     }
     
     // MODULES
-    if (type === 'modules' && !id) {
-      const { data, error } = await supabaseAdmin.from('modules').select('*').order('order');
+    if (type === 'modules' && req.method === 'GET' && !id) {
+      const { data, error } = await supabaseAdmin.from('modules').select('*').order('order_index', { ascending: true });
       if (error) throw error;
       return res.status(200).json({ modules: data || [] });
     }
-    if (type === 'modules' && id) {
-      const { data, error } = await supabaseAdmin.from('modules').select('*').eq('id', id).single();
+    if (type === 'modules' && req.method === 'GET' && id) {
+      const { data, error} = await supabaseAdmin.from('modules').select('*').eq('id', id).single();
       if (error) throw error;
       return res.status(200).json({ module: data });
     }
+    if (type === 'modules' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { course_id, title, description, order_index } = req.body;
+      if (!course_id || !title) return res.status(400).json({ error: 'course_id e title são obrigatórios' });
+      const { data, error } = await supabaseAdmin.from('modules').insert({ course_id, title, description, order_index: order_index || 0 }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ module: data });
+    }
+    if (type === 'modules' && req.method === 'PUT' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { data, error } = await supabaseAdmin.from('modules').update(req.body).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ module: data });
+    }
+    if (type === 'modules' && req.method === 'DELETE' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { error } = await supabaseAdmin.from('modules').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Módulo deletado' });
+    }
     
     // TOPICS
-    if (type === 'topics' && !id) {
-      const { data, error } = await supabaseAdmin.from('topics').select('*').order('name');
+    if (type === 'topics' && req.method === 'GET' && !id) {
+      const { data, error } = await supabaseAdmin.from('topics').select('*').order('order_index', { ascending: true });
       if (error) throw error;
       return res.status(200).json({ topics: data || [] });
     }
-    if (type === 'topics' && id) {
+    if (type === 'topics' && req.method === 'GET' && id) {
       const { data, error } = await supabaseAdmin.from('topics').select('*').eq('id', id).single();
       if (error) throw error;
       return res.status(200).json({ topic: data });
+    }
+    if (type === 'topics' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { module_id, title, content_before, video_url, content_after, duration, order_index } = req.body;
+      if (!module_id || !title) return res.status(400).json({ error: 'module_id e title são obrigatórios' });
+      const { data, error } = await supabaseAdmin.from('topics').insert({ module_id, title, content_before, video_url, content_after, duration, order_index: order_index || 0 }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ topic: data });
+    }
+    if (type === 'topics' && req.method === 'PUT' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { data, error } = await supabaseAdmin.from('topics').update(req.body).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ topic: data });
+    }
+    if (type === 'topics' && req.method === 'DELETE' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { error } = await supabaseAdmin.from('topics').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Tópico deletado' });
     }
     
     // COMMENTS
