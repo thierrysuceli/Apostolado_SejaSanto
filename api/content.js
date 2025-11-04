@@ -16,8 +16,9 @@ export default async function handler(req, res) {
       const query = supabaseAdmin.from(table).select('*');
       // TODO: Adicionar filtro is_published quando a coluna existir no banco
       // if (type !== 'events') query.eq('is_published', true);
-      if (type === 'courses') query.order('order', { ascending: true });
-      else if (type === 'events') query.order('start_date', { ascending: true });
+      // Removido order para courses pois coluna 'order' não existe no banco
+      // if (type === 'courses') query.order('order', { ascending: true });
+      if (type === 'events') query.order('start_date', { ascending: true });
       else query.order('created_at', { ascending: false });
       
       const { data, error } = await query;
