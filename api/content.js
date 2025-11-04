@@ -14,7 +14,8 @@ export default async function handler(req, res) {
     // GET /:type - Listar itens (público para courses/posts)
     if (req.method === 'GET' && !id) {
       const query = supabaseAdmin.from(table).select('*');
-      if (type !== 'events') query.eq('is_published', true);
+      // TODO: Adicionar filtro is_published quando a coluna existir no banco
+      // if (type !== 'events') query.eq('is_published', true);
       if (type === 'courses') query.order('order', { ascending: true });
       else if (type === 'events') query.order('start_date', { ascending: true });
       else query.order('created_at', { ascending: false });
@@ -27,7 +28,8 @@ export default async function handler(req, res) {
     // GET /:type/:id - Buscar item específico (público para courses/posts)
     if (req.method === 'GET' && id && !resource) {
       const query = supabaseAdmin.from(table).select('*').eq('id', id);
-      if (type !== 'events') query.eq('is_published', true);
+      // Removido filtro is_published pois coluna não existe no banco
+      // if (type !== 'events') query.eq('is_published', true);
       const { data, error } = await query.single();
       if (error) throw error;
       return res.status(200).json({ [type.slice(0, -1)]: data });
