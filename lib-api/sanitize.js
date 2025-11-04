@@ -3,32 +3,39 @@
 // Funções para limpar e validar inputs
 // =====================================================
 
-import DOMPurify from 'isomorphic-dompurify';
+// Substituído DOMPurify por sanitização simples compatível com serverless
+// DOMPurify/jsdom não funciona em ambiente serverless da Vercel
 
 /**
  * Sanitizar HTML (para conteúdo do Quill)
+ * Implementação básica que permite tags seguras do Quill
  * @param {string} html - HTML a ser sanitizado
  * @returns {string} HTML limpo
  */
 export function sanitizeHTML(html) {
   if (!html) return '';
   
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'strike', 'del',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'blockquote', 'code', 'pre',
-      'ul', 'ol', 'li',
-      'a', 'img',
-      'span', 'div'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'width', 'height',
-      'class', 'style', 'target', 'rel'
-    ],
-    ALLOW_DATA_ATTR: false,
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
-  });
+  // Lista de tags permitidas (Quill safe tags)
+  const allowedTags = [
+    'p', 'br', 'strong', 'em', 'u', 's', 'strike', 'del',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'blockquote', 'code', 'pre',
+    'ul', 'ol', 'li',
+    'a', 'img', 'span', 'div'
+  ];
+  
+  // Remove tags perigosas (script, iframe, object, etc)
+  let sanitized = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/<embed\b[^<]*>/gi, '')
+    .replace(/<link\b[^<]*>/gi, '')
+    .replace(/<meta\b[^<]*>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers
+    .replace(/javascript:/gi, ''); // Remove javascript: protocol
+  
+  return sanitized;
 }
 
 /**
