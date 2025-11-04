@@ -224,15 +224,5 @@
         }
       ]
     }
-  ],
-  "routes": [
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico))",
-      "dest": "/$1"
-    }
   ]
 }
