@@ -134,7 +134,10 @@ export default async function handler(req, res) {
         
         const itemIds = itemTags ? [...new Set(itemTags.map(t => t[idColumn]))] : [];
         
+        console.log(`[${type}] Visitor - Found ${itemIds.length} items with VISITANTE role`);
+        
         if (itemIds.length === 0) {
+          console.log(`[${type}] ⚠️ No items found with VISITANTE role - returning empty array`);
           return res.status(200).json({ [type]: [] });
         }
         
@@ -443,10 +446,21 @@ export default async function handler(req, res) {
       
       // Criar item principal (sem joins, apenas dados diretos)
       console.log(`[POST ${type}] Inserting itemData:`, itemData);
+      
+      // 🔥 WORKAROUND: Especificar colunas explicitamente para evitar schema cache do Supabase
+      // O Supabase PostgREST tem bug onde .select('*') tenta resolver foreign keys antigas do cache
+      const columnsMap = {
+        events: 'id,title,slug,description,location,start_date,end_date,all_day,meeting_link,color,status,created_by,created_at,updated_at',
+        posts: 'id,title,slug,description,thumbnail,content,status,featured,author_id,created_at,updated_at,published_at',
+        courses: 'id,title,slug,description,thumbnail,duration,level,instructor,status,created_at,updated_at'
+      };
+      
+      const selectColumns = columnsMap[type] || '*';
+      
       const { data, error } = await supabaseAdmin
         .from(table)
         .insert(itemData)
-        .select()
+        .select(selectColumns)
         .single();
       
       if (error) {
@@ -540,11 +554,20 @@ export default async function handler(req, res) {
       }
       
       // Atualizar item principal (sem joins, apenas dados diretos)
+      // 🔥 Especificar colunas explicitamente para evitar schema cache bug do Supabase
+      const columnsMap = {
+        events: 'id,title,slug,description,location,start_date,end_date,all_day,meeting_link,color,status,created_by,created_at,updated_at',
+        posts: 'id,title,slug,description,thumbnail,content,status,featured,author_id,created_at,updated_at,published_at',
+        courses: 'id,title,slug,description,thumbnail,duration,level,instructor,status,created_at,updated_at'
+      };
+      
+      const selectColumns = columnsMap[type] || '*';
+      
       const { data, error } = await supabaseAdmin
         .from(table)
         .update(itemData)
         .eq('id', id)
-        .select('*')
+        .select(selectColumns)
         .single();
       
       if (error) {
