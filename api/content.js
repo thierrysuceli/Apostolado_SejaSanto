@@ -446,11 +446,13 @@ export default async function handler(req, res) {
       
       // Criar item principal (sem joins, apenas dados diretos)
       console.log(`[POST ${type}] Inserting itemData:`, itemData);
+      console.log(`[POST ${type}] Table:`, table);
       
-      // 🔥 WORKAROUND: Especificar colunas explicitamente para evitar schema cache do Supabase
-      // O Supabase PostgREST tem bug onde .select('*') tenta resolver foreign keys antigas do cache
+      // 🔥 CRITICAL FIX: Especificar colunas explicitamente para evitar schema cache do Supabase
+      // O Supabase PostgREST tem bug onde .select() sem params tenta resolver foreign keys do cache
+      // NUNCA use .select() ou .select('*') em INSERT/UPDATE!
       const columnsMap = {
-        events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at',
+        events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at,slug,status,color,all_day',
         posts: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at',
         courses: 'id,title,slug,description,cover_image_url,status,created_at,updated_at'
       };
@@ -554,9 +556,9 @@ export default async function handler(req, res) {
       }
       
       // Atualizar item principal (sem joins, apenas dados diretos)
-      // 🔥 Especificar colunas explicitamente para evitar schema cache bug do Supabase
+      // 🔥 CRITICAL FIX: Especificar colunas explicitamente para evitar schema cache bug do Supabase
       const columnsMap = {
-        events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at',
+        events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at,slug,status,color,all_day',
         posts: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at',
         courses: 'id,title,slug,description,cover_image_url,status,created_at,updated_at'
       };
