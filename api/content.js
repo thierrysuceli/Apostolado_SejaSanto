@@ -11,35 +11,103 @@ export default async function handler(req, res) {
     const table = type === 'courses' ? 'courses' : type === 'posts' ? 'posts' : type === 'events' ? 'events' : null;
     if (!table) return res.status(400).json({ error: 'Tipo inválido' });
     
-    // GET /:type - Listar itens (público para courses/posts)
+    // ==============================================================
+    // 🔒 GET /:type - Listar itens COM CONTROLE DE ACESSO
+    // ==============================================================
     if (req.method === 'GET' && !id) {
-      let query;
+      // Autenticar (não obrigatório, mas define req.user se houver)
+      await authenticate(req, res);
       
+      let query;
+      let baseSelect;
+      
+      // Definir SELECT base
       if (type === 'courses') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
           course_content_tags(tag_id, tags(id, name, slug, description, color)),
           modules(id, title, order_index)
-        `).order('created_at', { ascending: false });
+        `;
       } else if (type === 'posts') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           users!author_id(id, name, avatar_url),
           post_tags(role_id, roles(id, name, display_name, color)),
           post_content_tags(tag_id, tags(id, name, color))
-        `);
+        `;
       } else if (type === 'events') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           users!created_by(id, name, email),
           event_tags(role_id, roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
-        `);
+        `;
       }
       
-      if (type === 'events') query.order('start_date', { ascending: true });
-      else query.order('created_at', { ascending: false });
+      // 🔑 CONTROLE DE ACESSO: Admin vs User vs Visitante
+      if (req.user) {
+        const isAdmin = await hasRole(req.user.id, 'ADMIN');
+        
+        if (isAdmin) {
+          // ✅ ADMIN: Vê TUDO (inclusive drafts)
+          console.log(`[${type}] Admin access - showing all items`);
+          query = supabaseAdmin.from(table).select(baseSelect);
+        } else {
+          // ✅ USER AUTENTICADO: Vê apenas published + suas roles
+          console.log(`[${type}] Authenticated user access - filtering by roles`);
+          
+          // Buscar roles do usuário
+          const { data: userRoles } = await supabaseAdmin
+            .from('user_roles')
+            .select('role_id')
+            .eq('user_id', req.user.id);
+          
+          const roleIds = userRoles?.map(ur => ur.role_id) || [];
+          
+          if (roleIds.length === 0) {
+            // User sem roles = sem acesso
+            return res.status(200).json({ [type]: [] });
+          }
+          
+          // Filtrar por status='published' E role do usuário
+          const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+          query = supabaseAdmin.from(table)
+            .select(`
+              ${baseSelect},
+              ${tagTable}!inner(role_id)
+            `)
+            .eq('status', 'published')
+            .in(`${tagTable}.role_id`, roleIds);
+        }
+      } else {
+        // ✅ VISITANTE NÃO AUTENTICADO: Apenas published + role VISITANTE
+        console.log(`[${type}] Visitor access - showing only VISITANTE content`);
+        
+        const { data: visitanteRole } = await supabaseAdmin
+          .from('roles')
+          .select('id')
+          .eq('name', 'VISITANTE')
+          .single();
+        
+        if (!visitanteRole) {
+          // Sem role VISITANTE no banco = sem acesso público
+          return res.status(200).json({ [type]: [] });
+        }
+        
+        const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+        query = supabaseAdmin.from(table)
+          .select(`
+            ${baseSelect},
+            ${tagTable}!inner(role_id)
+          `)
+          .eq('status', 'published')
+          .eq(`${tagTable}.role_id`, visitanteRole.id);
+      }
+      
+      // Ordenação
+      if (type === 'events') query = query.order('start_date', { ascending: true });
+      else query = query.order('created_at', { ascending: false });
       
       const { data, error } = await query;
       if (error) throw error;
@@ -65,41 +133,123 @@ export default async function handler(req, res) {
         return item;
       });
       
+      // 🚫 Cache busting para listagens
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       return res.status(200).json({ [type]: formattedData });
     }
     
-    // GET /:type/:id - Buscar item específico (público para courses/posts)
+    // ==============================================================
+    // 🔒 GET /:type/:id - Buscar item específico COM CONTROLE DE ACESSO
+    // ==============================================================
     if (req.method === 'GET' && id && !resource) {
-      let query;
+      // Autenticar (não obrigatório)
+      await authenticate(req, res);
       
+      let baseSelect;
+      
+      // Definir SELECT base
       if (type === 'courses') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
           course_content_tags(tag_id, tags(id, name, slug, description, color)),
-          modules(
-            *,
-            topics(*)
-          )
-        `).eq('id', id);
+          modules(*,topics(*))
+        `;
       } else if (type === 'posts') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           users!author_id(id, name, avatar_url),
           post_tags(role_id, roles(id, name, display_name, color)),
           post_content_tags(tag_id, tags(id, name, color))
-        `).eq('id', id);
+        `;
       } else if (type === 'events') {
-        query = supabaseAdmin.from(table).select(`
+        baseSelect = `
           *,
           users!created_by(id, name, email),
           event_tags(role_id, roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
-        `).eq('id', id);
+        `;
       }
       
-      const { data, error } = await query.single();
-      if (error) throw error;
+      let data = null;
+      
+      // 🔑 CONTROLE DE ACESSO POR ID
+      if (req.user) {
+        const isAdmin = await hasRole(req.user.id, 'ADMIN');
+        
+        if (isAdmin) {
+          // ✅ ADMIN: Vê tudo
+          const { data: item, error } = await supabaseAdmin
+            .from(table)
+            .select(baseSelect)
+            .eq('id', id)
+            .single();
+          
+          if (error && error.code !== 'PGRST116') throw error;
+          data = item;
+        } else {
+          // ✅ USER AUTENTICADO: Verifica se tem role do item
+          const { data: userRoles } = await supabaseAdmin
+            .from('user_roles')
+            .select('role_id')
+            .eq('user_id', req.user.id);
+          
+          const roleIds = userRoles?.map(ur => ur.role_id) || [];
+          
+          if (roleIds.length === 0) {
+            return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+          }
+          
+          // Buscar item filtrando por role
+          const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+          const { data: item, error } = await supabaseAdmin
+            .from(table)
+            .select(`
+              ${baseSelect},
+              ${tagTable}!inner(role_id)
+            `)
+            .eq('id', id)
+            .eq('status', 'published')
+            .in(`${tagTable}.role_id`, roleIds)
+            .single();
+          
+          if (error && error.code !== 'PGRST116') throw error;
+          data = item;
+        }
+      } else {
+        // ✅ VISITANTE: Apenas VISITANTE role
+        const { data: visitanteRole } = await supabaseAdmin
+          .from('roles')
+          .select('id')
+          .eq('name', 'VISITANTE')
+          .single();
+        
+        if (!visitanteRole) {
+          return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+        }
+        
+        const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+        const { data: item, error } = await supabaseAdmin
+          .from(table)
+          .select(`
+            ${baseSelect},
+            ${tagTable}!inner(role_id)
+          `)
+          .eq('id', id)
+          .eq('status', 'published')
+          .eq(`${tagTable}.role_id`, visitanteRole.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        data = item;
+      }
+      
+      if (!data) {
+        return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+      }
       
       // Formatar dados
       if (type === 'posts' && data.users) {
@@ -121,53 +271,63 @@ export default async function handler(req, res) {
         });
       }
       
-      // Extrair tags (roles) para facilitar acesso no frontend
+      // Extrair tags (roles)
       const tagField = `${type.slice(0, -1)}_tags`;
       if (data[tagField]) {
         data.tags = data[tagField].map(t => t.roles).filter(Boolean);
       }
       
-      // Formatar event_category_tags para events
+      // Formatar event_category_tags
       if (type === 'events' && data.event_category_tags) {
         data.categories = data.event_category_tags.map(t => t.event_categories).filter(Boolean);
       }
       
+      // 🚫 Cache busting
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       return res.status(200).json({ [type.slice(0, -1)]: data });
     }
     
-    // Rotas protegidas
+    // ==============================================================
+    // 🔐 ROTAS PROTEGIDAS (POST/PUT/DELETE) - Verificação por método
+    // ==============================================================
     await authenticate(req, res);
     if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
     
-    // Verificar permissão inline (hasPermission não é middleware aqui)
-    const requiredPermissions = {
-      'courses': ['EDIT_COURSE', 'CREATE_COURSE', 'DELETE_COURSE'],
-      'posts': ['EDIT_POST', 'CREATE_POST', 'DELETE_POST'],
-      'events': ['EDIT_EVENT', 'CREATE_EVENT', 'DELETE_EVENT']
-    };
+    // Determinar permissão ESPECÍFICA baseada no método HTTP
+    let requiredPermission = null;
     
-    const permsToCheck = requiredPermissions[type] || [];
-    let userHasPermission = false;
-    
-    // Verificar se tem alguma das permissões ou se é admin
-    const isAdmin = await hasRole(req.user.id, 'ADMIN');
-    if (isAdmin) {
-      userHasPermission = true;
-    } else {
-      for (const perm of permsToCheck) {
-        if (await hasPermission(req.user.id, perm)) {
-          userHasPermission = true;
-          break;
-        }
-      }
+    if (req.method === 'POST') {
+      requiredPermission = type === 'courses' ? 'CREATE_COURSE' : 
+                          type === 'posts' ? 'CREATE_POST' : 
+                          'CREATE_EVENT';
+    } else if (req.method === 'PUT') {
+      requiredPermission = type === 'courses' ? 'EDIT_COURSE' : 
+                          type === 'posts' ? 'EDIT_POST' : 
+                          'EDIT_EVENT';
+    } else if (req.method === 'DELETE') {
+      requiredPermission = type === 'courses' ? 'DELETE_COURSE' : 
+                          type === 'posts' ? 'DELETE_POST' : 
+                          'DELETE_EVENT';
     }
     
-    console.log(`Permission check for ${type}:`, { userId: req.user.id, permsToCheck, userHasPermission, isAdmin });
+    // Verificar permissão: Admin OU permissão específica
+    const isAdmin = await hasRole(req.user.id, 'ADMIN');
+    const userHasPermission = isAdmin || (requiredPermission && await hasPermission(req.user.id, requiredPermission));
+    
+    console.log(`[${req.method} ${type}] Permission check:`, { 
+      userId: req.user.id, 
+      required: requiredPermission, 
+      isAdmin, 
+      hasPermission: userHasPermission 
+    });
     
     if (!userHasPermission) {
       return res.status(403).json({ 
-        error: 'Sem permissão',
-        required: permsToCheck
+        error: 'Sem permissão para esta ação',
+        required: requiredPermission
       });
     }
     
@@ -233,6 +393,12 @@ export default async function handler(req, res) {
         if (catError) console.error('Error inserting event_category_tags:', catError);
       }
       
+      // 🚫 Cache busting para mutações
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      console.log(`[POST ${type}] Created successfully:`, data.id);
       return res.status(201).json({ [type.slice(0, -1)]: data });
     }
     
@@ -303,6 +469,12 @@ export default async function handler(req, res) {
         }
       }
       
+      // 🚫 Cache busting para mutações
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      console.log(`[PUT ${type}] Updated successfully:`, id);
       return res.status(200).json({ [type.slice(0, -1)]: data });
     }
     
@@ -310,6 +482,13 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE' && id) {
       const { error } = await supabaseAdmin.from(table).delete().eq('id', id);
       if (error) throw error;
+      
+      // 🚫 Cache busting para mutações
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      console.log(`[DELETE ${type}] Deleted successfully:`, id);
       return res.status(200).json({ message: `${type.slice(0, -1)} deletado com sucesso` });
     }
     

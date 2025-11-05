@@ -61,6 +61,36 @@ export default async function handler(req, res) {
     }
   }
   
+  // ==============================================================
+  // 🔒 HELPER: Verificar acesso ao grupo (para rotas com groupId)
+  // ==============================================================
+  async function verifyGroupAccess(groupId, userId) {
+    const { data: group } = await supabaseAdmin
+      .from('central_groups')
+      .select('role_id')
+      .eq('id', groupId)
+      .single();
+    
+    if (!group) {
+      return { hasAccess: false, isAdmin: false, error: 'Grupo não encontrado', statusCode: 404 };
+    }
+    
+    const { data: userRoles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role_id')
+      .eq('user_id', userId);
+    
+    const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+    const hasAccess = userRoleIds.includes(group.role_id);
+    const isAdmin = await hasRole(userId, 'ADMIN');
+    
+    if (!hasAccess && !isAdmin) {
+      return { hasAccess: false, isAdmin: false, error: 'Sem acesso a este grupo', statusCode: 403 };
+    }
+    
+    return { hasAccess: true, isAdmin, group };
+  }
+  
   // ============================================
   // 2. POST ?action=create - Criar grupo
   // ============================================
@@ -184,35 +214,20 @@ export default async function handler(req, res) {
     }
   }
   
-  // ============================================
-  // Verificar acesso ao grupo (para rotas com groupId)
-  // ============================================
+  // ==============================================================
+  // 🔒 Verificar acesso ao grupo (para TODAS as rotas com groupId)
+  // ==============================================================
   if (groupId) {
     try {
-      const { data: group } = await supabaseAdmin
-        .from('central_groups')
-        .select('role_id')
-        .eq('id', groupId)
-        .single();
+      const accessCheck = await verifyGroupAccess(groupId, user.id);
       
-      if (!group) {
-        return res.status(404).json({ error: 'Grupo não encontrado' });
+      if (!accessCheck.hasAccess) {
+        console.log(`[Central Groups] Access denied for user ${user.id} to group ${groupId}`);
+        return res.status(accessCheck.statusCode).json({ error: accessCheck.error });
       }
       
-      const { data: userRoles } = await supabaseAdmin
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', user.id);
-      
-      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
-      const hasAccess = userRoleIds.includes(group.role_id);
-      
-      // Usar função auxiliar do middleware para verificar admin
-      const isAdmin = await hasRole(user.id, 'ADMIN');
-      
-      if (!hasAccess && !isAdmin) {
-        return res.status(403).json({ error: 'Sem acesso a este grupo' });
-      }
+      const isAdmin = accessCheck.isAdmin;
+      console.log(`[Central Groups] Access granted for user ${user.id} to group ${groupId} (admin: ${isAdmin})`);
       
       // ============================================
       // 3. GET ?id=X&resource=posts - Listar posts
@@ -262,6 +277,12 @@ export default async function handler(req, res) {
         
         if (error) throw error;
         
+        // 🚫 Cache busting
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        
+        console.log(`[Central Groups] Post created in group ${groupId} by user ${user.id}`);
         return res.status(201).json({ post });
       }
       

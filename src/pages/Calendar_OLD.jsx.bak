@@ -1,0 +1,267 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useApi } from '../contexts/ApiContext';
+import { useAuth } from '../contexts/AuthContext';
+
+const Calendar = () => {
+  const api = useApi();
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [currentDate] = useState(new Date(2025, 10, 1)); // November 2025
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await api.events.getAll();
+        setEvents(data.events || []);
+      } catch (err) {
+        console.error('Error loading events:', err);
+        setError('Erro ao carregar eventos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadEvents();
+  }, []);
+
+  // Get days in month
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    return { daysInMonth, startingDayOfWeek };
+  };
+
+  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
+  const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+  // Get events for a specific day
+  const getEventsForDay = (day) => {
+    const dateStr = `2025-11-${String(day).padStart(2, '0')}`;
+    return events.filter(event => {
+      const eventDate = new Date(event.start_date);
+      const eventDateStr = eventDate.toISOString().split('T')[0];
+      return eventDateStr === dateStr;
+    });
+  };
+
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  // Create array of days including empty slots for proper alignment
+  const calendarDays = [];
+  for (let i = 0; i < startingDayOfWeek; i++) {
+    calendarDays.push(null);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(day);
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-secondary-600 dark:text-gray-300">Carregando eventos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold text-secondary-500 dark:text-gray-400 mb-4">
+            Calendário de Eventos
+          </h1>
+          <p className="text-secondary-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Confira nossos eventos e participe conosco!
+          </p>
+        </div>
+
+        {/* Admin: Create Event Button */}
+        {isAdmin() && (
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => navigate('/admin/events/create')}
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+              Criar Novo Evento
+            </button>
+          </div>
+        )}
+
+        {/* Calendar */}
+        <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 md:p-8 shadow-lg">
+          {/* Month Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 capitalize">{monthName}</h2>
+            <div className="text-primary-700 font-semibold">Agenda de novembro</div>
+          </div>
+
+          {/* Week Days Header */}
+          <div className="grid grid-cols-7 gap-2 mb-4">
+            {weekDays.map(day => (
+              <div key={day} className="text-center py-3 text-primary-600 font-semibold text-sm">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((day, index) => {
+              if (day === null) {
+                return <div key={`empty-${index}`} className="aspect-square" />;
+              }
+
+              const dayEvents = getEventsForDay(day);
+              const hasEvents = dayEvents.length > 0;
+              const isToday = day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth();
+
+              return (
+                <div
+                  key={day}
+                  className={`aspect-square border rounded-lg p-2 ${
+                    isToday ? 'bg-primary-100 border-primary-500 shadow-md' : 'bg-white dark:bg-gray-800 border-beige-200'
+                  } ${hasEvents ? 'cursor-pointer hover:bg-beige-50' : ''}`}
+                >
+                  <div className="h-full flex flex-col">
+                    <div className={`text-sm font-semibold mb-1 ${
+                      isToday ? 'text-primary-600' : 'text-secondary-700'
+                    }`}>
+                      {day}
+                    </div>
+                    
+                    {dayEvents.length > 0 && (
+                      <div className="flex-1 space-y-1 overflow-hidden">
+                        {dayEvents.slice(0, 2).map(event => (
+                          <div
+                            key={event.id}
+                            className="bg-primary-600 text-white text-xs px-1 py-0.5 rounded truncate shadow-sm"
+                            title={event.title}
+                          >
+                            {event.title}
+                          </div>
+                        ))}
+                        {dayEvents.length > 2 && (
+                          <div className="text-primary-600 text-xs font-medium">
+                            +{dayEvents.length - 2} mais
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Events List */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-secondary-500 dark:text-gray-400 mb-6">Próximos Eventos</h2>
+          <div className="space-y-4">
+            {events.map(event => {
+              const canAccess = true; // Todos podem ver eventos por enquanto
+              
+              return (
+                <div
+                  key={event.id}
+                  className={`bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md ${
+                    !canAccess ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4 mb-2">
+                        <div className="bg-primary-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm">
+                          {new Date(event.start_date).getDate()}
+                        </div>
+                        <div>
+                          <h3 className="text-secondary-500 dark:text-gray-200 font-bold text-lg flex items-center">
+                            {event.title}
+                            {!canAccess && (
+                              <svg className="w-5 h-5 text-primary-700 dark:text-primary-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                              </svg>
+                            )}
+                          </h3>
+                          <p className="text-secondary-600 dark:text-gray-300 text-sm">
+                            {new Date(event.start_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      {canAccess && (
+                        <div 
+                          className="text-secondary-500 dark:text-gray-300 ml-0 md:ml-20"
+                          dangerouslySetInnerHTML={{ __html: event.description }}
+                        />
+                      )}
+                      {!canAccess && (
+                        <p className="text-secondary-600 dark:text-gray-300 italic ml-0 md:ml-20">
+                          Este evento é restrito a membros com acesso especial.
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mt-4 md:mt-0">
+                      {isAdmin() && (
+                        <button
+                          onClick={() => navigate(`/admin/events/${event.id}/edit`)}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md whitespace-nowrap flex items-center gap-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                          Editar
+                        </button>
+                      )}
+                      {canAccess && (
+                        <button className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-md whitespace-nowrap">
+                          Participar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Calendar;

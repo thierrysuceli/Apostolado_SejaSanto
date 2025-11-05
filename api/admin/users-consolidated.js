@@ -3,7 +3,7 @@
 // Combina GET/POST users + GET/PUT/DELETE users/[id] + GET/PUT users/[id]/roles
 // =====================================================
 
-import { authenticate, hasPermission } from '../../middleware-api/auth.js';
+import { authenticate, hasRole } from '../../middleware-api/auth.js';
 import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
@@ -13,10 +13,14 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Autenticação necessária' });
   }
 
-  const userHasPermission = await hasPermission(req.user.id, 'manage_users');
-  if (!userHasPermission) {
-    return res.status(403).json({ error: 'Sem permissão para gerenciar usuários' });
+  // 🔒 Apenas ADMIN pode gerenciar usuários
+  const isAdmin = await hasRole(req.user.id, 'ADMIN');
+  if (!isAdmin) {
+    console.log(`[Admin Users] Access denied for user ${req.user.id} - not admin`);
+    return res.status(403).json({ error: 'Apenas administradores podem gerenciar usuários' });
   }
+  
+  console.log(`[Admin Users] Admin access granted for user ${req.user.id}`);
 
   const { id, resource } = req.query;
 
