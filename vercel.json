@@ -195,10 +195,6 @@
     {
       "source": "/api/comments",
       "destination": "/api/public-data?type=comments"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/index.html"
     }
   ],
   "headers": [

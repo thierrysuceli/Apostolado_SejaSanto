@@ -20,7 +20,7 @@ export default async function handler(req, res) {
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
           modules(id, title, order_index)
-        `);
+        `).order('created_at', { ascending: false });
       } else if (type === 'posts') {
         query = supabaseAdmin.from(table).select(`
           *,
@@ -145,6 +145,23 @@ export default async function handler(req, res) {
     // POST /:type - Criar item
     if (req.method === 'POST' && !id) {
       const { tags, roles, categories, thematicTags, ...itemData } = req.body;
+      
+      // Validações específicas para events
+      if (type === 'events') {
+        if (!itemData.title || !itemData.start_date) {
+          return res.status(400).json({ error: 'title e start_date são obrigatórios' });
+        }
+        if (itemData.end_date && new Date(itemData.end_date) < new Date(itemData.start_date)) {
+          return res.status(400).json({ error: 'end_date deve ser posterior a start_date' });
+        }
+        // Garantir created_by
+        itemData.created_by = req.user.id;
+      }
+      
+      // Garantir author_id para posts
+      if (type === 'posts') {
+        itemData.author_id = req.user.id;
+      }
       
       // Criar item principal
       const { data, error } = await supabaseAdmin.from(table).insert(itemData).select().single();
