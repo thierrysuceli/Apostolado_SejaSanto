@@ -446,7 +446,7 @@ export default async function handler(req, res) {
       const { data, error } = await supabaseAdmin
         .from(table)
         .insert(itemData)
-        .select('*')
+        .select()
         .single();
       
       if (error) {
