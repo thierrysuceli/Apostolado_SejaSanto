@@ -400,6 +400,15 @@ export default async function handler(req, res) {
     if (req.method === 'POST' && !id) {
       const { tags, roles, categories, thematicTags, ...itemData } = req.body;
       
+      console.log('=== POST CONTENT ===');
+      console.log('Type:', type);
+      console.log('Body received:', JSON.stringify(req.body, null, 2));
+      console.log('Tags:', tags);
+      console.log('Roles:', roles);
+      console.log('Categories:', categories);
+      console.log('ThematicTags:', thematicTags);
+      console.log('ItemData:', itemData);
+      
       // 🧹 SANITIZAR DADOS
       if (itemData.title) {
         itemData.title = sanitizeText(itemData.title);
@@ -433,6 +442,7 @@ export default async function handler(req, res) {
       }
       
       // Criar item principal (sem joins, apenas dados diretos)
+      console.log(`[POST ${type}] Inserting itemData:`, itemData);
       const { data, error } = await supabaseAdmin
         .from(table)
         .insert(itemData)
@@ -441,12 +451,16 @@ export default async function handler(req, res) {
       
       if (error) {
         console.error(`[POST ${type}] Insert error:`, error);
+        console.error(`[POST ${type}] Failed itemData was:`, itemData);
         throw error;
       }
+      
+      console.log(`[POST ${type}] Inserted successfully! ID:`, data.id);
       
       // Associar tags (roles) para posts/events/courses
       // Aceita tanto 'tags' quanto 'roles' para compatibilidade
       const roleTags = tags || roles || [];
+      console.log(`[POST ${type}] Processing roleTags:`, roleTags);
       if (Array.isArray(roleTags) && roleTags.length > 0) {
         const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
         const itemTags = roleTags.map(roleId => ({
@@ -454,8 +468,13 @@ export default async function handler(req, res) {
           role_id: roleId
         }));
         
+        console.log(`[POST ${type}] Inserting into ${tagTable}:`, itemTags);
         const { error: tagsError } = await supabaseAdmin.from(tagTable).insert(itemTags);
-        if (tagsError) console.error(`Error inserting ${tagTable}:`, tagsError);
+        if (tagsError) {
+          console.error(`❌ Error inserting ${tagTable}:`, tagsError);
+        } else {
+          console.log(`✅ ${tagTable} inserted successfully`);
+        }
       }
       
       // Associar thematic tags (content_tags) para courses e posts
@@ -477,8 +496,13 @@ export default async function handler(req, res) {
           category_id: categoryId
         }));
         
+        console.log(`[POST events] Inserting event_category_tags:`, eventCategories);
         const { error: catError } = await supabaseAdmin.from('event_category_tags').insert(eventCategories);
-        if (catError) console.error('Error inserting event_category_tags:', catError);
+        if (catError) {
+          console.error('❌ Error inserting event_category_tags:', catError);
+        } else {
+          console.log('✅ event_category_tags inserted successfully');
+        }
       }
       
       // 🚫 Cache busting para mutações
