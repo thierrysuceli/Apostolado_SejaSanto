@@ -19,13 +19,15 @@ export default async function handler(req, res) {
         query = supabaseAdmin.from(table).select(`
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
+          course_content_tags(tag_id, tags(id, name, slug, description, color)),
           modules(id, title, order_index)
         `).order('created_at', { ascending: false });
       } else if (type === 'posts') {
         query = supabaseAdmin.from(table).select(`
           *,
           users!author_id(id, name, avatar_url),
-          post_tags(role_id, roles(id, name, display_name, color))
+          post_tags(role_id, roles(id, name, display_name, color)),
+          post_content_tags(tag_id, tags(id, name, color))
         `);
       } else if (type === 'events') {
         query = supabaseAdmin.from(table).select(`
@@ -74,6 +76,7 @@ export default async function handler(req, res) {
         query = supabaseAdmin.from(table).select(`
           *,
           course_tags(role_id, roles(id, name, display_name, color)),
+          course_content_tags(tag_id, tags(id, name, slug, description, color)),
           modules(
             *,
             topics(*)
@@ -83,7 +86,8 @@ export default async function handler(req, res) {
         query = supabaseAdmin.from(table).select(`
           *,
           users!author_id(id, name, avatar_url),
-          post_tags(role_id, roles(id, name, display_name, color))
+          post_tags(role_id, roles(id, name, display_name, color)),
+          post_content_tags(tag_id, tags(id, name, color))
         `).eq('id', id);
       } else if (type === 'events') {
         query = supabaseAdmin.from(table).select(`
@@ -181,6 +185,18 @@ export default async function handler(req, res) {
         if (tagsError) console.error(`Error inserting ${tagTable}:`, tagsError);
       }
       
+      // Associar thematic tags (content_tags) para courses e posts
+      if (thematicTags && Array.isArray(thematicTags) && thematicTags.length > 0 && (type === 'courses' || type === 'posts')) {
+        const contentTagTable = type === 'courses' ? 'course_content_tags' : 'post_content_tags';
+        const contentTags = thematicTags.map(tagId => ({
+          [`${type.slice(0, -1)}_id`]: data.id,
+          tag_id: tagId
+        }));
+        
+        const { error: contentTagsError } = await supabaseAdmin.from(contentTagTable).insert(contentTags);
+        if (contentTagsError) console.error(`Error inserting ${contentTagTable}:`, contentTagsError);
+      }
+      
       // Associar categorias para events
       if (type === 'events' && categories && Array.isArray(categories) && categories.length > 0) {
         const eventCategories = categories.map(categoryId => ({
@@ -222,6 +238,26 @@ export default async function handler(req, res) {
           
           const { error: tagsError } = await supabaseAdmin.from(tagTable).insert(itemTags);
           if (tagsError) console.error(`Error updating ${tagTable}:`, tagsError);
+        }
+      }
+      
+      // Atualizar thematic tags (content_tags) para courses e posts
+      if (thematicTags && Array.isArray(thematicTags) && (type === 'courses' || type === 'posts')) {
+        const contentTagTable = type === 'courses' ? 'course_content_tags' : 'post_content_tags';
+        const idField = `${type.slice(0, -1)}_id`;
+        
+        // Remover tags antigas
+        await supabaseAdmin.from(contentTagTable).delete().eq(idField, id);
+        
+        // Adicionar novas tags
+        if (thematicTags.length > 0) {
+          const contentTags = thematicTags.map(tagId => ({
+            [idField]: id,
+            tag_id: tagId
+          }));
+          
+          const { error: contentTagsError } = await supabaseAdmin.from(contentTagTable).insert(contentTags);
+          if (contentTagsError) console.error(`Error updating ${contentTagTable}:`, contentTagsError);
         }
       }
       
