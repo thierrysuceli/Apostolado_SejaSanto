@@ -142,11 +142,13 @@ export async function hasRole(userId, roleName) {
         roles!inner (name)
       `)
       .eq('user_id', userId)
-      .eq('roles.name', roleName.toUpperCase())
-      .single();
+      .eq('roles.name', roleName.toUpperCase());
     
-    return !!data;
+    // Não usar .single() porque usuário pode ter múltiplas roles
+    // Retorna true se encontrou pelo menos uma role com esse nome
+    return data && data.length > 0;
   } catch (error) {
+    console.error(`hasRole error for user ${userId}, role ${roleName}:`, error);
     return false;
   }
 }
