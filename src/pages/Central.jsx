@@ -5,10 +5,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import '../styles/quill-dark.css';
 
 const Central = () => {
   const { user, isAuthenticated } = useAuth();
@@ -376,18 +376,19 @@ const Central = () => {
       <div 
         className={`
           fixed lg:static inset-y-0 left-0 z-30
-          w-72 bg-gray-100 dark:bg-gray-950 border-r border-gray-300 dark:border-gray-800
+          w-72 bg-gray-50 dark:bg-gray-950 border-r border-gray-300 dark:border-gray-800
           transform transition-transform duration-300 ease-in-out
           ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
+          shadow-lg lg:shadow-none
         `}
       >
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-300 dark:border-gray-800">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Central</h1>
           <button
             onClick={() => setShowMobileMenu(false)}
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -407,19 +408,21 @@ const Central = () => {
               className={`
                 w-full px-4 py-3 flex items-center gap-3 transition-all
                 ${selectedGroup?.id === group.id
-                  ? 'bg-amber-500 bg-opacity-10 border-l-4 border-amber-500'
-                  : 'hover:bg-gray-900 border-l-4 border-transparent'
+                  ? 'bg-amber-100 dark:bg-amber-500/10 border-l-4 border-amber-500 shadow-sm'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-900 border-l-4 border-transparent'
                 }
               `}
             >
               <span className="text-2xl">{getGroupIcon(group)}</span>
               <div className="flex-1 text-left">
                 <p className={`font-medium ${
-                  selectedGroup?.id === group.id ? 'text-amber-500' : 'text-gray-200'
+                  selectedGroup?.id === group.id ? 'text-amber-600 dark:text-amber-500' : 'text-gray-800 dark:text-gray-200'
                 }`}>
                   {group.name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className={`text-xs truncate ${
+                  selectedGroup?.id === group.id ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'
+                }`}>
                   {group.role?.display_name}
                 </p>
               </div>
@@ -430,7 +433,7 @@ const Central = () => {
           {isAdmin && (
             <button
               onClick={() => setShowCreateGroupModal(true)}
-              className="w-full px-4 py-3 flex items-center gap-3 text-amber-500 hover:bg-amber-500/10 transition-all border-t border-gray-800 mt-2"
+              className="w-full px-4 py-3 flex items-center gap-3 text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all border-t border-gray-300 dark:border-gray-800 mt-2"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -452,11 +455,11 @@ const Central = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="h-16 bg-gray-100 dark:bg-gray-950 border-b border-gray-300 dark:border-gray-800 flex items-center justify-between px-4">
+        <div className="h-16 bg-white dark:bg-gray-950 border-b border-gray-300 dark:border-gray-800 flex items-center justify-between px-4 shadow-sm dark:shadow-none">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowMobileMenu(true)}
-              className="lg:hidden text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="lg:hidden text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -480,35 +483,35 @@ const Central = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-gray-100 dark:bg-gray-950 border-b border-gray-300 dark:border-gray-800">
+        <div className="bg-gray-50 dark:bg-gray-950 border-b border-gray-300 dark:border-gray-800">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 gap-2 lg:gap-0">
             <div className="flex gap-2 lg:gap-4 overflow-x-auto w-full lg:w-auto">
               <button
                 onClick={() => setActiveTab('posts')}
-                className={`py-3 px-2 border-b-2 transition-colors ${
+                className={`py-3 px-2 border-b-2 transition-colors font-medium ${
                   activeTab === 'posts'
-                    ? 'border-amber-500 text-amber-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-200'
+                    ? 'border-amber-500 text-amber-600 dark:text-amber-500'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 📝 Posts
               </button>
               <button
                 onClick={() => setActiveTab('polls')}
-                className={`py-3 px-2 border-b-2 transition-colors ${
+                className={`py-3 px-2 border-b-2 transition-colors font-medium ${
                   activeTab === 'polls'
-                    ? 'border-amber-500 text-amber-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-200'
+                    ? 'border-amber-500 text-amber-600 dark:text-amber-500'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 📊 Enquetes
               </button>
               <button
                 onClick={() => setActiveTab('registrations')}
-                className={`py-3 px-2 border-b-2 transition-colors ${
+                className={`py-3 px-2 border-b-2 transition-colors font-medium ${
                   activeTab === 'registrations'
-                    ? 'border-amber-500 text-amber-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-200'
+                    ? 'border-amber-500 text-amber-600 dark:text-amber-500'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 📋 Inscrições
@@ -516,10 +519,10 @@ const Central = () => {
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab('approvals')}
-                  className={`py-3 px-2 border-b-2 transition-colors ${
+                  className={`py-3 px-2 border-b-2 transition-colors font-medium ${
                     activeTab === 'approvals'
-                      ? 'border-amber-500 text-amber-500'
-                      : 'border-transparent text-gray-400 hover:text-gray-200'
+                      ? 'border-amber-500 text-amber-600 dark:text-amber-500'
+                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
                 >
                   ✅ Aprovações
@@ -937,13 +940,13 @@ const PollCard = ({ poll, onVote, onDelete, onEdit, isAdmin }) => {
           <div key={option.id}>
             {poll.user_voted || isEnded ? (
               // Mostrar resultados
-              <div className="relative overflow-hidden rounded-lg bg-gray-900/50 backdrop-blur-sm">
+              <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-700">
                 <div className="flex items-center justify-between p-3 relative z-10">
-                  <span className="text-gray-200 font-medium">{option.text}</span>
-                  <span className="text-amber-500 font-bold text-lg">{getPercentage(option)}%</span>
+                  <span className="text-gray-900 dark:text-gray-200 font-medium">{option.text}</span>
+                  <span className="text-amber-600 dark:text-amber-500 font-bold text-lg">{getPercentage(option)}%</span>
                 </div>
                 <div
-                  className="absolute inset-0 bg-gradient-to-r from-amber-500/30 to-amber-600/20 transition-all duration-500 ease-out"
+                  className="absolute inset-0 bg-gradient-to-r from-amber-200/50 to-amber-300/30 dark:from-amber-500/30 dark:to-amber-600/20 transition-all duration-500 ease-out"
                   style={{ width: `${getPercentage(option)}%` }}
                 />
               </div>
@@ -953,16 +956,16 @@ const PollCard = ({ poll, onVote, onDelete, onEdit, isAdmin }) => {
                 onClick={() => handleToggleOption(option.id)}
                 className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left font-medium ${
                   selectedOptions.includes(option.id)
-                    ? 'border-amber-500 bg-amber-500/20 text-white shadow-lg shadow-amber-500/20 scale-[1.02]'
-                    : 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-amber-500/50 hover:bg-gray-800/50'
+                    ? 'border-amber-500 bg-amber-100 dark:bg-amber-500/20 text-gray-900 dark:text-white shadow-lg shadow-amber-500/20 scale-[1.02]'
+                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-gray-900 dark:text-gray-300 hover:border-amber-500/50 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    selectedOptions.includes(option.id) ? 'border-amber-500 bg-amber-500' : 'border-gray-600'
+                    selectedOptions.includes(option.id) ? 'border-amber-500 bg-amber-500' : 'border-gray-400 dark:border-gray-600'
                   }`}>
                     {selectedOptions.includes(option.id) && (
-                      <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}
@@ -993,7 +996,7 @@ const PollCard = ({ poll, onVote, onDelete, onEdit, isAdmin }) => {
         )}
 
         {poll.user_voted && (
-          <div className="p-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/50 rounded-lg text-green-400 text-sm text-center font-medium backdrop-blur-sm">
+          <div className="p-3 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-500/50 rounded-lg text-green-700 dark:text-green-400 text-sm text-center font-medium">
             <span className="flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -1082,16 +1085,16 @@ const RegistrationCard = ({ registration, onSubscribe, onDelete, onEdit, isAdmin
         <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap leading-relaxed">{registration.description}</p>
 
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-          <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-3 border border-gray-800">
-            <p className="text-gray-400 mb-1 text-xs font-medium">Participantes</p>
-            <p className="text-white font-bold text-lg">
+          <div className="bg-gray-100 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-300 dark:border-gray-800">
+            <p className="text-gray-600 dark:text-gray-400 mb-1 text-xs font-medium">Participantes</p>
+            <p className="text-gray-900 dark:text-white font-bold text-lg">
               {registration.approved_count}
               {registration.max_participants && ` / ${registration.max_participants}`}
             </p>
           </div>
-          <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-3 border border-gray-800">
-            <p className="text-gray-400 mb-1 text-xs font-medium">Encerra em</p>
-            <p className="text-white font-bold text-lg">
+          <div className="bg-gray-100 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-300 dark:border-gray-800">
+            <p className="text-gray-600 dark:text-gray-400 mb-1 text-xs font-medium">Encerra em</p>
+            <p className="text-gray-900 dark:text-white font-bold text-lg">
               {new Date(registration.registration_ends).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
             </p>
           </div>
@@ -1128,7 +1131,7 @@ const RegistrationCard = ({ registration, onSubscribe, onDelete, onEdit, isAdmin
             Inscrever-se
           </button>
         ) : (
-          <div className="p-3 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg text-gray-400 text-sm text-center font-medium">
+          <div className="p-3 bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-sm text-center font-medium">
             {registration.is_full ? '🔒 Vagas esgotadas' : '⏰ Inscrições encerradas'}
           </div>
         )}
@@ -1141,6 +1144,7 @@ const RegistrationCard = ({ registration, onSubscribe, onDelete, onEdit, isAdmin
 // MODAL: Criar Post
 // =====================================================
 const CreatePostModal = ({ show, onClose, onSubmit, initialData = null, isEditing = false }) => {
+  const { isDark } = useTheme();
   const [formData, setFormData] = useState({ title: '', content: '', type: 'post' });
 
   useEffect(() => {
@@ -1176,12 +1180,12 @@ const CreatePostModal = ({ show, onClose, onSubmit, initialData = null, isEditin
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
+        <div className={`sticky top-0 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b p-6`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">{isEditing ? 'Editar Post' : 'Criar Post'}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{isEditing ? 'Editar Post' : 'Criar Post'}</h2>
+            <button onClick={onClose} className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} transition-colors`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1191,54 +1195,52 @@ const CreatePostModal = ({ show, onClose, onSubmit, initialData = null, isEditin
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Título (Opcional)
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               placeholder="Título do post..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Conteúdo *
             </label>
-            <div className="bg-white rounded-lg">
-              <ReactQuill
-                theme="snow"
-                value={formData.content}
-                onChange={(value) => setFormData({ ...formData, content: value })}
-                placeholder="Escreva sua mensagem..."
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
-                style={{ minHeight: '200px' }}
-              />
-            </div>
+            <ReactQuill
+              theme="snow"
+              value={formData.content}
+              onChange={(value) => setFormData({ ...formData, content: value })}
+              placeholder="Escreva sua mensagem..."
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                  [{ 'color': [] }, { 'background': [] }],
+                  ['link', 'image'],
+                  ['clean']
+                ]
+              }}
+              style={{ minHeight: '200px' }}
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              className={`px-6 py-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'} rounded-lg transition-colors`}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400"
+              className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400 transition-colors"
             >
               Publicar
             </button>
@@ -1253,6 +1255,7 @@ const CreatePostModal = ({ show, onClose, onSubmit, initialData = null, isEditin
 // MODAL: Criar Enquete
 // =====================================================
 const CreatePollModal = ({ show, onClose, onSubmit, initialData = null, isEditing = false }) => {
+  const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     question: '',
     description: '',
@@ -1306,12 +1309,12 @@ const CreatePollModal = ({ show, onClose, onSubmit, initialData = null, isEditin
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
+        <div className={`sticky top-0 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b p-6`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">{isEditing ? 'Editar Enquete' : 'Criar Enquete'}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{isEditing ? 'Editar Enquete' : 'Criar Enquete'}</h2>
+            <button onClick={onClose} className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} transition-colors`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1321,32 +1324,32 @@ const CreatePollModal = ({ show, onClose, onSubmit, initialData = null, isEditin
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Pergunta *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Pergunta *</label>
             <input
               type="text"
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Opções *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Opções *</label>
             {formData.options.map((opt, idx) => (
               <div key={idx} className="flex gap-2 mb-2">
                 <input
                   type="text"
                   value={opt}
                   onChange={(e) => updateOption(idx, e.target.value)}
-                  className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                  className={`flex-1 px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
                   placeholder={`Opção ${idx + 1}`}
                 />
                 {formData.options.length > 2 && (
                   <button
                     type="button"
                     onClick={() => removeOption(idx)}
-                    className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500"
+                    className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
                   >
                     ✕
                   </button>
@@ -1356,39 +1359,39 @@ const CreatePollModal = ({ show, onClose, onSubmit, initialData = null, isEditin
             <button
               type="button"
               onClick={addOption}
-              className="text-amber-500 hover:text-amber-400 text-sm"
+              className="text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
             >
               + Adicionar opção
             </button>
           </div>
 
           <div>
-            <label className="flex items-center gap-2 text-gray-300">
+            <label className={`flex items-center gap-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               <input
                 type="checkbox"
                 checked={formData.allow_multiple}
                 onChange={(e) => setFormData({ ...formData, allow_multiple: e.target.checked })}
-                className="w-4 h-4"
+                className="w-4 h-4 text-amber-500 border-gray-300 rounded focus:ring-amber-500"
               />
               Permitir múltiplas respostas
             </label>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Data de Encerramento</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Data de Encerramento</label>
             <input
               type="datetime-local"
               value={formData.ends_at}
               onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+            <button type="button" onClick={onClose} className={`px-6 py-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'} rounded-lg transition-colors`}>
               Cancelar
             </button>
-            <button type="submit" className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400">
+            <button type="submit" className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400 transition-colors">
               Criar Enquete
             </button>
           </div>
@@ -1402,6 +1405,7 @@ const CreatePollModal = ({ show, onClose, onSubmit, initialData = null, isEditin
 // MODAL: Criar Inscrição
 // =====================================================
 const CreateRegistrationModal = ({ show, onClose, onSubmit, initialData = null, isEditing = false }) => {
+  const { isDark } = useTheme();
   const api = useApi();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1492,12 +1496,12 @@ const CreateRegistrationModal = ({ show, onClose, onSubmit, initialData = null, 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
+        <div className={`sticky top-0 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b p-6`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">{isEditing ? 'Editar Inscrição' : 'Criar Inscrição'}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{isEditing ? 'Editar Inscrição' : 'Criar Inscrição'}</h2>
+            <button onClick={onClose} className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} transition-colors`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1507,34 +1511,34 @@ const CreateRegistrationModal = ({ show, onClose, onSubmit, initialData = null, 
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Título *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Título *</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               placeholder="Ex: Inscrição para Retiro Espiritual"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Descrição *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Descrição *</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white min-h-[100px]"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent min-h-[100px]`}
               placeholder="Descreva os detalhes da inscrição..."
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Role a Conceder *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Role a Conceder *</label>
             <select
               value={formData.role_to_grant}
               onChange={(e) => setFormData({ ...formData, role_to_grant: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               required
               disabled={loading}
             >
@@ -1545,74 +1549,74 @@ const CreateRegistrationModal = ({ show, onClose, onSubmit, initialData = null, 
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
               Ao ser aprovado, o participante receberá esta role automaticamente
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Máximo de Participantes</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Máximo de Participantes</label>
             <input
               type="number"
               value={formData.max_participants}
               onChange={(e) => setFormData({ ...formData, max_participants: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               placeholder="Deixe vazio para ilimitado"
               min="1"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">Tipo de Aprovação *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-3`}>Tipo de Aprovação *</label>
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:border-amber-500 transition-colors">
+              <label className={`flex items-start gap-3 p-3 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'} border rounded-lg cursor-pointer hover:border-amber-500 transition-colors`}>
                 <input
                   type="radio"
                   name="approval_type"
                   value="automatic"
                   checked={formData.approval_type === 'automatic'}
                   onChange={(e) => setFormData({ ...formData, approval_type: e.target.value })}
-                  className="mt-1"
+                  className="mt-1 text-amber-500"
                 />
                 <div>
-                  <div className="text-white font-medium">Automática</div>
-                  <div className="text-sm text-gray-400">Participante recebe a role imediatamente ao se inscrever</div>
+                  <div className={`${isDark ? 'text-white' : 'text-gray-900'} font-medium`}>Automática</div>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Participante recebe a role imediatamente ao se inscrever</div>
                 </div>
               </label>
 
-              <label className="flex items-start gap-3 p-3 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:border-amber-500 transition-colors">
+              <label className={`flex items-start gap-3 p-3 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'} border rounded-lg cursor-pointer hover:border-amber-500 transition-colors`}>
                 <input
                   type="radio"
                   name="approval_type"
                   value="manual"
                   checked={formData.approval_type === 'manual'}
                   onChange={(e) => setFormData({ ...formData, approval_type: e.target.value })}
-                  className="mt-1"
+                  className="mt-1 text-amber-500"
                 />
                 <div>
-                  <div className="text-white font-medium">Manual</div>
-                  <div className="text-sm text-gray-400">Admin precisa aprovar cada inscrição manualmente</div>
+                  <div className={`${isDark ? 'text-white' : 'text-gray-900'} font-medium`}>Manual</div>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Admin precisa aprovar cada inscrição manualmente</div>
                 </div>
               </label>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Data de Encerramento *</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Data de Encerramento *</label>
             <input
               type="datetime-local"
               value={formData.registration_ends}
               onChange={(e) => setFormData({ ...formData, registration_ends: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               required
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+            <button type="button" onClick={onClose} className={`px-6 py-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'} rounded-lg transition-colors`}>
               Cancelar
             </button>
-            <button type="submit" className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400">
+            <button type="submit" className="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400 transition-colors">
               Criar Inscrição
             </button>
           </div>
@@ -1626,6 +1630,7 @@ const CreateRegistrationModal = ({ show, onClose, onSubmit, initialData = null, 
 // MODAL: Criar Grupo
 // =====================================================
 const CreateGroupModal = ({ show, onClose, onSubmit }) => {
+  const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     name: '',
     display_name: '',
@@ -1657,12 +1662,12 @@ const CreateGroupModal = ({ show, onClose, onSubmit }) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-md w-full">
-        <div className="p-6 border-b border-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg max-w-md w-full shadow-2xl`}>
+        <div className={`p-6 ${isDark ? 'border-gray-800' : 'border-gray-200'} border-b`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Criar Novo Grupo</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Criar Novo Grupo</h2>
+            <button onClick={onClose} className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} transition-colors`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1672,48 +1677,48 @@ const CreateGroupModal = ({ show, onClose, onSubmit }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Nome Técnico * (será convertido para maiúsculas e underscores)
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               placeholder="ex: ministerio_musica"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Nome de Exibição *
             </label>
             <input
               type="text"
               value={formData.display_name}
               onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               placeholder="ex: Ministério de Música"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Descrição
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              className={`w-full px-4 py-2 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
               rows={3}
               placeholder="Descrição do grupo..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
               Cor da Tag
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -1725,7 +1730,7 @@ const CreateGroupModal = ({ show, onClose, onSubmit }) => {
                   className={`
                     px-3 py-2 rounded-lg text-white text-sm font-medium transition-all
                     ${color.value}
-                    ${formData.color === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-900' : 'opacity-50 hover:opacity-100'}
+                    ${formData.color === color.value ? `ring-2 ring-offset-2 ${isDark ? 'ring-white ring-offset-gray-900' : 'ring-gray-900 ring-offset-white'}` : 'opacity-50 hover:opacity-100'}
                   `}
                 >
                   {color.label}
@@ -1738,13 +1743,13 @@ const CreateGroupModal = ({ show, onClose, onSubmit }) => {
             <button 
               type="button" 
               onClick={onClose} 
-              className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              className={`flex-1 px-4 py-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'} rounded-lg transition-colors`}
             >
               Cancelar
             </button>
             <button 
               type="submit" 
-              className="flex-1 px-4 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400"
+              className="flex-1 px-4 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-400 transition-colors"
             >
               Criar Grupo
             </button>
@@ -1759,19 +1764,21 @@ const CreateGroupModal = ({ show, onClose, onSubmit }) => {
 // MODAL: Membros do Grupo
 // =====================================================
 const GroupMembersModal = ({ show, onClose, members, groupName, onRemoveMember }) => {
+  const { isDark } = useTheme();
+  
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl`}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-800">
+        <div className={`p-6 ${isDark ? 'border-gray-800' : 'border-gray-200'} border-b`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">Membros do Grupo</h2>
-              <p className="text-gray-400 mt-1">{groupName}</p>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Membros do Grupo</h2>
+              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{groupName}</p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <button onClick={onClose} className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} transition-colors`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1783,17 +1790,17 @@ const GroupMembersModal = ({ show, onClose, members, groupName, onRemoveMember }
         <div className="p-6 overflow-y-auto flex-1">
           {members.length === 0 ? (
             <div className="text-center py-12">
-              <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-16 h-16 ${isDark ? 'text-gray-600' : 'text-gray-400'} mx-auto mb-4`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              <p className="text-gray-400">Nenhum membro neste grupo ainda</p>
+              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Nenhum membro neste grupo ainda</p>
             </div>
           ) : (
             <div className="space-y-3">
               {members.map((member) => (
                 <div 
                   key={`${member.user_id}-${member.role_id}`}
-                  className="bg-gray-800 rounded-lg p-4 flex items-center justify-between"
+                  className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg p-4 flex items-center justify-between border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
                 >
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
@@ -1803,8 +1810,8 @@ const GroupMembersModal = ({ show, onClose, members, groupName, onRemoveMember }
                     
                     {/* Info */}
                     <div>
-                      <p className="text-white font-medium">{member.user?.name || 'Sem nome'}</p>
-                      <p className="text-sm text-gray-400">{member.user?.email}</p>
+                      <p className={`${isDark ? 'text-white' : 'text-gray-900'} font-medium`}>{member.user?.name || 'Sem nome'}</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{member.user?.email}</p>
                     </div>
                   </div>
 
@@ -1825,14 +1832,14 @@ const GroupMembersModal = ({ show, onClose, members, groupName, onRemoveMember }
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-800">
+        <div className={`p-6 ${isDark ? 'border-gray-800' : 'border-gray-200'} border-t`}>
           <div className="flex justify-between items-center">
-            <p className="text-gray-400">
-              Total: <span className="text-white font-semibold">{members.length}</span> {members.length === 1 ? 'membro' : 'membros'}
+            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Total: <span className={`${isDark ? 'text-white' : 'text-gray-900'} font-semibold`}>{members.length}</span> {members.length === 1 ? 'membro' : 'membros'}
             </p>
             <button 
               onClick={onClose} 
-              className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              className={`px-6 py-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'} rounded-lg transition-colors`}
             >
               Fechar
             </button>
