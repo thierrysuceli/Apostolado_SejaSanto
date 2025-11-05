@@ -31,14 +31,14 @@ export default async function handler(req, res) {
         `;
       } else if (type === 'posts') {
         baseSelect = `
-          *,
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at,
           users!author_id(id, name, avatar_url),
           post_tags(role_id, roles(id, name, display_name, color)),
           post_content_tags(tag_id, tags(id, name, color))
         `;
       } else if (type === 'events') {
         baseSelect = `
-          *,
+          id, title, description, start_date, end_date, location, meeting_link, created_by, created_at, updated_at,
           users!created_by(id, name, email),
           event_tags(role_id, roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
@@ -201,14 +201,14 @@ export default async function handler(req, res) {
         `;
       } else if (type === 'posts') {
         baseSelect = `
-          *,
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at,
           users!author_id(id, name, avatar_url),
           post_tags(role_id, roles(id, name, display_name, color)),
           post_content_tags(tag_id, tags(id, name, color))
         `;
       } else if (type === 'events') {
         baseSelect = `
-          *,
+          id, title, description, start_date, end_date, location, meeting_link, created_by, created_at, updated_at,
           users!created_by(id, name, email),
           event_tags(role_id, roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
