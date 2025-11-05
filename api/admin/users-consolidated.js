@@ -30,12 +30,18 @@ export default async function handler(req, res) {
       const { data: users, error } = await supabaseAdmin
         .from('users')
         .select(`
-          id, name, email, avatar_url, created_at,
+          id, name, email, avatar_url, is_active, created_at, last_login,
           user_roles!user_roles_user_id_fkey(role_id, roles(id, name, display_name, color))
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Formatar roles
+      users?.forEach(user => {
+        user.roles = user.user_roles?.map(ur => ur.roles) || [];
+        delete user.user_roles;
+      });
 
       return res.status(200).json({ users: users || [] });
     }
@@ -88,6 +94,10 @@ export default async function handler(req, res) {
         .single();
 
       if (error) throw error;
+
+      // Formatar roles
+      user.roles = user.user_roles?.map(ur => ur.roles) || [];
+      delete user.user_roles;
 
       return res.status(200).json({ user });
     }

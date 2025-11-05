@@ -1,6 +1,7 @@
 // API - CONTENT CONSOLIDATED (courses + posts + events)
 import { authenticate, hasPermission, hasRole } from '../middleware-api/auth.js';
 import { supabaseAdmin } from '../lib-api/supabaseServer.js';
+import { sanitizeHTML, sanitizeText, generateSlug } from '../lib-api/sanitize.js';
 
 export default async function handler(req, res) {
   const { type, id, resource } = req.query;
@@ -356,44 +357,62 @@ export default async function handler(req, res) {
     await authenticate(req, res);
     if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
     
-    // Determinar permissão ESPECÍFICA baseada no método HTTP
-    let requiredPermission = null;
+    // 🔐 REGRA ESPECIAL: Apenas ADMIN pode criar/editar/deletar EVENTS
+    const isAdmin = await hasRole(req.user.id, 'ADMIN');
     
-    if (req.method === 'POST') {
-      requiredPermission = type === 'courses' ? 'CREATE_COURSE' : 
-                          type === 'posts' ? 'CREATE_POST' : 
-                          'CREATE_EVENT';
-    } else if (req.method === 'PUT') {
-      requiredPermission = type === 'courses' ? 'EDIT_COURSE' : 
-                          type === 'posts' ? 'EDIT_POST' : 
-                          'EDIT_EVENT';
-    } else if (req.method === 'DELETE') {
-      requiredPermission = type === 'courses' ? 'DELETE_COURSE' : 
-                          type === 'posts' ? 'DELETE_POST' : 
-                          'DELETE_EVENT';
+    if (type === 'events' && !isAdmin) {
+      console.log(`[${req.method} ${type}] Access denied - events require admin`);
+      return res.status(403).json({ 
+        error: 'Apenas administradores podem gerenciar eventos'
+      });
     }
     
-    // Verificar permissão: Admin OU permissão específica
-    const isAdmin = await hasRole(req.user.id, 'ADMIN');
-    const userHasPermission = isAdmin || (requiredPermission && await hasPermission(req.user.id, requiredPermission));
-    
-    console.log(`[${req.method} ${type}] Permission check:`, { 
-      userId: req.user.id, 
-      required: requiredPermission, 
-      isAdmin, 
-      hasPermission: userHasPermission 
-    });
-    
-    if (!userHasPermission) {
-      return res.status(403).json({ 
-        error: 'Sem permissão para esta ação',
-        required: requiredPermission
+    // Para courses e posts: verificar permissão específica por método
+    if (type !== 'events') {
+      let requiredPermission = null;
+      
+      if (req.method === 'POST') {
+        requiredPermission = type === 'courses' ? 'CREATE_COURSE' : 'CREATE_POST';
+      } else if (req.method === 'PUT') {
+        requiredPermission = type === 'courses' ? 'EDIT_COURSE' : 'EDIT_POST';
+      } else if (req.method === 'DELETE') {
+        requiredPermission = type === 'courses' ? 'DELETE_COURSE' : 'DELETE_POST';
+      }
+      
+      const userHasPermission = isAdmin || (requiredPermission && await hasPermission(req.user.id, requiredPermission));
+      
+      console.log(`[${req.method} ${type}] Permission check:`, { 
+        userId: req.user.id, 
+        required: requiredPermission, 
+        isAdmin, 
+        hasPermission: userHasPermission 
       });
+      
+      if (!userHasPermission) {
+        return res.status(403).json({ 
+          error: 'Sem permissão para esta ação',
+          required: requiredPermission
+        });
+      }
     }
     
     // POST /:type - Criar item
     if (req.method === 'POST' && !id) {
       const { tags, roles, categories, thematicTags, ...itemData } = req.body;
+      
+      // 🧹 SANITIZAR DADOS
+      if (itemData.title) {
+        itemData.title = sanitizeText(itemData.title);
+        itemData.slug = generateSlug(itemData.title);
+      }
+      
+      if (itemData.description) {
+        itemData.description = sanitizeHTML(itemData.description);
+      }
+      
+      if (itemData.location) {
+        itemData.location = sanitizeText(itemData.location);
+      }
       
       // Validações específicas para events
       if (type === 'events') {
@@ -403,8 +422,9 @@ export default async function handler(req, res) {
         if (itemData.end_date && new Date(itemData.end_date) < new Date(itemData.start_date)) {
           return res.status(400).json({ error: 'end_date deve ser posterior a start_date' });
         }
-        // Garantir created_by
+        // Garantir created_by e status
         itemData.created_by = req.user.id;
+        itemData.status = itemData.status || 'published';
       }
       
       // Garantir author_id para posts
@@ -414,7 +434,10 @@ export default async function handler(req, res) {
       
       // Criar item principal
       const { data, error } = await supabaseAdmin.from(table).insert(itemData).select().single();
-      if (error) throw error;
+      if (error) {
+        console.error(`[POST ${type}] Insert error:`, error);
+        throw error;
+      }
       
       // Associar tags (roles) para posts/events/courses
       // Aceita tanto 'tags' quanto 'roles' para compatibilidade
@@ -466,9 +489,33 @@ export default async function handler(req, res) {
     if (req.method === 'PUT' && id && !resource) {
       const { tags, roles, categories, thematicTags, ...itemData } = req.body;
       
+      // 🧹 SANITIZAR DADOS
+      if (itemData.title !== undefined) {
+        itemData.title = sanitizeText(itemData.title);
+        itemData.slug = generateSlug(itemData.title);
+      }
+      
+      if (itemData.description !== undefined) {
+        itemData.description = sanitizeHTML(itemData.description);
+      }
+      
+      if (itemData.location !== undefined) {
+        itemData.location = itemData.location ? sanitizeText(itemData.location) : null;
+      }
+      
+      // Validar datas para events
+      if (type === 'events' && itemData.end_date !== undefined && itemData.start_date !== undefined) {
+        if (itemData.end_date && new Date(itemData.end_date) < new Date(itemData.start_date)) {
+          return res.status(400).json({ error: 'end_date deve ser posterior a start_date' });
+        }
+      }
+      
       // Atualizar item principal
       const { data, error } = await supabaseAdmin.from(table).update(itemData).eq('id', id).select().single();
-      if (error) throw error;
+      if (error) {
+        console.error(`[PUT ${type}] Update error:`, error);
+        throw error;
+      }
       
       // Atualizar tags (roles) se fornecidas
       // Aceita tanto 'tags' quanto 'roles' para compatibilidade

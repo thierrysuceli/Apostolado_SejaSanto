@@ -22,30 +22,53 @@ export default async function handler(req, res) {
   // ============================================
   if (req.method === 'GET' && !groupId && !resource) {
     try {
-      // Buscar roles do usuário
-      const { data: userRoles } = await supabaseAdmin
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', user.id);
+      // 🔑 ADMIN vê TODOS os grupos, user normal vê apenas suas roles
+      const isAdmin = await hasRole(user.id, 'ADMIN');
       
-      const roleIds = userRoles?.map(ur => ur.role_id) || [];
+      let groups;
       
-      if (roleIds.length === 0) {
-        return res.status(200).json({ groups: [] });
+      if (isAdmin) {
+        // ADMIN: Ver todos os grupos ativos
+        console.log(`[Central Groups] Admin ${user.id} listing all groups`);
+        const { data, error } = await supabaseAdmin
+          .from('central_groups')
+          .select(`
+            *,
+            roles(id, name, display_name, color)
+          `)
+          .eq('is_active', true)
+          .order('name');
+        
+        if (error) throw error;
+        groups = data;
+      } else {
+        // USER: Ver apenas grupos das suas roles
+        console.log(`[Central Groups] User ${user.id} listing role-based groups`);
+        const { data: userRoles } = await supabaseAdmin
+          .from('user_roles')
+          .select('role_id')
+          .eq('user_id', user.id);
+        
+        const roleIds = userRoles?.map(ur => ur.role_id) || [];
+        
+        if (roleIds.length === 0) {
+          return res.status(200).json({ groups: [] });
+        }
+        
+        // Buscar grupos dessas roles
+        const { data, error } = await supabaseAdmin
+          .from('central_groups')
+          .select(`
+            *,
+            roles(id, name, display_name, color)
+          `)
+          .in('role_id', roleIds)
+          .eq('is_active', true)
+          .order('name');
+        
+        if (error) throw error;
+        groups = data;
       }
-      
-      // Buscar grupos dessas roles
-      const { data: groups, error } = await supabaseAdmin
-        .from('central_groups')
-        .select(`
-          *,
-          roles(id, name, display_name, color)
-        `)
-        .in('role_id', roleIds)
-        .eq('is_active', true)
-        .order('name');
-      
-      if (error) throw error;
       
       // Formatar
       groups?.forEach(group => {
@@ -53,6 +76,7 @@ export default async function handler(req, res) {
         delete group.roles;
       });
       
+      console.log(`[Central Groups] Returning ${groups?.length || 0} groups`);
       return res.status(200).json({ groups: groups || [] });
       
     } catch (error) {
