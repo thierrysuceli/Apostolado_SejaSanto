@@ -118,8 +118,10 @@ export default async function handler(req, res) {
 
       if (roleError) {
         console.error('❌ Erro ao criar role:', roleError);
-        return res.status(500).json({ error: 'Erro ao criar grupo' });
+        return res.status(500).json({ error: 'Erro ao criar grupo', details: roleError.message });
       }
+      
+      console.log('✅ Role criada:', newRole);
 
       // Verificar se já existe grupo para essa role
       const { data: existingGroupForRole } = await supabaseAdmin
@@ -161,11 +163,14 @@ export default async function handler(req, res) {
           console.error('❌ Erro ao criar grupo central:', groupError);
           // Reverter criação da role
           await supabaseAdmin.from('roles').delete().eq('id', newRole.id);
-          return res.status(500).json({ error: 'Erro ao criar grupo central' });
+          return res.status(500).json({ error: 'Erro ao criar grupo central', details: groupError.message });
         }
 
+        console.log('✅ Grupo central criado:', createdGroup);
         newGroup = createdGroup;
       }
+
+      console.log('✅ Retornando sucesso. Role:', newRole.id, 'Group:', newGroup?.id);
 
       return res.status(201).json({
         message: 'Grupo criado com sucesso',
@@ -407,6 +412,7 @@ export default async function handler(req, res) {
           role_to_grant, 
           max_participants, 
           approval_type,
+          registration_starts,
           registration_ends 
         } = req.body;
         
@@ -424,6 +430,7 @@ export default async function handler(req, res) {
             role_to_grant,
             max_participants: max_participants || null,
             approval_type: approval_type || 'automatic',
+            registration_starts: registration_starts || new Date().toISOString(),
             registration_ends
           })
           .select(`

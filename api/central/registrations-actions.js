@@ -50,11 +50,13 @@ export default async function handler(req, res) {
         .single();
       
       if (regError || !registration) {
+        console.error('Registration not found:', regError);
         return res.status(404).json({ error: 'Inscrição não encontrada' });
       }
       
       // Verificar se está ativa
       if (!registration.is_active) {
+        console.log('Registration not active:', registration.id);
         return res.status(400).json({ error: 'Inscrição não está ativa' });
       }
       
@@ -63,12 +65,20 @@ export default async function handler(req, res) {
       const startsAt = new Date(registration.registration_starts);
       const endsAt = new Date(registration.registration_ends);
       
+      console.log('Subscribe check:', { now: now.toISOString(), startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() });
+      
       if (now < startsAt) {
-        return res.status(400).json({ error: 'Inscrições ainda não começaram' });
+        return res.status(400).json({ 
+          error: 'Inscrições ainda não começaram',
+          starts_at: startsAt.toISOString()
+        });
       }
       
       if (now > endsAt) {
-        return res.status(400).json({ error: 'Inscrições encerradas' });
+        return res.status(400).json({ 
+          error: 'Inscrições encerradas',
+          ended_at: endsAt.toISOString()
+        });
       }
       
       // Verificar se já está inscrito
