@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         .from('roles')
         .select('id')
         .eq('name', name.toUpperCase())
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return res.status(409).json({ error: 'Já existe uma role com este nome' });

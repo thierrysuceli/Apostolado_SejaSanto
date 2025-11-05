@@ -48,11 +48,12 @@ export default async function handler(req, res) {
       // Buscar enquete
       const { data: poll, error: pollError } = await supabaseAdmin
         .from('central_polls')
-        .select('*, central_groups!inner(role_id)')
+        .select('*, central_groups(role_id)')
         .eq('id', pollId)
         .single();
       
       if (pollError || !poll) {
+        console.error('Poll not found:', pollError);
         return res.status(404).json({ error: 'Enquete não encontrada' });
       }
       
@@ -61,11 +62,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Enquete encerrada' });
       }
       
-      // Verificar acesso ao grupo
-      const hasAccess = userRoleIds.includes(poll.central_groups.role_id);
+      // Verificar acesso ao grupo (todos os membros do grupo podem votar)
+      const groupRoleId = poll.central_groups?.role_id;
+      const hasAccess = groupRoleId && userRoleIds.includes(groupRoleId);
+      
+      console.log('Vote access check:', { pollId, groupRoleId, userRoleIds, hasAccess, isAdmin });
       
       if (!hasAccess && !isAdmin) {
-        return res.status(403).json({ error: 'Sem acesso a este grupo' });
+        return res.status(403).json({ 
+          error: 'Sem acesso a este grupo',
+          debug: { groupRoleId, hasRole: hasAccess }
+        });
       }
       
       // Verificar se pode votar em múltiplas opções

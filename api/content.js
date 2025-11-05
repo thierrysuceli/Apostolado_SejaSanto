@@ -140,10 +140,16 @@ export default async function handler(req, res) {
     if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
     
     // Verificar permissão inline (hasPermission não é middleware aqui)
-    const requiredPermission = type === 'events' ? 'manage_events' : 'manage_content';
+    const requiredPermission = type === 'events' ? 'MANAGE_EVENTS' : 'MANAGE_CONTENT';
     const userHasPermission = await hasPermission(req.user.id, requiredPermission);
+    
+    console.log(`Permission check for ${type}:`, { userId: req.user.id, requiredPermission, userHasPermission });
+    
     if (!userHasPermission) {
-      return res.status(403).json({ error: 'Sem permissão' });
+      return res.status(403).json({ 
+        error: 'Sem permissão',
+        required: requiredPermission
+      });
     }
     
     // POST /:type - Criar item
