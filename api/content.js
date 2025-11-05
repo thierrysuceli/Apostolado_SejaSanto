@@ -459,10 +459,12 @@ export default async function handler(req, res) {
       
       const selectColumns = columnsMap[type] || '*';
       
-      const { data, error } = await supabaseAdmin
+      // 🚨 WORKAROUND: INSERT sem SELECT para evitar schema cache bug!
+      // Depois fazemos GET separado para buscar o item
+      const { data: insertResult, error } = await supabaseAdmin
         .from(table)
         .insert(itemData)
-        .select(selectColumns)
+        .select('id')  // Só pegar o ID
         .single();
       
       if (error) {
@@ -471,7 +473,9 @@ export default async function handler(req, res) {
         throw error;
       }
       
-      console.log(`[POST ${type}] Inserted successfully! ID:`, data.id);
+      console.log(`[POST ${type}] Inserted successfully! ID:`, insertResult.id);
+      
+      const itemId = insertResult.id;
       
       // Associar tags (roles) para posts/events/courses
       // Aceita tanto 'tags' quanto 'roles' para compatibilidade
@@ -480,7 +484,7 @@ export default async function handler(req, res) {
       if (Array.isArray(roleTags) && roleTags.length > 0) {
         const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
         const itemTags = roleTags.map(roleId => ({
-          [`${type.slice(0, -1)}_id`]: data.id,
+          [`${type.slice(0, -1)}_id`]: itemId,
           role_id: roleId
         }));
         
@@ -497,7 +501,7 @@ export default async function handler(req, res) {
       if (thematicTags && Array.isArray(thematicTags) && thematicTags.length > 0 && (type === 'courses' || type === 'posts')) {
         const contentTagTable = type === 'courses' ? 'course_content_tags' : 'post_content_tags';
         const contentTags = thematicTags.map(tagId => ({
-          [`${type.slice(0, -1)}_id`]: data.id,
+          [`${type.slice(0, -1)}_id`]: itemId,
           tag_id: tagId
         }));
         
@@ -508,7 +512,7 @@ export default async function handler(req, res) {
       // Associar categorias para events
       if (type === 'events' && categories && Array.isArray(categories) && categories.length > 0) {
         const eventCategories = categories.map(categoryId => ({
-          event_id: data.id,
+          event_id: itemId,
           category_id: categoryId
         }));
         
@@ -526,8 +530,21 @@ export default async function handler(req, res) {
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       
-      console.log(`[POST ${type}] Created successfully:`, data.id);
-      return res.status(201).json({ [type.slice(0, -1)]: data });
+      // Buscar item completo DEPOIS das associações (evita schema cache bug)
+      const { data: fullItem, error: fetchError } = await supabaseAdmin
+        .from(table)
+        .select(selectColumns)
+        .eq('id', itemId)
+        .single();
+      
+      if (fetchError) {
+        console.warn(`[POST ${type}] Fetch error (item created but fetch failed):`, fetchError);
+        // Retornar pelo menos o ID se o fetch falhar
+        return res.status(201).json({ [type.slice(0, -1)]: insertResult });
+      }
+      
+      console.log(`[POST ${type}] Created successfully:`, itemId);
+      return res.status(201).json({ [type.slice(0, -1)]: fullItem });
     }
     
     // PUT /:type/:id - Atualizar item

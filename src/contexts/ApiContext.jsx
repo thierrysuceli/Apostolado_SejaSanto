@@ -52,9 +52,14 @@ export const ApiProvider = ({ children }) => {
   };
 
   const get = async (url, requireAuth = true) => {
-    const response = await fetch(`${API_URL}${url}`, {
+    // 🔄 Add cache busting timestamp to force fresh data
+    const separator = url.includes('?') ? '&' : '?';
+    const cacheBustedUrl = `${url}${separator}_t=${Date.now()}`;
+    
+    const response = await fetch(`${API_URL}${cacheBustedUrl}`, {
       method: 'GET',
-      headers: getHeaders(requireAuth)
+      headers: getHeaders(requireAuth),
+      cache: 'no-store'  // Prevent browser caching
     });
 
     return handleResponse(response);

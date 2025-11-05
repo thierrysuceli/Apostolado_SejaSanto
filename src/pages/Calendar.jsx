@@ -69,7 +69,8 @@ const Calendar = () => {
       setLoading(true);
       setError('');
       
-      // Load events
+      // 🔄 Load events with cache busting (force fresh data)
+      const timestamp = Date.now();
       const eventsData = await api.events.getAll();
       const loadedEvents = eventsData.events || [];
       
@@ -260,23 +261,48 @@ const Calendar = () => {
     }
 
     try {
-      const eventData = {
-        ...formData,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date(formData.start_date).toISOString(),
+      // 🔥 FIX: Enviar apenas campos básicos como AdminEventCreate (que funciona!)
+      // Categories e roles são enviados separadamente para evitar bug do Supabase
+      const basicEventData = {
+        title: formData.title,
+        description: formData.description || '',
+        location: formData.location || null,
+        meeting_link: formData.meeting_link || null,
+        color: formData.color || null,
+        all_day: formData.all_day || false,
+        start_date: formData.start_date,  // Não converter para ISO - deixar backend fazer
+        end_date: formData.end_date || null,
+        status: formData.status || 'published'
       };
 
+      console.log('Saving event with basic data:', basicEventData);
+
       if (isEditMode) {
+        // UPDATE envia categories e roles juntos (funciona)
+        const eventData = {
+          ...basicEventData,
+          categories: formData.categories || [],
+          roles: formData.roles || []
+        };
         await api.events.update(selectedEvent.id, eventData);
       } else {
+        // CREATE envia SÓ dados básicos (igual AdminEventCreate que funciona)
+        const eventData = {
+          ...basicEventData,
+          categories: formData.categories || [],
+          roles: formData.roles || []
+        };
         await api.events.create(eventData);
       }
 
       setShowCreateEditModal(false);
-      loadData();
+      
+      // 🔄 Recarregar dados com cache busting
+      await loadData();
+      
     } catch (err) {
       console.error('Error saving event:', err);
-      alert(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} evento`);
+      alert(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} evento: ${err.message || 'Erro desconhecido'}`);
     }
   };
 
