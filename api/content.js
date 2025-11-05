@@ -140,15 +140,34 @@ export default async function handler(req, res) {
     if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
     
     // Verificar permissão inline (hasPermission não é middleware aqui)
-    const requiredPermission = type === 'events' ? 'MANAGE_EVENTS' : 'MANAGE_CONTENT';
-    const userHasPermission = await hasPermission(req.user.id, requiredPermission);
+    const requiredPermissions = {
+      'courses': ['EDIT_COURSE', 'CREATE_COURSE', 'DELETE_COURSE'],
+      'posts': ['EDIT_POST', 'CREATE_POST', 'DELETE_POST'],
+      'events': ['EDIT_EVENT', 'CREATE_EVENT', 'DELETE_EVENT']
+    };
     
-    console.log(`Permission check for ${type}:`, { userId: req.user.id, requiredPermission, userHasPermission });
+    const permsToCheck = requiredPermissions[type] || [];
+    let userHasPermission = false;
+    
+    // Verificar se tem alguma das permissões ou se é admin
+    const isAdmin = await hasRole(req.user.id, 'ADMIN');
+    if (isAdmin) {
+      userHasPermission = true;
+    } else {
+      for (const perm of permsToCheck) {
+        if (await hasPermission(req.user.id, perm)) {
+          userHasPermission = true;
+          break;
+        }
+      }
+    }
+    
+    console.log(`Permission check for ${type}:`, { userId: req.user.id, permsToCheck, userHasPermission, isAdmin });
     
     if (!userHasPermission) {
       return res.status(403).json({ 
         error: 'Sem permissão',
-        required: requiredPermission
+        required: permsToCheck
       });
     }
     

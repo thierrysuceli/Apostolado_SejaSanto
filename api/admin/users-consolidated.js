@@ -138,34 +138,71 @@ export default async function handler(req, res) {
 
     // PUT /admin/users/:id/roles - Atualizar roles do usuário
     if (req.method === 'PUT' && id && resource === 'roles') {
-      const { role_ids } = req.body;
+      // Aceitar tanto 'roles' quanto 'role_ids' para compatibilidade com frontend antigo
+      const { role_ids, roles } = req.body;
+      const roleIdsArray = role_ids || roles;
 
-      if (!Array.isArray(role_ids)) {
-        return res.status(400).json({ error: 'role_ids deve ser um array' });
+      console.log('=== UPDATE USER ROLES ===');
+      console.log('User ID:', id);
+      console.log('Roles recebidas (role_ids):', role_ids);
+      console.log('Roles recebidas (roles):', roles);
+      console.log('Final roleIdsArray:', roleIdsArray);
+
+      if (!Array.isArray(roleIdsArray)) {
+        return res.status(400).json({ error: 'roles deve ser um array' });
       }
 
       // Remover todas as roles atuais
+      console.log('Removendo roles atuais...');
       await supabaseAdmin
         .from('user_roles')
         .delete()
         .eq('user_id', id);
 
       // Adicionar novas roles
-      if (role_ids.length > 0) {
-        const inserts = role_ids.map(role_id => ({
+      if (roleIdsArray.length > 0) {
+        const inserts = roleIdsArray.map(role_id => ({
           user_id: id,
           role_id,
           assigned_by: req.user.id
         }));
 
+        console.log('Inserindo novas roles:', inserts);
+
         const { error } = await supabaseAdmin
           .from('user_roles')
           .insert(inserts);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao inserir roles:', error);
+          throw error;
+        }
       }
 
-      return res.status(200).json({ message: 'Roles atualizadas com sucesso' });
+      console.log('✅ Roles atualizadas com sucesso');
+
+      // Retornar usuário atualizado com roles
+      const { data: user, error: userError } = await supabaseAdmin
+        .from('users')
+        .select(`
+          id,
+          email,
+          name,
+          avatar_url,
+          is_active,
+          user_roles!user_roles_user_id_fkey(
+            roles(id, name, display_name, color)
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (userError) throw userError;
+
+      user.roles = user.user_roles?.map(ur => ur.roles) || [];
+      delete user.user_roles;
+
+      return res.status(200).json({ user });
     }
 
     return res.status(405).json({ error: 'Método não permitido' });
