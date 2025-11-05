@@ -432,8 +432,13 @@ export default async function handler(req, res) {
         itemData.author_id = req.user.id;
       }
       
-      // Criar item principal
-      const { data, error } = await supabaseAdmin.from(table).insert(itemData).select().single();
+      // Criar item principal (sem joins, apenas dados diretos)
+      const { data, error } = await supabaseAdmin
+        .from(table)
+        .insert(itemData)
+        .select('*')
+        .single();
+      
       if (error) {
         console.error(`[POST ${type}] Insert error:`, error);
         throw error;
@@ -510,8 +515,14 @@ export default async function handler(req, res) {
         }
       }
       
-      // Atualizar item principal
-      const { data, error } = await supabaseAdmin.from(table).update(itemData).eq('id', id).select().single();
+      // Atualizar item principal (sem joins, apenas dados diretos)
+      const { data, error } = await supabaseAdmin
+        .from(table)
+        .update(itemData)
+        .eq('id', id)
+        .select('*')
+        .single();
+      
       if (error) {
         console.error(`[PUT ${type}] Update error:`, error);
         throw error;
