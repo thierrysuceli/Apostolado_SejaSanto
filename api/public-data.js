@@ -145,7 +145,23 @@ export default async function handler(req, res) {
       if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem criar módulos' });
       const { course_id, title, description, order_index } = req.body;
       if (!course_id || !title) return res.status(400).json({ error: 'course_id e title são obrigatórios' });
-      const { data, error } = await supabaseAdmin.from('modules').insert({ course_id, title, description, order_index: order_index || 0 }).select().single();
+      
+      // Se order_index não fornecido, calcular próximo
+      let finalOrderIndex = order_index;
+      if (finalOrderIndex === undefined || finalOrderIndex === null) {
+        const { data: existingModules } = await supabaseAdmin
+          .from('modules')
+          .select('order_index')
+          .eq('course_id', course_id)
+          .order('order_index', { ascending: false })
+          .limit(1);
+        
+        finalOrderIndex = existingModules && existingModules.length > 0 
+          ? (existingModules[0].order_index || 0) + 1 
+          : 0;
+      }
+      
+      const { data, error } = await supabaseAdmin.from('modules').insert({ course_id, title, description, order_index: finalOrderIndex }).select().single();
       if (error) throw error;
       return res.status(201).json({ module: data });
     }
@@ -186,7 +202,23 @@ export default async function handler(req, res) {
       if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem criar tópicos' });
       const { module_id, title, content_before, video_url, content_after, duration, order_index } = req.body;
       if (!module_id || !title) return res.status(400).json({ error: 'module_id e title são obrigatórios' });
-      const { data, error } = await supabaseAdmin.from('topics').insert({ module_id, title, content_before, video_url, content_after, duration, order_index: order_index || 0 }).select().single();
+      
+      // Se order_index não fornecido, calcular próximo
+      let finalOrderIndex = order_index;
+      if (finalOrderIndex === undefined || finalOrderIndex === null) {
+        const { data: existingTopics } = await supabaseAdmin
+          .from('topics')
+          .select('order_index')
+          .eq('module_id', module_id)
+          .order('order_index', { ascending: false })
+          .limit(1);
+        
+        finalOrderIndex = existingTopics && existingTopics.length > 0 
+          ? (existingTopics[0].order_index || 0) + 1 
+          : 0;
+      }
+      
+      const { data, error } = await supabaseAdmin.from('topics').insert({ module_id, title, content_before, video_url, content_after, duration, order_index: finalOrderIndex }).select().single();
       if (error) throw error;
       return res.status(201).json({ topic: data });
     }
