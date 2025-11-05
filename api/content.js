@@ -18,7 +18,6 @@ export default async function handler(req, res) {
       // Autenticar (não obrigatório, mas define req.user se houver)
       await authenticate(req, res);
       
-      let query;
       let baseSelect;
       
       // Definir SELECT base
@@ -45,6 +44,8 @@ export default async function handler(req, res) {
         `;
       }
       
+      let data;
+      
       // 🔑 CONTROLE DE ACESSO: Admin vs User vs Visitante
       if (req.user) {
         const isAdmin = await hasRole(req.user.id, 'ADMIN');
@@ -52,7 +53,13 @@ export default async function handler(req, res) {
         if (isAdmin) {
           // ✅ ADMIN: Vê TUDO (inclusive drafts)
           console.log(`[${type}] Admin access - showing all items`);
-          query = supabaseAdmin.from(table).select(baseSelect);
+          const { data: items, error } = await supabaseAdmin
+            .from(table)
+            .select(baseSelect)
+            .order(type === 'events' ? 'start_date' : 'created_at', { ascending: type === 'events' });
+          
+          if (error) throw error;
+          data = items;
         } else {
           // ✅ USER AUTENTICADO: Vê apenas published + suas roles
           console.log(`[${type}] Authenticated user access - filtering by roles`);
@@ -70,15 +77,33 @@ export default async function handler(req, res) {
             return res.status(200).json({ [type]: [] });
           }
           
-          // Filtrar por status='published' E role do usuário
+          // 1️⃣ Buscar IDs dos itens acessíveis via tags
           const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-          query = supabaseAdmin.from(table)
-            .select(`
-              ${baseSelect},
-              ${tagTable}!inner(role_id)
-            `)
+          const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+          
+          const { data: itemTags, error: tagError } = await supabaseAdmin
+            .from(tagTable)
+            .select(idColumn)
+            .in('role_id', roleIds);
+          
+          if (tagError) throw tagError;
+          
+          const itemIds = itemTags ? [...new Set(itemTags.map(t => t[idColumn]))] : [];
+          
+          if (itemIds.length === 0) {
+            return res.status(200).json({ [type]: [] });
+          }
+          
+          // 2️⃣ Buscar itens completos
+          const { data: items, error } = await supabaseAdmin
+            .from(table)
+            .select(baseSelect)
             .eq('status', 'published')
-            .in(`${tagTable}.role_id`, roleIds);
+            .in('id', itemIds)
+            .order(type === 'events' ? 'start_date' : 'created_at', { ascending: type === 'events' });
+          
+          if (error) throw error;
+          data = items;
         }
       } else {
         // ✅ VISITANTE NÃO AUTENTICADO: Apenas published + role VISITANTE
@@ -95,22 +120,34 @@ export default async function handler(req, res) {
           return res.status(200).json({ [type]: [] });
         }
         
+        // 1️⃣ Buscar IDs dos itens com role VISITANTE
         const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-        query = supabaseAdmin.from(table)
-          .select(`
-            ${baseSelect},
-            ${tagTable}!inner(role_id)
-          `)
+        const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+        
+        const { data: itemTags, error: tagError } = await supabaseAdmin
+          .from(tagTable)
+          .select(idColumn)
+          .eq('role_id', visitanteRole.id);
+        
+        if (tagError) throw tagError;
+        
+        const itemIds = itemTags ? [...new Set(itemTags.map(t => t[idColumn]))] : [];
+        
+        if (itemIds.length === 0) {
+          return res.status(200).json({ [type]: [] });
+        }
+        
+        // 2️⃣ Buscar itens completos
+        const { data: items, error } = await supabaseAdmin
+          .from(table)
+          .select(baseSelect)
           .eq('status', 'published')
-          .eq(`${tagTable}.role_id`, visitanteRole.id);
+          .in('id', itemIds)
+          .order(type === 'events' ? 'start_date' : 'created_at', { ascending: type === 'events' });
+        
+        if (error) throw error;
+        data = items;
       }
-      
-      // Ordenação
-      if (type === 'events') query = query.order('start_date', { ascending: true });
-      else query = query.order('created_at', { ascending: false });
-      
-      const { data, error } = await query;
-      if (error) throw error;
       
       // Formatar dados
       const formattedData = (data || []).map(item => {
@@ -203,17 +240,28 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
           }
           
-          // Buscar item filtrando por role
+          // 1️⃣ Verificar se usuário tem acesso via tags
           const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+          const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+          
+          const { data: itemTag } = await supabaseAdmin
+            .from(tagTable)
+            .select('role_id')
+            .eq(idColumn, id)
+            .in('role_id', roleIds)
+            .limit(1)
+            .maybeSingle();
+          
+          if (!itemTag) {
+            return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+          }
+          
+          // 2️⃣ Buscar item completo (já sabemos que tem acesso)
           const { data: item, error } = await supabaseAdmin
             .from(table)
-            .select(`
-              ${baseSelect},
-              ${tagTable}!inner(role_id)
-            `)
+            .select(baseSelect)
             .eq('id', id)
             .eq('status', 'published')
-            .in(`${tagTable}.role_id`, roleIds)
             .single();
           
           if (error && error.code !== 'PGRST116') throw error;
@@ -231,16 +279,28 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
         }
         
+        // 1️⃣ Verificar se item tem role VISITANTE
         const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
+        const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+        
+        const { data: itemTag } = await supabaseAdmin
+          .from(tagTable)
+          .select('role_id')
+          .eq(idColumn, id)
+          .eq('role_id', visitanteRole.id)
+          .limit(1)
+          .maybeSingle();
+        
+        if (!itemTag) {
+          return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+        }
+        
+        // 2️⃣ Buscar item completo
         const { data: item, error } = await supabaseAdmin
           .from(table)
-          .select(`
-            ${baseSelect},
-            ${tagTable}!inner(role_id)
-          `)
+          .select(baseSelect)
           .eq('id', id)
           .eq('status', 'published')
-          .eq(`${tagTable}.role_id`, visitanteRole.id)
           .single();
         
         if (error && error.code !== 'PGRST116') throw error;
