@@ -43,6 +43,11 @@ export default async function handler(req, res) {
         delete user.user_roles;
       });
 
+      // 🚫 CACHE BUSTING - Sempre retornar dados frescos
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
       return res.status(200).json({ users: users || [] });
     }
 
@@ -98,6 +103,11 @@ export default async function handler(req, res) {
       // Formatar roles
       user.roles = user.user_roles?.map(ur => ur.roles) || [];
       delete user.user_roles;
+
+      // 🚫 CACHE BUSTING
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
 
       return res.status(200).json({ user });
     }

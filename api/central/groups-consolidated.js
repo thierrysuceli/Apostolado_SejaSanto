@@ -76,6 +76,11 @@ export default async function handler(req, res) {
         delete group.roles;
       });
       
+      // 🚫 CACHE BUSTING - Sempre retornar dados frescos
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       console.log(`[Central Groups] Returning ${groups?.length || 0} groups`);
       return res.status(200).json({ groups: groups || [] });
       
