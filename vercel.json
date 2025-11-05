@@ -197,7 +197,7 @@
       "destination": "/api/public-data?type=comments"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|_next|static|favicon.ico|manifest.json).*)",
       "destination": "/index.html"
     }
   ],
