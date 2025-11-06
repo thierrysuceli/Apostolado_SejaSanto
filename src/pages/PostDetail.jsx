@@ -290,7 +290,7 @@ function PostDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-300">
       {/* Article Header Banner */}
       <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-gray-900 dark:via-gray-800 dark:to-black py-12 md:py-20">
         <div className="container mx-auto px-4 max-w-5xl">
@@ -391,7 +391,7 @@ function PostDetail() {
       )}
 
       {/* Article Content */}
-      <article className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+      <article className="container mx-auto px-4 py-12 md:py-16 max-w-4xl bg-white dark:bg-gray-950 md:rounded-2xl md:shadow-2xl md:my-8">
         {/* Featured Image */}
         {post.image && !isEditing && (
           <div className="mb-12 -mx-4 md:mx-0">

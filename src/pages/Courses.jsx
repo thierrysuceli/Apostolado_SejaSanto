@@ -93,53 +93,51 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-bold text-secondary-800 dark:text-gray-100 mb-4">
-              Cursos
-            </h1>
-            <p className="text-xl text-primary-700 dark:text-primary-500 italic mb-2 font-bold">
-              "Os que não querem ser vencidos pela verdade, serão vencidos pelo erro."
-            </p>
-            <p className="text-secondary-600 dark:text-gray-300 max-w-2xl mx-auto text-base">
-              Explore nossos cursos de formação católica e aprofunde seu conhecimento da fé.
-            </p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Header */}
+        <div className="text-center mb-16">
+          <div className="inline-block bg-amber-500/10 border border-amber-500/30 rounded-full px-6 py-2 mb-6">
+            <span className="text-amber-500 font-bold uppercase tracking-wider text-sm">Programas de Formação</span>
           </div>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
+            CURSOS
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+            Explore nossos programas de formação católica e aprofunde seu conhecimento da fé através de conteúdos exclusivos.
+          </p>
           
           {/* Admin Actions */}
           {isAdmin() && (
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               <button
                 onClick={() => navigate('/admin/courses/create')}
-                className="bg-primary-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-700 transition-colors shadow-md flex items-center gap-2"
+                className="bg-gradient-to-r from-amber-500 to-amber-600 text-black px-8 py-4 rounded-xl font-bold hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-amber-500/50 flex items-center gap-3 transform hover:scale-105"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Criar Novo Curso
+                Criar Novo Programa
               </button>
             </div>
           )}
         </div>
 
         {/* Category Filter */}
-        <div className="mb-6">
-          <label className="block text-secondary-700 dark:text-gray-200 font-bold mb-3 text-sm uppercase tracking-wider">Categorias</label>
+        <div className="mb-8">
+          <label className="block text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Categorias</label>
           <div className="flex flex-wrap gap-3">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                className={`px-6 py-3 rounded-full font-bold transition-all ${
                   selectedCategory === category
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 hover:bg-beige-100 dark:hover:bg-gray-800 border border-beige-300'
+                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/50 scale-105'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 hover:border-gray-600'
                 }`}
               >
-                {category === 'all' ? 'Todos' : category}
+                {category === 'all' ? 'Todos os Programas' : category}
               </button>
             ))}
           </div>
@@ -147,15 +145,15 @@ const Courses = () => {
 
         {/* Tag Filter */}
         {availableTags.length > 0 && (
-          <div className="mb-8">
-            <label className="block text-secondary-700 dark:text-gray-200 font-bold mb-3 text-sm uppercase tracking-wider">Filtrar por Tema</label>
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-12">
+            <label className="block text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Temas</label>
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setSelectedTag('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${
                   selectedTag === 'all'
-                    ? 'bg-amber-500 text-white shadow-md'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                    ? 'bg-white text-black shadow-lg'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                 }`}
               >
                 Todos os Temas
@@ -164,14 +162,14 @@ const Courses = () => {
                 <button
                   key={tag.id}
                   onClick={() => setSelectedTag(tag.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 ${
                     selectedTag === tag.id
-                      ? 'shadow-lg scale-105'
-                      : 'hover:scale-105'
+                      ? 'shadow-xl scale-105'
+                      : ''
                   }`}
                   style={{
-                    backgroundColor: selectedTag === tag.id ? tag.color : tag.color + '20',
-                    color: selectedTag === tag.id ? '#fff' : tag.color,
+                    backgroundColor: selectedTag === tag.id ? tag.color : `${tag.color}30`,
+                    color: selectedTag === tag.id ? '#000' : tag.color,
                     border: `2px solid ${tag.color}`,
                   }}
                   title={tag.description}
@@ -184,22 +182,24 @@ const Courses = () => {
         )}
 
         {/* Course Count */}
-        <div className="mb-6">
-          <p className="text-secondary-600 dark:text-gray-300 font-medium">
-            {filteredCourses.length} {filteredCourses.length === 1 ? 'curso encontrado' : 'cursos encontrados'}
+        <div className="mb-8 border-b border-gray-800 pb-4">
+          <p className="text-gray-400 font-bold uppercase tracking-wider text-sm">
+            {filteredCourses.length} {filteredCourses.length === 1 ? 'Programa Disponível' : 'Programas Disponíveis'}
           </p>
         </div>
 
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Courses Grid - Novo Layout tipo "Programas" */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {filteredCourses.map(course => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
 
         {filteredCourses.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-secondary-600 dark:text-gray-300 text-lg font-medium">Nenhum curso encontrado nesta categoria.</p>
+          <div className="text-center py-24">
+            <div className="text-6xl mb-6">📚</div>
+            <p className="text-gray-400 text-xl font-medium">Nenhum programa encontrado</p>
+            <p className="text-gray-500 mt-2">Tente ajustar os filtros acima</p>
           </div>
         )}
       </div>

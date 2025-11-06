@@ -376,11 +376,12 @@ const Central = () => {
       <div 
         className={`
           fixed lg:static inset-y-0 left-0 z-30
-          w-72 bg-gray-50 dark:bg-gray-950 border-r border-gray-300 dark:border-gray-800
+          w-72 max-w-[80vw] bg-gray-50 dark:bg-gray-950 border-r border-gray-300 dark:border-gray-800
           transform transition-transform duration-300 ease-in-out
           ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
           shadow-lg lg:shadow-none
+          overflow-hidden
         `}
       >
         {/* Header */}
@@ -397,7 +398,7 @@ const Central = () => {
         </div>
 
         {/* Grupos */}
-        <div className="overflow-y-auto h-[calc(100vh-4rem)]">
+        <div className="overflow-y-auto overflow-x-hidden h-[calc(100vh-4rem)]">
           {groups.map((group) => (
             <button
               key={group.id}
@@ -413,9 +414,9 @@ const Central = () => {
                 }
               `}
             >
-              <span className="text-2xl">{getGroupIcon(group)}</span>
-              <div className="flex-1 text-left">
-                <p className={`font-medium ${
+              <span className="text-2xl flex-shrink-0">{getGroupIcon(group)}</span>
+              <div className="flex-1 text-left min-w-0">
+                <p className={`font-medium truncate ${
                   selectedGroup?.id === group.id ? 'text-amber-600 dark:text-amber-500' : 'text-gray-800 dark:text-gray-200'
                 }`}>
                   {group.name}
