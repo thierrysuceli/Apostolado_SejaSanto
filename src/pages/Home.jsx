@@ -24,34 +24,99 @@ const Home = () => {
         setLoading(true);
         setError('');
         
-        const [coursesData, postsData, groupsData] = await Promise.all([
+        const [coursesData, postsData, groupsData, eventsData] = await Promise.all([
           api.courses.getAll(),
           api.posts.getAll(),
-          api.groups?.getAll().catch(() => ({ groups: [] })) || { groups: [] }
+          api.groups?.getAll().catch(() => ({ groups: [] })) || { groups: [] },
+          api.events?.getAll().catch(() => ({ events: [] })) || { events: [] }
         ]);
         
-        // Últimos 5 para o hero (misturar posts e cursos)
-        const allContent = [
+        // Últimos 5 para o HERO (misturar posts e cursos)
+        const heroContent = [
           ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
           ...(postsData.posts || []).map(p => ({ ...p, type: 'post' }))
         ];
         
         // Ordenar por data mais recente
-        allContent.sort((a, b) => {
+        heroContent.sort((a, b) => {
           const dateA = new Date(a.published_at || a.created_at || a.date);
           const dateB = new Date(b.published_at || b.created_at || b.date);
           return dateB - dateA;
         });
         
-        setHeroItems(allContent.slice(0, 5));
+        setHeroItems(heroContent.slice(0, 5));
         
-        // Para "Recentes" - últimos 10 itens do Central (posts, polls, registrations)
-        // Por enquanto vamos usar os posts recentes
-        setRecentItems(allContent.slice(0, 10));
+        // Para "RECENTES" - puxar do Central (posts de grupos, polls, registrations) + Eventos do calendário
+        const recentActivity = [];
         
-        // Show only first 3 of each for bottom sections
-        setCourses(coursesData.courses?.slice(0, 3) || []);
-        setPosts(postsData.posts?.slice(0, 3) || []);
+        // Puxar posts, polls e registrations dos grupos que o user participa
+        if (groupsData.groups && Array.isArray(groupsData.groups)) {
+          for (const group of groupsData.groups) {
+            try {
+              // Posts do grupo
+              if (group.group_posts) {
+                group.group_posts.forEach(post => {
+                  recentActivity.push({
+                    ...post,
+                    type: 'post',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+              
+              // Polls do grupo
+              if (group.polls) {
+                group.polls.forEach(poll => {
+                  recentActivity.push({
+                    ...poll,
+                    type: 'poll',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+              
+              // Registrations do grupo
+              if (group.registrations) {
+                group.registrations.forEach(reg => {
+                  recentActivity.push({
+                    ...reg,
+                    type: 'registration',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+            } catch (err) {
+              console.error(`Error loading group ${group.id} content:`, err);
+            }
+          }
+        }
+        
+        // Adicionar eventos do calendário (filtrados por role do user)
+        if (eventsData.events && Array.isArray(eventsData.events)) {
+          eventsData.events.forEach(event => {
+            recentActivity.push({
+              ...event,
+              type: 'event',
+              title: event.title || event.name
+            });
+          });
+        }
+        
+        // Ordenar por data de criação
+        recentActivity.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.date);
+          const dateB = new Date(b.created_at || b.date);
+          return dateB - dateA;
+        });
+        
+        setRecentItems(recentActivity.slice(0, 10));
+        
+        // Show only first 4 of each for bottom sections
+        setCourses(coursesData.courses?.slice(0, 4) || []);
+        setPosts(postsData.posts?.slice(0, 6) || []);
       } catch (err) {
         console.error('Error loading home data:', err);
         setError('Erro ao carregar conteúdo');
@@ -61,7 +126,7 @@ const Home = () => {
     };
     
     loadData();
-  }, []);
+  }, [user]);
 
   // Auto-play carousel
   useEffect(() => {
@@ -104,7 +169,7 @@ const Home = () => {
   const currentHero = heroItems[currentHeroIndex];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Hero Carousel Section - Últimos 5 */}
       {heroItems.length > 0 && (
         <section className="relative h-[600px] md:h-[700px] overflow-hidden">
@@ -122,13 +187,6 @@ const Home = () => {
           {/* Content */}
           <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
             <div className="max-w-3xl">
-              {/* Category Badge */}
-              <div className="mb-4">
-                <span className="inline-block bg-amber-500/20 border border-amber-500/50 text-amber-500 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider">
-                  {currentHero?.type === 'course' ? '📚 Curso' : '📄 Artigo'} • {currentHero?.category || 'Formação'}
-                </span>
-              </div>
-
               {/* Title */}
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
                 {currentHero?.title}
@@ -166,105 +224,102 @@ const Home = () => {
               />
             ))}
           </div>
-
-          {/* Arrow Navigation */}
-          {heroItems.length > 1 && (
-            <>
-              <button
-                onClick={() => setCurrentHeroIndex((currentHeroIndex - 1 + heroItems.length) % heroItems.length)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full backdrop-blur-sm transition-all"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setCurrentHeroIndex((currentHeroIndex + 1) % heroItems.length)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full backdrop-blur-sm transition-all"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
         </section>
       )}
 
-      {/* Recentes Section - Feed Unificado */}
+      {/* Recentes Section - Feed Unificado (Central + Calendário) */}
       {recentItems.length > 0 && (
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-950">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-100 dark:bg-gray-950">
           <div className="max-w-7xl mx-auto">
             <div className="mb-10">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2">Recentes</h2>
-              <p className="text-gray-400">Últimas atividades e conteúdos da plataforma</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Recentes</h2>
+              <p className="text-gray-600 dark:text-gray-400">Últimas atividades dos seus grupos e eventos</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentItems.map((item, index) => (
-                <div
-                  key={`${item.type}-${item.id}-${index}`}
-                  onClick={() => {
-                    if (item.type === 'post') navigate(`/posts/${item.id}`);
-                    else if (item.type === 'poll' || item.type === 'registration') navigate('/central');
-                  }}
-                  className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 hover:bg-gray-800 transition-all cursor-pointer border border-gray-700/50 hover:border-amber-500/50"
-                >
-                  {/* Type Badge */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl">
-                      {item.type === 'post' ? '📄' : item.type === 'poll' ? '📊' : '📝'}
-                    </span>
-                    <span className="text-amber-500 text-sm font-bold uppercase tracking-wider">
-                      {item.type === 'post' ? 'Artigo' : item.type === 'poll' ? 'Enquete' : 'Inscrição'}
-                    </span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 hover:text-amber-500 transition-colors">
-                    {item.title}
-                  </h3>
-
-                  {/* Description/Excerpt */}
-                  {(item.excerpt || item.description) && (
-                    <p className="text-gray-400 text-sm line-clamp-3 mb-4">
-                      {(item.excerpt || item.description)?.replace(/<[^>]*>/g, '')}
-                    </p>
-                  )}
-
-                  {/* Meta Info */}
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    {item.category && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        {item.category}
+              {recentItems.map((item, index) => {
+                const getIcon = () => {
+                  if (item.type === 'post') return item.group_emoji || '📄';
+                  if (item.type === 'poll') return '📊';
+                  if (item.type === 'registration') return '📝';
+                  if (item.type === 'event') return '📅';
+                  return '📄';
+                };
+                
+                const getTypeLabel = () => {
+                  if (item.type === 'post') return 'Post';
+                  if (item.type === 'poll') return 'Enquete';
+                  if (item.type === 'registration') return 'Inscrição';
+                  if (item.type === 'event') return 'Evento';
+                  return 'Atividade';
+                };
+                
+                const handleClick = () => {
+                  if (item.type === 'event') navigate('/calendar');
+                  else if (item.type === 'post' || item.type === 'poll' || item.type === 'registration') navigate('/central');
+                };
+                
+                return (
+                  <div
+                    key={`${item.type}-${item.id}-${index}`}
+                    onClick={handleClick}
+                    className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer border border-gray-200 dark:border-gray-700/50 hover:border-amber-500/50 shadow-sm hover:shadow-md"
+                  >
+                    {/* Type Badge */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-2xl">
+                        {getIcon()}
                       </span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-amber-600 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
+                          {getTypeLabel()}
+                        </span>
+                        {item.group_name && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {item.group_name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 hover:text-amber-600 dark:hover:text-amber-500 transition-colors">
+                      {item.title}
+                    </h3>
+
+                    {/* Description/Excerpt */}
+                    {(item.excerpt || item.description || item.content) && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
+                        {(item.excerpt || item.description || item.content)?.replace(/<[^>]*>/g, '')}
+                      </p>
                     )}
-                    {item.created_at && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                      </span>
-                    )}
+
+                    {/* Meta Info */}
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
+                      {item.created_at && (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
       {/* Featured Courses Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2">Cursos em Destaque</h2>
-              <p className="text-gray-400">Conteúdos de formação católica de qualidade</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Cursos em Destaque</h2>
+              <p className="text-gray-600 dark:text-gray-400">Conteúdos de formação católica de qualidade</p>
             </div>
             <Link
               to="/courses"
@@ -283,7 +338,7 @@ const Home = () => {
                 <CourseCard key={course.id} course={course} />
               ))
             ) : (
-              <p className="col-span-2 text-center text-gray-400">
+              <p className="col-span-2 text-center text-gray-600 dark:text-gray-400">
                 Nenhum curso disponível no momento
               </p>
             )}
@@ -304,12 +359,12 @@ const Home = () => {
       </section>
 
       {/* Latest Posts Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-black">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2">Últimas Postagens</h2>
-              <p className="text-gray-400">Reflexões e ensinamentos para sua vida espiritual</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Postagens</h2>
+              <p className="text-gray-600 dark:text-gray-400">Reflexões e ensinamentos para sua vida espiritual</p>
             </div>
             <Link
               to="/posts"
@@ -328,7 +383,7 @@ const Home = () => {
                 <PostCard key={post.id} post={post} />
               ))
             ) : (
-              <p className="col-span-3 text-center text-gray-400">
+              <p className="col-span-3 text-center text-gray-600 dark:text-gray-400">
                 Nenhuma postagem disponível no momento
               </p>
             )}
@@ -348,49 +403,51 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-600 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="mb-6 flex justify-center">
-            <img 
-              src="/Apostolado_PNG.png"
-              alt="Apostolado Seja Santo" 
-              className="w-24 h-24 drop-shadow-2xl"
-            />
+      {/* Call to Action - Apenas para não autenticados */}
+      {!user && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-900 to-black dark:from-gray-900 dark:to-black relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-600 rounded-full blur-3xl"></div>
           </div>
-          
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            Faça Parte da Nossa Comunidade
-          </h2>
-          
-          <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Cadastre-se gratuitamente e tenha acesso a conteúdos exclusivos de formação católica, cursos completos e uma comunidade engajada na fé.
-          </p>
-          
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black px-10 py-5 rounded-xl font-bold text-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-amber-500/50"
-          >
-            <span>Criar Conta Grátis</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
 
-          <p className="mt-6 text-gray-500 text-sm">
-            Já tem uma conta?{' '}
-            <Link to="/login" className="text-amber-500 hover:text-amber-400 font-semibold">
-              Faça login
+          <div className="relative max-w-4xl mx-auto text-center">
+            <div className="mb-6 flex justify-center">
+              <img 
+                src="/Apostolado_PNG.png"
+                alt="Apostolado Seja Santo" 
+                className="w-24 h-24 drop-shadow-2xl"
+              />
+            </div>
+            
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+              Faça Parte da Nossa Comunidade
+            </h2>
+            
+            <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+              Cadastre-se gratuitamente e tenha acesso a conteúdos exclusivos de formação católica, cursos completos e uma comunidade engajada na fé.
+            </p>
+            
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black px-10 py-5 rounded-xl font-bold text-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-amber-500/50"
+            >
+              <span>Criar Conta Grátis</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </Link>
-          </p>
-        </div>
-      </section>
+
+            <p className="mt-6 text-gray-500 text-sm">
+              Já tem uma conta?{' '}
+              <Link to="/login" className="text-amber-500 hover:text-amber-400 font-semibold">
+                Faça login
+              </Link>
+            </p>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

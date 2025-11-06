@@ -93,17 +93,17 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Header */}
         <div className="text-center mb-16">
           <div className="inline-block bg-amber-500/10 border border-amber-500/30 rounded-full px-6 py-2 mb-6">
-            <span className="text-amber-500 font-bold uppercase tracking-wider text-sm">Programas de Formação</span>
+            <span className="text-amber-600 dark:text-amber-500 font-bold uppercase tracking-wider text-sm">Programas de Formação</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">
             CURSOS
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
             Explore nossos programas de formação católica e aprofunde seu conhecimento da fé através de conteúdos exclusivos.
           </p>
           
@@ -125,7 +125,7 @@ const Courses = () => {
 
         {/* Category Filter */}
         <div className="mb-8">
-          <label className="block text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Categorias</label>
+          <label className="block text-gray-700 dark:text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Categorias</label>
           <div className="flex flex-wrap gap-3">
             {categories.map(category => (
               <button
@@ -133,8 +133,8 @@ const Courses = () => {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-6 py-3 rounded-full font-bold transition-all ${
                   selectedCategory === category
-                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/50 scale-105'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 hover:border-gray-600'
+                    ? 'bg-amber-500 text-white dark:text-black shadow-lg shadow-amber-500/50 scale-105'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 hover:border-amber-500/50'
                 }`}
               >
                 {category === 'all' ? 'Todos os Programas' : category}
@@ -146,14 +146,14 @@ const Courses = () => {
         {/* Tag Filter */}
         {availableTags.length > 0 && (
           <div className="mb-12">
-            <label className="block text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Temas</label>
+            <label className="block text-gray-700 dark:text-gray-400 font-bold mb-4 text-sm uppercase tracking-wider">Temas</label>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setSelectedTag('all')}
                 className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${
                   selectedTag === 'all'
-                    ? 'bg-white text-black shadow-lg'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-black shadow-lg'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700'
                 }`}
               >
                 Todos os Temas
@@ -182,8 +182,8 @@ const Courses = () => {
         )}
 
         {/* Course Count */}
-        <div className="mb-8 border-b border-gray-800 pb-4">
-          <p className="text-gray-400 font-bold uppercase tracking-wider text-sm">
+        <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
+          <p className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-sm">
             {filteredCourses.length} {filteredCourses.length === 1 ? 'Programa Disponível' : 'Programas Disponíveis'}
           </p>
         </div>
@@ -198,8 +198,8 @@ const Courses = () => {
         {filteredCourses.length === 0 && (
           <div className="text-center py-24">
             <div className="text-6xl mb-6">📚</div>
-            <p className="text-gray-400 text-xl font-medium">Nenhum programa encontrado</p>
-            <p className="text-gray-500 mt-2">Tente ajustar os filtros acima</p>
+            <p className="text-gray-700 dark:text-gray-400 text-xl font-medium">Nenhum programa encontrado</p>
+            <p className="text-gray-500 dark:text-gray-500 mt-2">Tente ajustar os filtros acima</p>
           </div>
         )}
       </div>

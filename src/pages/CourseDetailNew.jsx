@@ -65,10 +65,10 @@ function CourseDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-secondary-600 dark:text-gray-300">Carregando curso...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600 dark:border-amber-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Carregando curso...</p>
         </div>
       </div>
     );
@@ -76,12 +76,12 @@ function CourseDetail() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
         <div className="container mx-auto px-4 py-8">
           <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">
             {error || 'Curso não encontrado'}
           </div>
-          <Link to="/courses" className="inline-block mt-4 text-primary-600 hover:underline">
+          <Link to="/courses" className="inline-block mt-4 text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             ← Voltar para Cursos
           </Link>
         </div>
@@ -90,16 +90,16 @@ function CourseDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-black py-12 px-4 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
-            <Link to="/courses" className="text-primary-700 dark:text-primary-500 hover:underline">
+            <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
               Cursos
             </Link>
-            <span className="text-secondary-500 dark:text-gray-400">/</span>
-            <span className="text-secondary-600 dark:text-gray-300">{course.title}</span>
+            <span className="text-gray-500 dark:text-gray-400">/</span>
+            <span className="text-gray-700 dark:text-gray-300">{course.title}</span>
           </div>
           
           {/* Admin Actions */}
@@ -107,7 +107,7 @@ function CourseDetail() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate(`/admin/courses/${id}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors duration-200 shadow-md hover:shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
@@ -129,7 +129,7 @@ function CourseDetail() {
         </div>
 
         {/* Course Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-beige-300 dark:border-gray-700 p-8 mb-8 transition-colors duration-300">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 mb-8 transition-colors duration-300 shadow-lg">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Course image */}
             <div>
@@ -142,22 +142,22 @@ function CourseDetail() {
 
             {/* Course info */}
             <div>
-              <span className="inline-block bg-primary-600 text-white text-xs px-3 py-1 rounded-full mb-3">
+              <span className="inline-block bg-amber-600 dark:bg-amber-500 text-white dark:text-black text-xs px-3 py-1 rounded-full mb-3 font-bold">
                 {course.category}
               </span>
               
               {course.badge && (
-                <span className="inline-block bg-amber-500 text-black text-xs px-3 py-1 rounded-full mb-3 ml-2">
+                <span className="inline-block bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs px-3 py-1 rounded-full mb-3 ml-2 font-bold">
                   {course.badge}
                 </span>
               )}
 
-              <h1 className="text-secondary-800 dark:text-gray-100 text-3xl md:text-4xl font-bold mb-4 transition-colors duration-300">
+              <h1 className="text-gray-900 dark:text-gray-100 text-3xl md:text-4xl font-bold mb-4 transition-colors duration-300">
                 {course.title}
               </h1>
               
               <div 
-                className="text-secondary-600 dark:text-gray-300 text-lg mb-6"
+                className="text-gray-700 dark:text-gray-300 text-lg mb-6 prose dark:prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: course.description }}
               />
               
@@ -165,15 +165,15 @@ function CourseDetail() {
                 <div className="flex items-center gap-2">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-5 h-5 ${i < Math.floor(course.rating || 0) ? 'text-primary-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
+                      <svg key={i} className={`w-5 h-5 ${i < Math.floor(course.rating || 0) ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     ))}
                   </div>
-                  <span className="text-primary-700 dark:text-primary-500 text-lg font-semibold">
+                  <span className="text-amber-600 dark:text-amber-500 text-lg font-semibold">
                     {course.rating || 0}
                   </span>
-                  <span className="text-secondary-500 dark:text-gray-400">
+                  <span className="text-gray-500 dark:text-gray-400">
                     ({course.reviews || 0} avaliações)
                   </span>
                 </div>
@@ -181,16 +181,16 @@ function CourseDetail() {
 
               {/* Course stats */}
               <div className="mt-6 flex gap-4">
-                <div className="bg-beige-100 dark:bg-gray-900 px-4 py-2 rounded-lg">
-                  <p className="text-secondary-500 dark:text-gray-400 text-xs">Módulos</p>
-                  <p className="text-secondary-600 dark:text-gray-300 font-semibold">
+                <div className="bg-amber-50 dark:bg-gray-900 px-4 py-2 rounded-lg border border-amber-200 dark:border-gray-700">
+                  <p className="text-gray-600 dark:text-gray-400 text-xs font-semibold">Módulos</p>
+                  <p className="text-gray-900 dark:text-gray-300 font-bold text-lg">
                     {course.modules?.length || 0}
                   </p>
                 </div>
                 
-                <div className="bg-beige-100 dark:bg-gray-900 px-4 py-2 rounded-lg">
-                  <p className="text-secondary-500 dark:text-gray-400 text-xs">Total de Aulas</p>
-                  <p className="text-secondary-600 dark:text-gray-300 font-semibold">
+                <div className="bg-amber-50 dark:bg-gray-900 px-4 py-2 rounded-lg border border-amber-200 dark:border-gray-700">
+                  <p className="text-gray-600 dark:text-gray-400 text-xs font-semibold">Total de Aulas</p>
+                  <p className="text-gray-900 dark:text-gray-300 font-bold text-lg">
                     {course.modules?.reduce((acc, m) => acc + (m.topics?.length || 0), 0) || 0}
                   </p>
                 </div>
@@ -203,8 +203,8 @@ function CourseDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Sidebar - Modules list */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-beige-300 dark:border-gray-700 p-6 sticky top-6 transition-colors duration-300">
-              <h2 className="text-secondary-800 dark:text-gray-100 text-xl font-bold mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 sticky top-6 transition-colors duration-300 shadow-lg">
+              <h2 className="text-gray-900 dark:text-gray-100 text-xl font-bold mb-4">
                 Conteúdo do Curso
               </h2>
               
@@ -214,23 +214,23 @@ function CourseDetail() {
                     <div key={module.id}>
                       <button
                         onClick={() => toggleModule(module.id)}
-                        className="w-full flex items-center justify-between p-3 bg-beige-50 dark:bg-gray-900 rounded-lg hover:bg-beige-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                        className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300 border border-gray-200 dark:border-gray-700"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">
+                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-600 dark:bg-amber-500 text-white dark:text-black flex items-center justify-center text-sm font-bold">
                             {index + 1}
                           </span>
                           <div className="text-left">
-                            <p className="text-secondary-700 dark:text-gray-200 font-semibold text-sm">
+                            <p className="text-gray-900 dark:text-gray-200 font-semibold text-sm">
                               {module.title}
                             </p>
-                            <p className="text-secondary-500 dark:text-gray-400 text-xs">
+                            <p className="text-gray-600 dark:text-gray-400 text-xs">
                               {module.topics?.length || 0} aulas
                             </p>
                           </div>
                         </div>
                         <svg 
-                          className={`w-5 h-5 text-secondary-700 dark:text-gray-300 transition-transform ${expandedModules[module.id] ? 'rotate-180' : ''}`}
+                          className={`w-5 h-5 text-gray-700 dark:text-gray-300 transition-transform ${expandedModules[module.id] ? 'rotate-180' : ''}`}
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
@@ -245,7 +245,7 @@ function CourseDetail() {
                             <Link
                               key={topic.id}
                               to={`/courses/${id}/topics/${topic.id}`}
-                              className="block p-2 text-sm text-secondary-600 dark:text-gray-300 hover:text-primary-700 dark:hover:text-primary-500 hover:bg-beige-50 dark:hover:bg-gray-900 rounded transition-colors duration-300"
+                              className="block p-2 text-sm text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-gray-900 rounded transition-colors duration-300 font-medium"
                             >
                               {topicIndex + 1}. {topic.title}
                             </Link>
