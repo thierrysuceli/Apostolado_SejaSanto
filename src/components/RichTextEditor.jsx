@@ -1,8 +1,66 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { supabase } from '../lib/supabaseClient';
 
 const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px', isAdmin = false }) => {
+  const quillRef = useRef(null);
+
+  // Image handler function
+  const imageHandler = () => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      // Validate file
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB');
+        return;
+      }
+
+      try {
+        // Show loading state
+        const editor = quillRef.current.getEditor();
+        const range = editor.getSelection();
+        editor.insertText(range.index, 'Uploading image...');
+
+        // Upload to Supabase
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `content-images/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('apostolado-assets')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('apostolado-assets')
+          .getPublicUrl(filePath);
+
+        // Remove loading text and insert image
+        editor.deleteText(range.index, 'Uploading image...'.length);
+        editor.insertEmbed(range.index, 'image', publicUrl);
+        editor.setSelection(range.index + 1);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Erro ao fazer upload da imagem');
+      }
+    };
+  };
+
   const modules = useMemo(() => {
     if (readOnly) {
       return { toolbar: false };
@@ -11,19 +69,24 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
     // Toolbar completa para Admin
     if (isAdmin) {
       return {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          [{ 'font': [] }],
-          [{ 'size': ['small', false, 'large', 'huge'] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ 'color': [] }, { 'background': [] }],
-          [{ 'script': 'sub' }, { 'script': 'super' }],
-          [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-          [{ 'align': [] }],
-          ['blockquote', 'code-block'],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
+        toolbar: {
+          container: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': [] }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block'],
+            ['link', 'image', 'video'],
+            ['clean']
+          ],
+          handlers: {
+            image: imageHandler
+          }
+        },
         clipboard: {
           matchVisual: false
         }
@@ -32,14 +95,19 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
     
     // Toolbar simplificada para usuários comuns
     return {
-      toolbar: [
-        [{ 'header': [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['blockquote'],
-        ['link'],
-        ['clean']
-      ],
+      toolbar: {
+        container: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['blockquote'],
+          ['link'],
+          ['clean']
+        ],
+        handlers: {
+          image: imageHandler
+        }
+      },
       clipboard: {
         matchVisual: false
       }
@@ -330,6 +398,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
     <div className={`rich-text-editor ${readOnly ? 'read-only' : ''}`}>
       <style>{editorStyle}</style>
       <ReactQuill
+        ref={quillRef}
         theme="snow"
         value={value || ''}
         onChange={onChange}

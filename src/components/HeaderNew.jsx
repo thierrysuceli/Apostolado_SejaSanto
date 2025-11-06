@@ -12,6 +12,7 @@ const Header = () => {
 
   const menuItems = [
     { id: 'home', label: 'Home', path: '/' },
+    { id: 'about', label: 'Sobre Nós', path: '/about' },
     { id: 'cursos', label: 'Cursos', path: '/courses' },
     { id: 'postagens', label: 'Postagens', path: '/posts' },
     { id: 'calendario', label: 'Calendário', path: '/calendar' },

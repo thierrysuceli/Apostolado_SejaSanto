@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import HeaderNew from './components/HeaderNew';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import About from './pages/About';
 import Courses from './pages/Courses';
 import CourseDetailNew from './pages/CourseDetailNew';
 import Posts from './pages/Posts';
@@ -38,6 +39,7 @@ function App() {
               <main>
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/courses/:id" element={<CourseDetailNew />} />
                   <Route path="/courses/:courseId/topics/:topicId" element={<TopicDetail />} />

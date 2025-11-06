@@ -50,7 +50,7 @@ const Profile = () => {
       setUploadMessage('');
       
       // Atualizar foto de perfil no backend
-      await api.users.updateProfilePhoto(user.id, { profile_photo_url: newPhotoUrl });
+      await api.users.updateProfilePhoto(user.id, { avatar_url: newPhotoUrl });
       
       setUploadMessage('Foto de perfil atualizada com sucesso!');
       

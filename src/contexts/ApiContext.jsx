@@ -213,6 +213,17 @@ export const ApiProvider = ({ children }) => {
     delete: (id) => del(`/api/event-categories/${id}`)
   };
 
+  // ==================== GROUPS (Central) ====================
+  
+  const groups = {
+    getAll: () => get('/api/central/groups'),
+    getById: (id) => get(`/api/central/groups?id=${id}`),
+    create: (data) => post('/api/central/groups?action=create', data),
+    getPosts: (id) => get(`/api/central/groups?id=${id}&resource=posts`),
+    getPolls: (id) => get(`/api/central/groups?id=${id}&resource=polls`),
+    getRegistrations: (id) => get(`/api/central/groups?id=${id}&resource=registrations`)
+  };
+
   // ==================== ADMIN ====================
   
   const admin = {
@@ -256,6 +267,7 @@ export const ApiProvider = ({ children }) => {
         modules,
         tags,
         eventCategories,
+        groups,
         roles,
         users,
         admin

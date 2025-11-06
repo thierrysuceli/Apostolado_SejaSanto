@@ -56,14 +56,22 @@ const Home = () => {
         
         // Puxar posts, polls e registrations dos grupos que o user participa
         if (groupsData.groups && Array.isArray(groupsData.groups)) {
+          console.log('[Home] Processando grupos:', groupsData.groups.length);
           for (const group of groupsData.groups) {
             try {
               // Buscar conteúdo específico do grupo via API
-              const groupDetails = await api.groups.getById(group.id).catch(() => null);
+              console.log('[Home] Buscando detalhes do grupo:', group.id, group.name);
+              const groupDetails = await api.groups.getById(group.id).catch((err) => {
+                console.error('[Home] Erro ao buscar grupo:', err);
+                return null;
+              });
               
-              if (groupDetails) {
+              console.log('[Home] Detalhes do grupo recebidos:', groupDetails);
+              
+              if (groupDetails && groupDetails.group) {
                 // Posts do grupo
-                if (groupDetails.group?.group_posts && Array.isArray(groupDetails.group.group_posts)) {
+                if (groupDetails.group.group_posts && Array.isArray(groupDetails.group.group_posts)) {
+                  console.log('[Home] Posts encontrados:', groupDetails.group.group_posts.length);
                   groupDetails.group.group_posts.forEach(post => {
                     recentActivity.push({
                       ...post,
@@ -72,10 +80,13 @@ const Home = () => {
                       group_emoji: group.emoji
                     });
                   });
+                } else {
+                  console.log('[Home] Nenhum post encontrado para grupo', group.name);
                 }
                 
                 // Polls do grupo
-                if (groupDetails.group?.polls && Array.isArray(groupDetails.group.polls)) {
+                if (groupDetails.group.polls && Array.isArray(groupDetails.group.polls)) {
+                  console.log('[Home] Polls encontrados:', groupDetails.group.polls.length);
                   groupDetails.group.polls.forEach(poll => {
                     recentActivity.push({
                       ...poll,
@@ -84,10 +95,13 @@ const Home = () => {
                       group_emoji: group.emoji
                     });
                   });
+                } else {
+                  console.log('[Home] Nenhuma poll encontrada para grupo', group.name);
                 }
                 
                 // Registrations do grupo
-                if (groupDetails.group?.registrations && Array.isArray(groupDetails.group.registrations)) {
+                if (groupDetails.group.registrations && Array.isArray(groupDetails.group.registrations)) {
+                  console.log('[Home] Registrations encontrados:', groupDetails.group.registrations.length);
                   groupDetails.group.registrations.forEach(reg => {
                     recentActivity.push({
                       ...reg,
@@ -96,10 +110,12 @@ const Home = () => {
                       group_emoji: group.emoji
                     });
                   });
+                } else {
+                  console.log('[Home] Nenhuma registration encontrada para grupo', group.name);
                 }
               }
             } catch (err) {
-              console.error(`Error loading group ${group.id} content:`, err);
+              console.error(`[Home] Error loading group ${group.id} content:`, err);
             }
           }
         }
@@ -122,8 +138,8 @@ const Home = () => {
           return dateB - dateA;
         });
         
-        console.log('Recent Activity Items:', recentActivity); // Debug
-        setRecentItems(recentActivity.slice(0, 10));
+        console.log('[Home] Recent Activity Items:', recentActivity.length); // Debug
+        setRecentItems(recentActivity.slice(0, 5));
         
         // Show only first 4 of each for bottom sections
         setCourses(coursesData.courses?.slice(0, 4) || []);
@@ -357,13 +373,31 @@ const Home = () => {
                     )}
 
                     {/* Meta Info */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
+                    <div className="flex flex-col gap-2 text-sm text-gray-500 dark:text-gray-500">
                       {item.created_at && (
                         <span className="flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                          Criado em {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                      {item.type === 'event' && item.start_date && item.end_date && (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          De {new Date(item.start_date).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })} até {new Date(item.end_date).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
                         </span>
                       )}
                     </div>

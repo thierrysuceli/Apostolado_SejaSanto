@@ -243,12 +243,32 @@ export default async function handler(req, res) {
     
     // COMMENTS
     if (type === 'comments' && req.method === 'GET' && !id) {
-      const { data, error } = await supabaseAdmin.from('comments').select('*').order('created_at', { ascending: false });
+      const { post_id, topic_id, event_id } = req.query;
+      let query = supabaseAdmin
+        .from('comments')
+        .select(`
+          *,
+          users(id, name, avatar_url)
+        `)
+        .order('created_at', { ascending: true });
+      
+      if (post_id) query = query.eq('post_id', post_id);
+      if (topic_id) query = query.eq('topic_id', topic_id);
+      if (event_id) query = query.eq('event_id', event_id);
+      
+      const { data, error } = await query;
       if (error) throw error;
       return res.status(200).json({ comments: data || [] });
     }
     if (type === 'comments' && req.method === 'GET' && id) {
-      const { data, error } = await supabaseAdmin.from('comments').select('*').eq('id', id).single();
+      const { data, error } = await supabaseAdmin
+        .from('comments')
+        .select(`
+          *,
+          users(id, name, avatar_url)
+        `)
+        .eq('id', id)
+        .single();
       if (error) throw error;
       return res.status(200).json({ comment: data });
     }
@@ -264,7 +284,14 @@ export default async function handler(req, res) {
         ...(event_id && { event_id }),
         ...(parent_comment_id && { parent_comment_id })
       };
-      const { data, error } = await supabaseAdmin.from('comments').insert(insertData).select().single();
+      const { data, error } = await supabaseAdmin
+        .from('comments')
+        .insert(insertData)
+        .select(`
+          *,
+          users(id, name, avatar_url)
+        `)
+        .single();
       if (error) throw error;
       return res.status(201).json({ comment: data });
     }

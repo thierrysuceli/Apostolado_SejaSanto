@@ -27,7 +27,7 @@ const Footer = () => {
           <div>
             <h3 className="text-secondary-700 dark:text-gray-200 font-bold mb-4 text-sm uppercase tracking-wider">Links Rápidos</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Sobre Nós</a></li>
+              <li><a href="/about" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Sobre Nós</a></li>
               <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Contato</a></li>
               <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Termos de Uso</a></li>
               <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Política de Privacidade</a></li>
