@@ -17,6 +17,11 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Swipe/Drag state
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -134,9 +139,9 @@ const Home = () => {
     loadData();
   }, [user]);
 
-  // Auto-play carousel
+  // Auto-rotate hero carousel
   useEffect(() => {
-    if (heroItems.length <= 1) return;
+    if (heroItems.length === 0) return;
     
     const interval = setInterval(() => {
       setCurrentHeroIndex((prev) => (prev + 1) % heroItems.length);
@@ -144,6 +149,59 @@ const Home = () => {
     
     return () => clearInterval(interval);
   }, [heroItems.length]);
+
+  // Swipe/Drag handlers
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe && currentHeroIndex < heroItems.length - 1) {
+      setCurrentHeroIndex(prev => prev + 1);
+    }
+    
+    if (isRightSwipe && currentHeroIndex > 0) {
+      setCurrentHeroIndex(prev => prev - 1);
+    }
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+    setIsDragging(false);
+  };
+
+  const handleMouseDown = (e) => {
+    setTouchStart(e.clientX);
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    setTouchEnd(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    handleTouchEnd();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setTouchStart(0);
+      setTouchEnd(0);
+    }
+  };
 
   if (loading) {
     return (
@@ -178,7 +236,16 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Hero Carousel Section - Últimos 5 */}
       {heroItems.length > 0 && (
-        <section className="relative h-[600px] md:h-[700px] overflow-hidden">
+        <section 
+          className="relative h-[600px] md:h-[700px] overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+        >
           {/* Background Image with Overlay */}
           <div className="absolute inset-0">
             <img 
@@ -244,14 +311,6 @@ const Home = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recentItems.map((item, index) => {
-                const getIcon = () => {
-                  if (item.type === 'post') return item.group_emoji || '📄';
-                  if (item.type === 'poll') return '📊';
-                  if (item.type === 'registration') return '📝';
-                  if (item.type === 'event') return '📅';
-                  return '📄';
-                };
-                
                 const getTypeLabel = () => {
                   if (item.type === 'post') return 'Post';
                   if (item.type === 'poll') return 'Enquete';
@@ -273,9 +332,6 @@ const Home = () => {
                   >
                     {/* Type Badge */}
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-2xl">
-                        {getIcon()}
-                      </span>
                       <div className="flex-1 min-w-0">
                         <span className="text-amber-600 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
                           {getTypeLabel()}

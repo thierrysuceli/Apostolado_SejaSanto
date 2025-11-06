@@ -24,8 +24,6 @@ function TopicDetail() {
   const [replyTo, setReplyTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
   const [showTextContent, setShowTextContent] = useState(false);
-  const [likes, setLikes] = useState(247); // Mock de likes
-  const [hasLiked, setHasLiked] = useState(false);
 
   // Função para buscar respostas de um comentário
   const getCommentReplies = (parentId) => {
@@ -138,14 +136,7 @@ function TopicDetail() {
     }
   };
 
-  const handleLike = () => {
-    if (!user) {
-      alert('Você precisa estar logado para curtir.');
-      return;
-    }
-    setHasLiked(!hasLiked);
-    setLikes(hasLiked ? likes - 1 : likes + 1);
-  };
+
 
   const renderComment = (comment, depth = 0) => {
     const replies = getCommentReplies(comment.id);
@@ -401,16 +392,6 @@ function TopicDetail() {
               <span className="font-semibold">{comments.length}</span>
             </button>
 
-            {/* Likes */}
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-2 transition-colors duration-300 ${hasLiked ? 'text-red-600 dark:text-red-500' : 'text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500'}`}
-            >
-              <svg className={`w-6 h-6 ${hasLiked ? 'fill-current' : ''}`} fill={hasLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              <span className="font-semibold">{likes}</span>
-            </button>
           </div>
 
           {/* Botão Imprimir */}

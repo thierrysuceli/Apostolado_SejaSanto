@@ -259,6 +259,72 @@ export default async function handler(req, res) {
       console.log(`[Central Groups] Access granted for user ${user.id} to group ${groupId} (admin: ${isAdmin})`);
       
       // ============================================
+      // 2.5. GET ?id=X - Buscar grupo individual com conteúdo
+      // ============================================
+      if (req.method === 'GET' && !resource) {
+        // Buscar grupo básico
+        const { data: group, error: groupError } = await supabaseAdmin
+          .from('central_groups')
+          .select(`
+            *,
+            roles(id, name, display_name, color)
+          `)
+          .eq('id', groupId)
+          .single();
+        
+        if (groupError) throw groupError;
+        
+        // Buscar posts do grupo
+        const { data: posts } = await supabaseAdmin
+          .from('central_posts')
+          .select(`
+            *,
+            author:users!central_posts_author_id_fkey(id, name, avatar_url)
+          `)
+          .eq('group_id', groupId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        // Buscar polls do grupo
+        const { data: polls } = await supabaseAdmin
+          .from('central_polls')
+          .select(`
+            *,
+            author:users!central_polls_author_id_fkey(id, name, avatar_url)
+          `)
+          .eq('group_id', groupId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        // Buscar registrations do grupo
+        const { data: registrations } = await supabaseAdmin
+          .from('central_registrations')
+          .select(`
+            *,
+            author:users!central_registrations_author_id_fkey(id, name, avatar_url)
+          `)
+          .eq('group_id', groupId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        // Formatar response
+        const response = {
+          group: {
+            ...group,
+            role: group.roles,
+            group_posts: posts || [],
+            polls: polls || [],
+            registrations: registrations || []
+          }
+        };
+        
+        delete response.group.roles;
+        
+        console.log(`[Central Groups] Returning group ${groupId} with ${posts?.length || 0} posts, ${polls?.length || 0} polls, ${registrations?.length || 0} registrations`);
+        return res.status(200).json(response);
+      }
+      
+      // ============================================
       // 3. GET ?id=X&resource=posts - Listar posts
       // ============================================
       if (req.method === 'GET' && resource === 'posts') {

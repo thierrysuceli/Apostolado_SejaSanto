@@ -237,7 +237,7 @@ export const ApiProvider = ({ children }) => {
   // Convenience methods for users and roles (backward compatibility)
   const users = {
     ...admin.users,
-    updateProfilePhoto: (userId, data) => put(`/api/users/${userId}/profile-photo`, data)
+    updateProfilePhoto: (userId, data) => put(`/api/admin/users/${userId}`, data)
   };
 
   return (

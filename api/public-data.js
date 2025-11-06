@@ -255,8 +255,16 @@ export default async function handler(req, res) {
     if (type === 'comments' && req.method === 'POST') {
       await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
-      const { content, post_id } = req.body;
-      const { data, error } = await supabaseAdmin.from('comments').insert({ content, post_id, author_id: req.user.id }).select().single();
+      const { content, post_id, topic_id, event_id, parent_comment_id } = req.body;
+      const insertData = { 
+        content, 
+        author_id: req.user.id,
+        ...(post_id && { post_id }),
+        ...(topic_id && { topic_id }),
+        ...(event_id && { event_id }),
+        ...(parent_comment_id && { parent_comment_id })
+      };
+      const { data, error } = await supabaseAdmin.from('comments').insert(insertData).select().single();
       if (error) throw error;
       return res.status(201).json({ comment: data });
     }

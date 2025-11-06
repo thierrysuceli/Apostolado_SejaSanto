@@ -391,7 +391,7 @@ function PostDetail() {
       )}
 
       {/* Article Content */}
-      <article className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
         {/* Featured Image */}
         {post.image && !isEditing && (
           <div className="mb-12 -mx-4 md:mx-0">
@@ -465,7 +465,7 @@ function PostDetail() {
             </div>
           </div>
         )}
-      </article>
+      </div>
 
       {/* Comments Section - New Container */}
       <section className="bg-gray-50 dark:bg-gray-900 py-12 md:py-16 mt-12 border-t-4 border-amber-500">
