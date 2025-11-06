@@ -53,40 +53,45 @@ const Home = () => {
         if (groupsData.groups && Array.isArray(groupsData.groups)) {
           for (const group of groupsData.groups) {
             try {
-              // Posts do grupo
-              if (group.group_posts) {
-                group.group_posts.forEach(post => {
-                  recentActivity.push({
-                    ...post,
-                    type: 'post',
-                    group_name: group.name,
-                    group_emoji: group.emoji
-                  });
-                });
-              }
+              // Buscar conteúdo específico do grupo via API
+              const groupDetails = await api.groups.getById(group.id).catch(() => null);
               
-              // Polls do grupo
-              if (group.polls) {
-                group.polls.forEach(poll => {
-                  recentActivity.push({
-                    ...poll,
-                    type: 'poll',
-                    group_name: group.name,
-                    group_emoji: group.emoji
+              if (groupDetails) {
+                // Posts do grupo
+                if (groupDetails.group?.group_posts && Array.isArray(groupDetails.group.group_posts)) {
+                  groupDetails.group.group_posts.forEach(post => {
+                    recentActivity.push({
+                      ...post,
+                      type: 'post',
+                      group_name: group.name,
+                      group_emoji: group.emoji
+                    });
                   });
-                });
-              }
-              
-              // Registrations do grupo
-              if (group.registrations) {
-                group.registrations.forEach(reg => {
-                  recentActivity.push({
-                    ...reg,
-                    type: 'registration',
-                    group_name: group.name,
-                    group_emoji: group.emoji
+                }
+                
+                // Polls do grupo
+                if (groupDetails.group?.polls && Array.isArray(groupDetails.group.polls)) {
+                  groupDetails.group.polls.forEach(poll => {
+                    recentActivity.push({
+                      ...poll,
+                      type: 'poll',
+                      group_name: group.name,
+                      group_emoji: group.emoji
+                    });
                   });
-                });
+                }
+                
+                // Registrations do grupo
+                if (groupDetails.group?.registrations && Array.isArray(groupDetails.group.registrations)) {
+                  groupDetails.group.registrations.forEach(reg => {
+                    recentActivity.push({
+                      ...reg,
+                      type: 'registration',
+                      group_name: group.name,
+                      group_emoji: group.emoji
+                    });
+                  });
+                }
               }
             } catch (err) {
               console.error(`Error loading group ${group.id} content:`, err);
@@ -107,11 +112,12 @@ const Home = () => {
         
         // Ordenar por data de criação
         recentActivity.sort((a, b) => {
-          const dateA = new Date(a.created_at || a.date);
-          const dateB = new Date(b.created_at || b.date);
+          const dateA = new Date(a.created_at || a.date || a.start_date);
+          const dateB = new Date(b.created_at || b.date || b.start_date);
           return dateB - dateA;
         });
         
+        console.log('Recent Activity Items:', recentActivity); // Debug
         setRecentItems(recentActivity.slice(0, 10));
         
         // Show only first 4 of each for bottom sections

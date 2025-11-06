@@ -235,7 +235,10 @@ export const ApiProvider = ({ children }) => {
   };
   
   // Convenience methods for users and roles (backward compatibility)
-  const users = admin.users;
+  const users = {
+    ...admin.users,
+    updateProfilePhoto: (userId, data) => put(`/api/users/${userId}/profile-photo`, data)
+  };
 
   return (
     <ApiContext.Provider

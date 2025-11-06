@@ -2,30 +2,49 @@ import React, { useMemo } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px' }) => {
+const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px', isAdmin = false }) => {
   const modules = useMemo(() => {
     if (readOnly) {
       return { toolbar: false };
     }
+    
+    // Toolbar completa para Admin
+    if (isAdmin) {
+      return {
+        toolbar: [
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+          [{ 'font': [] }],
+          [{ 'size': ['small', false, 'large', 'huge'] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'script': 'sub' }, { 'script': 'super' }],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+          [{ 'align': [] }],
+          ['blockquote', 'code-block'],
+          ['link', 'image', 'video'],
+          ['clean']
+        ],
+        clipboard: {
+          matchVisual: false
+        }
+      };
+    }
+    
+    // Toolbar simplificada para usuários comuns
     return {
       toolbar: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'font': [] }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-        [{ 'align': [] }],
-        ['blockquote', 'code-block'],
-        ['link', 'image', 'video'],
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['blockquote'],
+        ['link'],
         ['clean']
       ],
       clipboard: {
         matchVisual: false
       }
     };
-  }, [readOnly]);
+  }, [readOnly, isAdmin]);
 
   const formats = [
     'header', 'font', 'size',

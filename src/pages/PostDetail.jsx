@@ -391,7 +391,7 @@ function PostDetail() {
       )}
 
       {/* Article Content */}
-      <article className="container mx-auto px-4 py-12 md:py-16 max-w-4xl bg-white dark:bg-gray-950 md:rounded-2xl md:shadow-2xl md:my-8">
+      <article className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
         {/* Featured Image */}
         {post.image && !isEditing && (
           <div className="mb-12 -mx-4 md:mx-0">
@@ -487,6 +487,7 @@ function PostDetail() {
                 onChange={setNewComment}
                 placeholder="Compartilhe seus pensamentos sobre este artigo..."
                 minHeight="180px"
+                isAdmin={isAdmin()}
               />
               <button
                 onClick={handleAddComment}

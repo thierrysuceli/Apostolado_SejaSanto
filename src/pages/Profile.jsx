@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useApi } from '../contexts/ApiContext';
+import ImageUploader from '../components/ImageUploader';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, permissions, loading, logout, isAdmin } = useAuth();
+  const { user, permissions, loading, logout, isAdmin, refreshUser } = useAuth();
+  const api = useApi();
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
 
   if (loading) {
     return (
@@ -39,36 +44,100 @@ const Profile = () => {
     navigate('/');
   };
 
+  const handleProfilePhotoUpload = async (newPhotoUrl) => {
+    try {
+      setUploading(true);
+      setUploadMessage('');
+      
+      // Atualizar foto de perfil no backend
+      await api.users.updateProfilePhoto(user.id, { profile_photo_url: newPhotoUrl });
+      
+      setUploadMessage('Foto de perfil atualizada com sucesso!');
+      
+      // Recarregar dados do usuário
+      if (refreshUser) {
+        await refreshUser();
+      }
+      
+      // Limpar mensagem após 3 segundos
+      setTimeout(() => setUploadMessage(''), 3000);
+    } catch (err) {
+      console.error('Error updating profile photo:', err);
+      setUploadMessage('Erro ao atualizar foto de perfil');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-beige-50 dark:bg-gray-950 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <span className="text-white font-bold text-4xl">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
+          <div className="relative inline-block mb-4">
+            {user.profile_photo_url ? (
+              <img 
+                src={user.profile_photo_url} 
+                alt={user.name}
+                className="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white dark:border-gray-800"
+              />
+            ) : (
+              <div className="w-32 h-32 bg-amber-600 dark:bg-amber-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white dark:border-gray-800">
+                <span className="text-white dark:text-black font-bold text-5xl">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
-          <h1 className="text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">{user.name}</h1>
-          <p className="text-secondary-600">{user.email}</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">{user.name}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
+          
+          {/* Upload Message */}
+          {uploadMessage && (
+            <div className={`mt-4 p-3 rounded-lg ${uploadMessage.includes('sucesso') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {uploadMessage}
+            </div>
+          )}
+        </div>
+
+        {/* Seção de Upload de Foto de Perfil */}
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-md mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Foto de Perfil</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+            Atualize sua foto de perfil. Ela será exibida em seus comentários e interações.
+          </p>
+          <ImageUploader
+            currentImageUrl={user.profile_photo_url || ''}
+            onImageUploaded={handleProfilePhotoUpload}
+            folder="profile-photos"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Formatos aceitos: JPG, PNG, GIF, WEBP (máx. 5MB). Recomendamos uma imagem quadrada de pelo menos 200x200px.
+          </p>
+          {uploading && (
+            <div className="mt-3 flex items-center gap-2 text-amber-600 dark:text-amber-500">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 dark:border-amber-500"></div>
+              <span className="text-sm font-semibold">Atualizando foto...</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User Info */}
-          <div className="bg-beige-100 dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-secondary-500 dark:text-gray-400 mb-4">Informações do Usuário</h2>
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Informações do Usuário</h2>
             <div className="space-y-3">
               <div>
-                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">ID do Usuário</p>
-                <p className="text-secondary-500 font-semibold">#{user.id}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">ID do Usuário</p>
+                <p className="text-gray-900 dark:text-gray-100 font-semibold">#{user.id}</p>
               </div>
               <div>
-                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">Nome</p>
-                <p className="text-secondary-500 font-semibold">{user.name}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Nome</p>
+                <p className="text-gray-900 dark:text-gray-100 font-semibold">{user.name}</p>
               </div>
               <div>
-                <p className="text-secondary-600 dark:text-gray-300 text-sm mb-1">Email</p>
-                <p className="text-secondary-500 font-semibold">{user.email}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Email</p>
+                <p className="text-gray-900 dark:text-gray-100 font-semibold">{user.email}</p>
               </div>
             </div>
           </div>

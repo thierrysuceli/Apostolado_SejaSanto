@@ -328,6 +328,7 @@ const AdminPostEdit = () => {
             <RichTextEditor
               value={formData.content}
               onChange={handleContentChange}
+              isAdmin={true}
             />
           </div>
 

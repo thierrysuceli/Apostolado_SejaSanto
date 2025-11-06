@@ -23,6 +23,9 @@ function TopicDetail() {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const [showTextContent, setShowTextContent] = useState(false);
+  const [likes, setLikes] = useState(247); // Mock de likes
+  const [hasLiked, setHasLiked] = useState(false);
 
   // Função para buscar respostas de um comentário
   const getCommentReplies = (parentId) => {
@@ -135,25 +138,31 @@ function TopicDetail() {
     }
   };
 
+  const handleLike = () => {
+    if (!user) {
+      alert('Você precisa estar logado para curtir.');
+      return;
+    }
+    setHasLiked(!hasLiked);
+    setLikes(hasLiked ? likes - 1 : likes + 1);
+  };
+
   const renderComment = (comment, depth = 0) => {
     const replies = getCommentReplies(comment.id);
     
     return (
       <div key={comment.id} className={`${depth > 0 ? 'ml-8 mt-4' : 'mb-6'}`}>
-        {/* Pack #2: Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-4 transition-colors duration-300">
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 transition-colors duration-300">
           {/* User info */}
           <div className="flex items-start gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-amber-600 dark:bg-amber-500 flex items-center justify-center text-white dark:text-black font-bold flex-shrink-0">
               {(comment.users?.name?.[0] || 'U').toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              {/* Pack #6: Body text */}
-              <p className="text-secondary-600 dark:text-gray-300 font-semibold">
+              <p className="text-gray-900 dark:text-gray-100 font-semibold">
                 {comment.users?.name || 'Usuário'}
               </p>
-              {/* Pack #7: Secondary text */}
-              <p className="text-secondary-500 dark:text-gray-400 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 {new Date(comment.date).toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: 'long',
@@ -179,7 +188,7 @@ function TopicDetail() {
             {user && (
               <button
                 onClick={() => setReplyTo(comment.id)}
-                className="text-primary-700 dark:text-primary-500 hover:underline text-sm transition-colors duration-300"
+                className="text-amber-600 dark:text-amber-500 hover:underline text-sm transition-colors duration-300 font-semibold"
               >
                 Responder
               </button>
@@ -204,22 +213,21 @@ function TopicDetail() {
                 onChange={setReplyContent}
                 placeholder="Escreva sua resposta..."
                 minHeight="150px"
+                isAdmin={isAdmin()}
               />
               <div className="flex gap-2 mt-3">
-                {/* Pack #9: Primary button */}
                 <button
                   onClick={() => handleAddReply(comment.id)}
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-300"
+                  className="bg-amber-600 dark:bg-amber-500 text-white dark:text-black px-4 py-2 rounded-lg hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors duration-300 font-semibold"
                 >
                   Enviar Resposta
                 </button>
-                {/* Pack #10: Secondary button */}
                 <button
                   onClick={() => {
                     setReplyTo(null);
                     setReplyContent('');
                   }}
-                  className="bg-white dark:bg-gray-800 border border-beige-300 dark:border-gray-700 text-secondary-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-beige-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300"
                 >
                   Cancelar
                 </button>
@@ -240,12 +248,10 @@ function TopicDetail() {
 
   if (loading) {
     return (
-      /* Pack #1: Page background */
-      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
-        {/* Pack #6: Body text */}
-        <div className="container mx-auto px-4 py-8 text-secondary-600 dark:text-gray-300 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p>Carregando aula...</p>
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600 dark:border-amber-500 mx-auto mb-4"></div>
+          <p className="text-gray-700 dark:text-gray-300">Carregando aula...</p>
         </div>
       </div>
     );
@@ -253,13 +259,11 @@ function TopicDetail() {
 
   if (error || !topic) {
     return (
-      /* Pack #1: Page background */
-      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
-        {/* Pack #6: Body text */}
-        <div className="container mx-auto px-4 py-8 text-secondary-600 dark:text-gray-300 text-center">
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
+        <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-red-500 mb-4">{error || 'Tópico não encontrado'}</p>
-          <Link to="/courses" className="text-primary-600 hover:underline">
-            Voltar para Cursos
+          <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+            ← Voltar para Cursos
           </Link>
         </div>
       </div>
@@ -267,74 +271,34 @@ function TopicDetail() {
   }
 
   return (
-    /* Pack #1: Page background */
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm flex-wrap">
-          {/* Pack #13: Link */}
-          <Link to="/courses" className="text-primary-700 dark:text-primary-500 hover:underline">
+          <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             Cursos
           </Link>
-          {/* Pack #7: Secondary text */}
-          <span className="text-secondary-500 dark:text-gray-400">/</span>
+          <span className="text-gray-400">/</span>
           {course && (
             <>
-              <Link to={`/courses/${course.id}`} className="text-primary-700 dark:text-primary-500 hover:underline">
+              <Link to={`/courses/${course.id}`} className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
                 {course.title}
               </Link>
-              <span className="text-secondary-500 dark:text-gray-400">/</span>
+              <span className="text-gray-400">/</span>
             </>
           )}
           {module && (
             <>
-              <span className="text-secondary-600 dark:text-gray-300">{module.title}</span>
-              <span className="text-secondary-500 dark:text-gray-400">/</span>
+              <span className="text-gray-700 dark:text-gray-300">{module.title}</span>
+              <span className="text-gray-400">/</span>
             </>
           )}
-          <span className="text-secondary-600 dark:text-gray-300">{topic.title}</span>
+          <span className="text-gray-700 dark:text-gray-300">{topic.title}</span>
         </div>
-
-        {/* Topic header */}
-        {/* Pack #2: Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-6 md:p-8 mb-6 transition-colors duration-300">
-          {/* Pack #4: H1 title */}
-          <h1 className="text-secondary-800 dark:text-gray-100 text-3xl md:text-4xl font-bold mb-4 transition-colors duration-300">
-            {topic.title}
-          </h1>
-          
-          {/* Topic meta */}
-          <div className="flex items-center gap-4 text-sm">
-            {/* Pack #14: Badge */}
-            {module && (
-              <span className="bg-primary-600 text-white px-3 py-1 rounded-full">
-                {module.title}
-              </span>
-            )}
-            {topic.duration && (
-              /* Pack #7: Secondary text */
-              <span className="text-secondary-500 dark:text-gray-400">
-                Duração: {topic.duration}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Content before video */}
-        {topic.content_before && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-6 md:p-8 mb-6 transition-colors duration-300">
-            <RichTextEditor 
-              value={topic.content_before}
-              readOnly={true}
-              minHeight="auto"
-            />
-          </div>
-        )}
 
         {/* Video player */}
         {topic.video_url && topic.video_url.includes('youtube.com/embed/') && (
-          /* Pack #2: Card */
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 overflow-hidden mb-6 transition-colors duration-300">
+          <div className="bg-gray-950 rounded-xl overflow-hidden mb-6 shadow-2xl">
             <div className="aspect-video">
               <iframe
                 src={topic.video_url}
@@ -371,23 +335,100 @@ function TopicDetail() {
           </div>
         )}
 
-        {/* Content after video */}
-        {topic.content_after && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-6 md:p-8 mb-6 transition-colors duration-300">
-            <RichTextEditor 
-              value={topic.content_after}
-              readOnly={true}
-              minHeight="auto"
-            />
+        {/* Texto da aula - Expansível */}
+        {(topic.content_before || topic.content_after) && (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowTextContent(!showTextContent)}
+              className="w-full text-left bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    Texto da aula
+                  </h2>
+                </div>
+                <svg 
+                  className={`w-6 h-6 text-gray-700 dark:text-gray-300 transition-transform duration-300 ${showTextContent ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              
+              {showTextContent && (
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                  {topic.content_before && (
+                    <div className="mb-6">
+                      <RichTextEditor 
+                        value={topic.content_before}
+                        readOnly={true}
+                        minHeight="auto"
+                      />
+                    </div>
+                  )}
+                  {topic.content_after && (
+                    <div>
+                      <RichTextEditor 
+                        value={topic.content_after}
+                        readOnly={true}
+                        minHeight="auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </button>
           </div>
         )}
 
+        {/* Barra de ações - Comentários, Likes, Imprimir */}
+        <div className="flex items-center justify-between mb-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-6">
+            {/* Comentários */}
+            <button
+              onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors duration-300"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span className="font-semibold">{comments.length}</span>
+            </button>
+
+            {/* Likes */}
+            <button
+              onClick={handleLike}
+              className={`flex items-center gap-2 transition-colors duration-300 ${hasLiked ? 'text-red-600 dark:text-red-500' : 'text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500'}`}
+            >
+              <svg className={`w-6 h-6 ${hasLiked ? 'fill-current' : ''}`} fill={hasLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span className="font-semibold">{likes}</span>
+            </button>
+          </div>
+
+          {/* Botão Imprimir */}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors duration-300"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span className="hidden sm:inline font-semibold">Imprimir</span>
+          </button>
+        </div>
+
         {/* Attachments */}
         {topic.attachments && topic.attachments.length > 0 && (
-          /* Pack #2: Card */
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-6 md:p-8 mb-6 transition-colors duration-300">
-            {/* Pack #5: H2/H3 subtitle */}
-            <h3 className="text-secondary-700 dark:text-gray-200 text-xl font-semibold mb-4">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-8 transition-colors duration-300">
+            <h3 className="text-gray-900 dark:text-gray-100 text-xl font-bold mb-4">
               Material Complementar
             </h3>
             <div className="space-y-2">
@@ -396,14 +437,12 @@ function TopicDetail() {
                   key={file.id}
                   href={file.url}
                   download
-                  className="flex items-center gap-3 bg-beige-100 dark:bg-gray-900 p-3 rounded-lg hover:bg-beige-200 dark:hover:bg-gray-800 transition-colors duration-300"
+                  className="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300 border border-gray-200 dark:border-gray-700"
                 >
-                  {/* Pack #18: Icon */}
-                  <svg className="w-6 h-6 text-secondary-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  {/* Pack #6: Body text */}
-                  <span className="text-secondary-600 dark:text-gray-300">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
                     {file.name}
                   </span>
                 </a>
@@ -413,40 +452,36 @@ function TopicDetail() {
         )}
 
         {/* Comments section */}
-        <div className="mt-8">
-          {/* Pack #5: H2/H3 subtitle */}
-          <h2 className="text-secondary-700 dark:text-gray-200 text-2xl font-bold mb-6 transition-colors duration-300">
+        <div id="comments-section" className="mt-8">
+          <h2 className="text-gray-900 dark:text-gray-100 text-2xl font-bold mb-6 transition-colors duration-300">
             Comentários ({comments.length})
           </h2>
 
           {/* Add comment form */}
           {(user && user.id) ? (
-            /* Pack #2: Card */
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-beige-300 dark:border-gray-700 p-6 mb-6 transition-colors duration-300">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 transition-colors duration-300">
               <RichTextEditor
                 value={newComment}
                 onChange={setNewComment}
                 placeholder="Compartilhe suas dúvidas ou reflexões sobre esta aula..."
                 minHeight="200px"
+                isAdmin={isAdmin()}
               />
-              {/* Pack #9: Primary button */}
               <button
                 onClick={handleAddComment}
-                className="mt-4 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-300"
+                className="mt-4 bg-amber-600 dark:bg-amber-500 text-white dark:text-black px-6 py-3 rounded-lg hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors duration-300 font-semibold"
               >
                 Publicar Comentário
               </button>
             </div>
           ) : (
-            /* Pack #2: Card */
-            <div className="bg-beige-100 dark:bg-gray-900 rounded-lg border border-beige-300 dark:border-gray-700 p-6 mb-6 text-center transition-colors duration-300">
-              {/* Pack #6: Body text */}
-              <p className="text-secondary-600 dark:text-gray-300 mb-4">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 text-center transition-colors duration-300">
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Você precisa estar logado para comentar.
               </p>
               <Link 
                 to="/login" 
-                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-300"
+                className="inline-block bg-amber-600 dark:bg-amber-500 text-white dark:text-black px-6 py-3 rounded-lg hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors duration-300 font-semibold"
               >
                 Fazer Login
               </Link>
@@ -456,8 +491,7 @@ function TopicDetail() {
           {/* Comments list */}
           <div>
             {comments.length === 0 ? (
-              /* Pack #6: Body text */
-              <p className="text-secondary-600 dark:text-gray-300 text-center py-8">
+              <p className="text-gray-700 dark:text-gray-300 text-center py-8">
                 Seja o primeiro a comentar!
               </p>
             ) : (

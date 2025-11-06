@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import ImageUploader from '../components/ImageUploader';
+import RichTextEditor from '../components/RichTextEditor';
 
 const AdminCourseEdit = () => {
   const api = useApi();
@@ -286,17 +287,18 @@ const AdminCourseEdit = () => {
 
             <div>
               <label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-2">
-                Descrição *
+                Descrição * (Rich Text)
               </label>
-              <textarea
-                name="description"
+              <RichTextEditor
                 value={formData.description}
-                onChange={handleInputChange}
-                required
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-secondary-900 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Descreva o curso..."
+                onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+                placeholder="Descreva o curso com formatação rica..."
+                minHeight="300px"
+                isAdmin={true}
               />
+              <p className="text-xs text-secondary-500 dark:text-gray-400 mt-1">
+                Use o editor acima para formatar o texto: negrito, itálico, listas, links, cores, etc.
+              </p>
             </div>
 
             <div>
