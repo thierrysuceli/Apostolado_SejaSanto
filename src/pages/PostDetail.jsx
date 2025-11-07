@@ -23,6 +23,10 @@ function PostDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
 
+  // Progress tracking
+  const [readingStartTime, setReadingStartTime] = useState(Date.now());
+  const [lastScrollPosition, setLastScrollPosition] = useState(0);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -46,6 +50,50 @@ function PostDetail() {
     
     loadData();
   }, [id]);
+
+  // Auto-save progress (scroll tracking)
+  useEffect(() => {
+    if (!user || !post) return;
+
+    const saveProgress = async () => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollPercentage = Math.min(100, Math.round(((scrollPosition + windowHeight) / documentHeight) * 100));
+      const readingTime = Math.floor((Date.now() - readingStartTime) / 1000);
+
+      // Only save if scrolled significantly (more than 100px difference)
+      if (Math.abs(scrollPosition - lastScrollPosition) > 100) {
+        try {
+          await api.progress.savePostProgress({
+            post_id: id,
+            scroll_position: scrollPosition,
+            scroll_percentage: scrollPercentage,
+            reading_time_seconds: readingTime,
+            completed: scrollPercentage >= 90
+          });
+          setLastScrollPosition(scrollPosition);
+        } catch (err) {
+          console.error('Error saving progress:', err);
+        }
+      }
+    };
+
+    // Debounced scroll handler
+    let scrollTimeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(saveProgress, 2000);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    // Save on unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      saveProgress();
+    };
+  }, [user, post, id, lastScrollPosition, readingStartTime]);
 
   const handleEditPost = () => {
     setIsEditing(true);
