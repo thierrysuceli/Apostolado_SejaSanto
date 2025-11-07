@@ -269,6 +269,15 @@ export const ApiProvider = ({ children }) => {
     }
   };
 
+  // ==================== BIBLE ====================
+  
+  const bible = {
+    getBooks: () => get('/api/public-data?type=bible-books'),
+    getChapters: (bookId) => get(`/api/public-data?type=bible-chapters&book_id=${bookId}`),
+    getVerses: (bookAbbrev, chapterNumber) => 
+      get(`/api/public-data?type=bible-verses&book_abbrev=${bookAbbrev}&chapter_number=${chapterNumber}`)
+  };
+
   // ==================== ADMIN ====================
   
   const admin = {
@@ -313,6 +322,7 @@ export const ApiProvider = ({ children }) => {
         tags,
         eventCategories,
         groups,
+        bible,
         bibleNotes,
         progress,
         roles,

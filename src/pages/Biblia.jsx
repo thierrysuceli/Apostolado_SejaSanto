@@ -1,31 +1,45 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { bibliaLivros, BIBLIA_API_URL } from '../data/bibliaLivros';
+import { useApi } from '../contexts/ApiContext';
 
 const Biblia = () => {
   const { isDark } = useTheme();
+  const api = useApi();
+  
   const [testamento, setTestamento] = useState('Novo Testamento');
+  const [livros, setLivros] = useState([]);
   const [livroSelecionado, setLivroSelecionado] = useState(null);
   const [capituloSelecionado, setCapituloSelecionado] = useState(null);
   const [versiculos, setVersiculos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingBooks, setLoadingBooks] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [menuLivrosAberto, setMenuLivrosAberto] = useState(false);
 
-  const livros = bibliaLivros[testamento];
-
-  // Carregar João 3 (texto inicial)
+  // Carregar todos os livros
   useEffect(() => {
-    const carregarTextoInicial = async () => {
-      const joao = bibliaLivros['Novo Testamento'].find(l => l.abbrev === 'jo');
-      if (joao) {
-        setLivroSelecionado(joao);
-        setCapituloSelecionado(3);
-        await buscarVersiculos(joao.abbrev, 3);
+    const carregarLivros = async () => {
+      try {
+        const response = await api.bible.getBooks();
+        setLivros(response.books || []);
+        
+        // Auto-selecionar João 3
+        const joao = response.books.find(l => l.abbrev === 'jo');
+        if (joao) {
+          setLivroSelecionado(joao);
+          setCapituloSelecionado(3);
+          await buscarVersiculos(joao.abbrev, 3);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar livros:', err);
+        setError('Erro ao carregar os livros da Bíblia');
+      } finally {
+        setLoadingBooks(false);
       }
     };
-    carregarTextoInicial();
+    
+    carregarLivros();
   }, []);
 
   const buscarVersiculos = async (abbrev, capitulo) => {
@@ -33,17 +47,11 @@ const Biblia = () => {
     setError('');
     
     try {
-      const response = await fetch(`${BIBLIA_API_URL}/verses/nvi/${abbrev}/${capitulo}`);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao carregar versículos');
-      }
-      
-      const data = await response.json();
-      setVersiculos(data.verses || []);
+      const response = await api.bible.getVerses(abbrev, capitulo);
+      setVersiculos(response.verses || []);
     } catch (err) {
       console.error('Erro ao buscar versículos:', err);
-      setError('Não foi possível carregar os versículos. A API externa pode estar indisponível. Tente novamente mais tarde.');
+      setError('Não foi possível carregar os versículos. Tente novamente mais tarde.');
       setVersiculos([]);
     } finally {
       setLoading(false);
@@ -62,9 +70,21 @@ const Biblia = () => {
     buscarVersiculos(livroSelecionado.abbrev, capitulo);
   };
 
-  const livrosFiltrados = livros.filter(livro =>
+  const livrosDoTestamento = livros.filter(l => l.testament === testamento);
+  const livrosFiltrados = livrosDoTestamento.filter(livro =>
     livro.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loadingBooks) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600 mx-auto"></div>
+          <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">Carregando Bíblia...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
@@ -205,14 +225,14 @@ const Biblia = () => {
                   onChange={(e) => handleSelectCapitulo(parseInt(e.target.value))}
                   className="px-3 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-semibold"
                 >
-                  {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
+                  {Array.from({ length: livroSelecionado.total_chapters }, (_, i) => i + 1).map((cap) => (
                     <option key={cap} value={cap}>Cap. {cap}</option>
                   ))}
                 </select>
 
                 <button
-                  onClick={() => capituloSelecionado < livroSelecionado.chapters && handleSelectCapitulo(capituloSelecionado + 1)}
-                  disabled={capituloSelecionado >= livroSelecionado.chapters}
+                  onClick={() => capituloSelecionado < livroSelecionado.total_chapters && handleSelectCapitulo(capituloSelecionado + 1)}
+                  disabled={capituloSelecionado >= livroSelecionado.total_chapters}
                   className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-amber-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Próximo →
@@ -240,11 +260,11 @@ const Biblia = () => {
               <div className="space-y-4">
                 {versiculos.map((versiculo) => (
                   <div
-                    key={versiculo.number}
+                    key={versiculo.verse_number}
                     className="flex gap-4 p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
                   >
                     <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 font-bold rounded-full text-sm">
-                      {versiculo.number}
+                      {versiculo.verse_number}
                     </span>
                     <p className="text-gray-800 dark:text-gray-200 leading-relaxed text-lg">
                       {versiculo.text}
@@ -268,11 +288,11 @@ const Biblia = () => {
                   Anterior
                 </button>
                 <span className="text-gray-600 dark:text-gray-400 font-semibold">
-                  Capítulo {capituloSelecionado} de {livroSelecionado.chapters}
+                  Capítulo {capituloSelecionado} de {livroSelecionado.total_chapters}
                 </span>
                 <button
-                  onClick={() => capituloSelecionado < livroSelecionado.chapters && handleSelectCapitulo(capituloSelecionado + 1)}
-                  disabled={capituloSelecionado === livroSelecionado.chapters}
+                  onClick={() => capituloSelecionado < livroSelecionado.total_chapters && handleSelectCapitulo(capituloSelecionado + 1)}
+                  disabled={capituloSelecionado === livroSelecionado.total_chapters}
                   className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Próximo

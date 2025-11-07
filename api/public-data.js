@@ -318,7 +318,7 @@ export default async function handler(req, res) {
         .from('user_course_progress')
         .select(`
           *,
-          courses(id, title, cover_image_url, duration)
+          courses(id, title, cover_image_url)
         `)
         .eq('user_id', req.user.id)
         .order('updated_at', { ascending: false });
@@ -587,6 +587,88 @@ export default async function handler(req, res) {
       const { error } = await supabaseAdmin.from('bible_notes').delete().eq('id', id);
       if (error) throw error;
       return res.status(200).json({ message: 'Nota deletada com sucesso' });
+    }
+    
+    // ====================================
+    // BIBLE - Leitura da Bíblia do banco
+    // ====================================
+    
+    // GET all books
+    if (type === 'bible-books' && req.method === 'GET') {
+      const { data, error } = await supabaseAdmin
+        .from('bible_books')
+        .select('*')
+        .order('book_order');
+      
+      if (error) throw error;
+      return res.status(200).json({ books: data || [] });
+    }
+    
+    // GET chapters of a book
+    if (type === 'bible-chapters' && req.method === 'GET') {
+      const { book_id } = req.query;
+      if (!book_id) return res.status(400).json({ error: 'book_id é obrigatório' });
+      
+      const { data, error } = await supabaseAdmin
+        .from('bible_chapters')
+        .select('*')
+        .eq('book_id', book_id)
+        .order('chapter_number');
+      
+      if (error) throw error;
+      return res.status(200).json({ chapters: data || [] });
+    }
+    
+    // GET verses of a chapter
+    if (type === 'bible-verses' && req.method === 'GET') {
+      const { book_abbrev, chapter_number } = req.query;
+      
+      if (!book_abbrev || !chapter_number) {
+        return res.status(400).json({ error: 'book_abbrev e chapter_number são obrigatórios' });
+      }
+      
+      // Buscar o livro pela abreviação
+      const { data: book, error: bookError } = await supabaseAdmin
+        .from('bible_books')
+        .select('id, name, abbrev, testament')
+        .eq('abbrev', book_abbrev)
+        .single();
+      
+      if (bookError || !book) {
+        return res.status(404).json({ error: 'Livro não encontrado' });
+      }
+      
+      // Buscar o capítulo
+      const { data: chapter, error: chapterError } = await supabaseAdmin
+        .from('bible_chapters')
+        .select('id, total_verses')
+        .eq('book_id', book.id)
+        .eq('chapter_number', chapter_number)
+        .single();
+      
+      if (chapterError || !chapter) {
+        return res.status(404).json({ error: 'Capítulo não encontrado' });
+      }
+      
+      // Buscar os versículos
+      const { data: verses, error: versesError } = await supabaseAdmin
+        .from('bible_verses')
+        .select('verse_number, text')
+        .eq('chapter_id', chapter.id)
+        .order('verse_number');
+      
+      if (versesError) throw versesError;
+      
+      return res.status(200).json({
+        book: {
+          name: book.name,
+          abbrev: book.abbrev,
+          testament: book.testament
+        },
+        chapter: parseInt(chapter_number),
+        total_verses: chapter.total_verses,
+        verses: verses || []
+      });
     }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });
