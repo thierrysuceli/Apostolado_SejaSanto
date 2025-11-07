@@ -176,28 +176,16 @@ const Home = () => {
     }
 
     try {
+      console.log('Votando:', { pollId, optionIds });
       await api.polls.vote(pollId, optionIds);
-      // Recarregar dados
-      const groupsData = await api.groups?.getAll().catch(() => ({ groups: [] }));
-      const recentActivity = [];
-      
-      if (groupsData.groups && Array.isArray(groupsData.groups)) {
-        for (const group of groupsData.groups) {
-          const groupDetails = await api.groups.getById(group.id).catch(() => null);
-          if (groupDetails?.group?.polls) {
-            groupDetails.group.polls.forEach(poll => {
-              recentActivity.push({
-                ...poll,
-                type: 'poll',
-                group_name: group.name,
-                group_emoji: group.emoji
-              });
-            });
-          }
-        }
-      }
-      
-      setRecentItems(prev => 
+      alert('Voto registrado com sucesso!');
+      // Recarregar atividades recentes
+      loadRecentActivity();
+    } catch (err) {
+      console.error('Erro ao votar:', err);
+      alert(`Erro ao votar: ${err.message || 'Tente novamente'}`);
+    }
+  }; 
         prev.map(item => {
           if (item.type === 'poll') {
             const updated = recentActivity.find(p => p.id === item.id);

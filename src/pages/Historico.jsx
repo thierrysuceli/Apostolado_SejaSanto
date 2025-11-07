@@ -179,7 +179,7 @@ export default function Historico() {
               Comece a assistir cursos ou ler artigos para construir seu histórico
             </p>
             <Link
-              to="/cursos"
+              to="/courses"
               className="inline-block px-6 py-3 bg-amber-500 text-black font-medium rounded-lg hover:bg-amber-600 transition"
             >
               Explorar Cursos
@@ -215,7 +215,7 @@ export default function Historico() {
                         } shadow-lg hover:shadow-xl transition`}
                       >
                         {/* Thumbnail */}
-                        <Link to={`/cursos/${course.id}`} className="block">
+                        <Link to={`/courses/${course.id}`} className="block">
                           <div className="relative aspect-video overflow-hidden">
                             {course.cover_image_url ? (
                               <img
@@ -238,7 +238,7 @@ export default function Historico() {
 
                         {/* Content */}
                         <div className="p-4">
-                          <Link to={`/cursos/${course.id}`}>
+                          <Link to={`/courses/${course.id}`}>
                             <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
                               {course.title}
                             </h3>
@@ -269,7 +269,7 @@ export default function Historico() {
                             </span>
                             <div className="flex gap-2">
                               <Link
-                                to={`/cursos/${course.id}`}
+                                to={`/courses/${course.id}`}
                                 className="px-4 py-2 bg-amber-500 text-black text-sm font-medium rounded-lg hover:bg-amber-600 transition"
                               >
                                 Continuar
