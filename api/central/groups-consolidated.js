@@ -541,9 +541,13 @@ export default async function handler(req, res) {
           registration_ends 
         } = req.body;
         
-        if (!title || !description || !role_to_grant || !registration_ends) {
+        if (!title || !description || !role_to_grant) {
           return res.status(400).json({ error: 'Campos obrigatórios faltando' });
         }
+        
+        // Se registration_ends não for fornecido, usar 30 dias a partir de agora
+        const endsAt = registration_ends || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const startsAt = registration_starts || new Date().toISOString();
         
         const { data: registration, error } = await supabaseAdmin
           .from('central_registrations')
@@ -555,8 +559,8 @@ export default async function handler(req, res) {
             role_to_grant,
             max_participants: max_participants || null,
             approval_type: approval_type || 'automatic',
-            registration_starts: registration_starts || new Date().toISOString(),
-            registration_ends
+            registration_starts: startsAt,
+            registration_ends: endsAt
           })
           .select(`
             *,
