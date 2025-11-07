@@ -62,7 +62,9 @@ CREATE INDEX IF NOT EXISTS idx_bible_notes_book ON bible_notes(book_abbrev);
 CREATE INDEX IF NOT EXISTS idx_bible_notes_chapter ON bible_notes(book_abbrev, chapter_number);
 CREATE INDEX IF NOT EXISTS idx_bible_notes_verse ON bible_notes(book_abbrev, chapter_number, verse_number);
 
-CREATE TRIGGER IF NOT EXISTS update_bible_notes_updated_at
+-- Drop trigger se existir e recria
+DROP TRIGGER IF EXISTS update_bible_notes_updated_at ON bible_notes;
+CREATE TRIGGER update_bible_notes_updated_at
   BEFORE UPDATE ON bible_notes
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
