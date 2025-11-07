@@ -26,10 +26,10 @@ const About = () => {
           </h1>
           
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto italic">
-            "Não haverá mais belo apostolado... do que levar aos homens os argumentos e as razões da Fé Católica"
+            "Não haverá mais belo Apostolado nem mais valiosa obra de zelo que levar aos homens os argumentos e as razões da Fé Católica"
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            — Cardeal Sebastião Leme
+            — Cardeal Sebastião Leme e Dom Bosco
           </p>
         </div>
       </section>

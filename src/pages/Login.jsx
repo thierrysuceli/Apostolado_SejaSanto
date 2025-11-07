@@ -158,13 +158,6 @@ const Login = () => {
               {isLogin ? 'Não tem uma conta? Registre-se' : 'Já tem uma conta? Faça login'}
             </button>
           </div>
-
-          {isLogin && (
-            <div className="mt-6 bg-white dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-secondary-600 dark:text-gray-300 text-xs mb-2">Credencial de teste:</p>
-              <p className="text-secondary-500 text-xs"><strong>Admin:</strong> admin@apostolado.com / Admin@123</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

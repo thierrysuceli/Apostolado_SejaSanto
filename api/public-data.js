@@ -670,6 +670,144 @@ export default async function handler(req, res) {
         verses: verses || []
       });
     }
+
+    // Bible Verse Comments - GET
+    if (type === 'bible-verse-comments' && req.method === 'GET') {
+      const { book_abbrev, chapter, verse } = req.query;
+      
+      let query = supabaseAdmin
+        .from('bible_verse_comments')
+        .select(`
+          *,
+          users:user_id (
+            id,
+            name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (book_abbrev) query = query.eq('book_abbrev', book_abbrev);
+      if (chapter) query = query.eq('chapter', parseInt(chapter));
+      if (verse) query = query.eq('verse', parseInt(verse));
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      return res.status(200).json({ comments: data || [] });
+    }
+
+    // Bible Verse Comments - POST
+    if (type === 'bible-verse-comments' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      const { book_abbrev, chapter, verse, comment_text } = req.body;
+      
+      if (!book_abbrev || !chapter || !verse || !comment_text) {
+        return res.status(400).json({ error: 'Dados incompletos' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .insert({
+          book_abbrev,
+          chapter: parseInt(chapter),
+          verse: parseInt(verse),
+          user_id: req.user.id,
+          comment_text
+        })
+        .select(`
+          *,
+          users:user_id (
+            id,
+            name,
+            email
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return res.status(201).json({ comment: data });
+    }
+
+    // Bible Verse Comments - DELETE
+    if (type === 'bible-verse-comments' && req.method === 'DELETE' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar se é o dono ou admin
+      const { data: comment } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      const isOwner = comment?.user_id === req.user.id;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Sem permissão' });
+      }
+
+      const { error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return res.status(200).json({ message: 'Comentário deletado' });
+    }
+
+    // Bible Progress - GET
+    if (type === 'bible-progress' && req.method === 'GET') {
+      await authenticate(req, res);
+      if (!req.user) {
+        return res.status(401).json({ error: 'Não autorizado' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('user_bible_progress')
+        .select(`
+          *,
+          bible_books!inner(name, abbrev, testament, total_chapters)
+        `)
+        .eq('user_id', req.user.id)
+        .order('last_read_at', { ascending: false});
+      
+      if (error) throw error;
+      
+      return res.status(200).json({ progress: data || [] });
+    }
+
+    // Bible Progress - POST/UPDATE
+    if (type === 'bible-progress' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      const { book_abbrev, chapter, verse } = req.body;
+      
+      if (!book_abbrev || !chapter) {
+        return res.status(400).json({ error: 'Dados incompletos' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('user_bible_progress')
+        .upsert({
+          user_id: req.user.id,
+          book_abbrev,
+          chapter: parseInt(chapter),
+          verse: parseInt(verse || 1),
+          last_read_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,book_abbrev'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.status(200).json({ progress: data });
+    }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });
   } catch (error) {

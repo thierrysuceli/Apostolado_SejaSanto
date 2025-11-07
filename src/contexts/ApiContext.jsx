@@ -278,6 +278,23 @@ export const ApiProvider = ({ children }) => {
       get(`/api/public-data?type=bible-verses&book_abbrev=${bookAbbrev}&chapter_number=${chapterNumber}`)
   };
 
+  const bibleComments = {
+    getAll: (filters = {}) => {
+      const params = new URLSearchParams({
+        type: 'bible-verse-comments',
+        ...filters
+      });
+      return get(`/api/public-data?${params}`);
+    },
+    create: (data) => post('/api/public-data?type=bible-verse-comments', data, true),
+    delete: (id) => del(`/api/public-data?type=bible-verse-comments&id=${id}`, null, true)
+  };
+
+  const bibleProgress = {
+    get: () => get('/api/public-data?type=bible-progress', true),
+    save: (data) => post('/api/public-data?type=bible-progress', data, true)
+  };
+
   // ==================== ADMIN ====================
   
   const admin = {
@@ -324,6 +341,8 @@ export const ApiProvider = ({ children }) => {
         groups,
         bible,
         bibleNotes,
+        bibleComments,
+        bibleProgress,
         progress,
         roles,
         users,

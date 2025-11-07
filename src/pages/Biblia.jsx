@@ -1,10 +1,12 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApi } from '../contexts/ApiContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Biblia = () => {
   const { isDark } = useTheme();
   const api = useApi();
+  const { user } = useAuth();
   
   const [testamento, setTestamento] = useState('Novo Testamento');
   const [livros, setLivros] = useState([]);
@@ -49,10 +51,22 @@ const Biblia = () => {
     try {
       const response = await api.bible.getVerses(abbrev, capitulo);
       setVersiculos(response.verses || []);
+      
+      // Salvar progresso se usuário logado
+      if (user) {
+        try {
+          await api.bibleProgress.save({
+            book_abbrev: abbrev,
+            chapter: capitulo,
+            verse: 1
+          });
+        } catch (err) {
+          console.error('Erro ao salvar progresso:', err);
+        }
+      }
     } catch (err) {
       console.error('Erro ao buscar versículos:', err);
-      setError('Não foi possível carregar os versículos. Tente novamente mais tarde.');
-      setVersiculos([]);
+      setError('Erro ao buscar versículos');
     } finally {
       setLoading(false);
     }
@@ -258,7 +272,7 @@ const Biblia = () => {
 
             {/* Versículos - Estilo Medieval com Drop Cap */}
             {!loading && !error && versiculos.length > 0 && (
-              <div className="space-y-1 max-w-6xl mx-auto">
+              <div className="space-y-0 max-w-6xl mx-auto">
                 {versiculos.map((versiculo, index) => {
                   const firstLetter = versiculo.text.charAt(0);
                   const restOfText = versiculo.text.slice(1);
@@ -267,17 +281,17 @@ const Biblia = () => {
                   return (
                     <div
                       key={versiculo.verse_number}
-                      className="group relative py-2 px-3 hover:bg-amber-50/30 dark:hover:bg-amber-900/10 transition-colors rounded"
+                      className="group relative py-1 px-3 hover:bg-amber-50/30 dark:hover:bg-amber-900/10 transition-colors rounded"
                     >
-                      <div className="flex gap-3 items-start">
+                      <div className="flex gap-2 items-start">
                         {/* Número do Versículo - Estilo Medieval */}
                         <span 
-                          className="flex-shrink-0 select-none text-amber-700 dark:text-amber-500 font-serif"
+                          className="flex-shrink-0 select-none text-amber-700 dark:text-amber-500 font-serif pt-0.5"
                           style={{ 
                             fontFamily: "'Cinzel Decorative', 'Playfair Display', serif",
-                            fontSize: '0.95rem',
+                            fontSize: '0.85rem',
                             fontWeight: '700',
-                            lineHeight: '1.8'
+                            lineHeight: '1.6'
                           }}
                         >
                           {versiculo.verse_number}
@@ -285,11 +299,11 @@ const Biblia = () => {
 
                         {/* Texto do Versículo */}
                         <p 
-                          className="flex-1 text-gray-900 dark:text-gray-100 leading-relaxed"
+                          className="flex-1 text-gray-900 dark:text-gray-100"
                           style={{ 
                             fontFamily: "'Crimson Text', 'Lora', 'Georgia', serif",
                             fontSize: '1.125rem',
-                            lineHeight: '1.8',
+                            lineHeight: '1.6',
                             textAlign: 'justify',
                             hyphens: 'auto'
                           }}
@@ -298,12 +312,12 @@ const Biblia = () => {
                             <>
                               {/* Drop Cap - Primeira Letra Iluminada */}
                               <span 
-                                className="float-left text-amber-700 dark:text-amber-500 font-bold mr-2 leading-none select-none"
+                                className="float-left text-amber-700 dark:text-amber-500 font-bold mr-1.5 leading-none select-none"
                                 style={{
                                   fontFamily: "'Cinzel Decorative', 'Playfair Display', serif",
-                                  fontSize: '3.5rem',
-                                  lineHeight: '3rem',
-                                  marginTop: '-0.2rem'
+                                  fontSize: '3.2rem',
+                                  lineHeight: '2.6rem',
+                                  marginTop: '0.1rem'
                                 }}
                               >
                                 {firstLetter}
