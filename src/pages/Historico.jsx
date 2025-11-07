@@ -182,9 +182,9 @@ export default function Historico() {
                         {/* Thumbnail */}
                         <Link to={`/cursos/${course.id}`} className="block">
                           <div className="relative aspect-video overflow-hidden">
-                            {course.thumbnail_url ? (
+                            {course.cover_image_url ? (
                               <img
-                                src={course.thumbnail_url}
+                                src={course.cover_image_url}
                                 alt={course.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
@@ -291,9 +291,9 @@ export default function Historico() {
                         {/* Thumbnail */}
                         <Link to={`/artigos/${post.id}`} className="block">
                           <div className="relative aspect-video overflow-hidden">
-                            {post.thumbnail_url ? (
+                            {post.cover_image_url ? (
                               <img
-                                src={post.thumbnail_url}
+                                src={post.cover_image_url}
                                 alt={post.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />

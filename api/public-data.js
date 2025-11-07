@@ -318,7 +318,7 @@ export default async function handler(req, res) {
         .from('user_course_progress')
         .select(`
           *,
-          courses(id, title, thumbnail_url, duration)
+          courses(id, title, cover_image_url, duration)
         `)
         .eq('user_id', req.user.id)
         .order('updated_at', { ascending: false });
@@ -405,7 +405,7 @@ export default async function handler(req, res) {
         .from('user_post_progress')
         .select(`
           *,
-          posts(id, title, thumbnail_url)
+          posts(id, title, cover_image_url)
         `)
         .eq('user_id', req.user.id)
         .order('updated_at', { ascending: false });
