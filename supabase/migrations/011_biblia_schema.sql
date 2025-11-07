@@ -46,67 +46,15 @@ CREATE TABLE bible_verses (
 
 CREATE INDEX idx_bible_verses_chapter ON bible_verses(chapter_id);
 
--- Tabela de Notas Administrativas (já existe, vamos garantir que está ok)
-CREATE TABLE IF NOT EXISTS bible_notes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  book_abbrev VARCHAR(10) NOT NULL,
-  chapter_number INTEGER NOT NULL,
-  verse_number INTEGER,
-  note_text TEXT NOT NULL,
-  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_bible_notes_book ON bible_notes(book_abbrev);
-CREATE INDEX IF NOT EXISTS idx_bible_notes_chapter ON bible_notes(book_abbrev, chapter_number);
-CREATE INDEX IF NOT EXISTS idx_bible_notes_verse ON bible_notes(book_abbrev, chapter_number, verse_number);
-
--- Drop trigger se existir e recria
-DROP TRIGGER IF EXISTS update_bible_notes_updated_at ON bible_notes;
-CREATE TRIGGER update_bible_notes_updated_at
-  BEFORE UPDATE ON bible_notes
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+-- Nota: A tabela bible_notes JÁ EXISTE na migration 009
+-- Não precisamos recriá-la aqui, apenas garantir compatibilidade
 
 -- RLS Policies para Bible (leitura pública)
 ALTER TABLE bible_books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bible_chapters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bible_verses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bible_notes ENABLE ROW LEVEL SECURITY;
 
 -- Todos podem ler a Bíblia
 CREATE POLICY "bible_books_public_read" ON bible_books FOR SELECT USING (true);
 CREATE POLICY "bible_chapters_public_read" ON bible_chapters FOR SELECT USING (true);
 CREATE POLICY "bible_verses_public_read" ON bible_verses FOR SELECT USING (true);
-
--- Todos podem ler notas
-CREATE POLICY "bible_notes_public_read" ON bible_notes FOR SELECT USING (true);
-
--- Apenas admins podem criar/editar/deletar notas
-CREATE POLICY "bible_notes_admin_write" ON bible_notes FOR INSERT 
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM users 
-      WHERE users.id = auth.uid() 
-      AND users.role = 'admin'
-    )
-  );
-
-CREATE POLICY "bible_notes_admin_update" ON bible_notes FOR UPDATE 
-  USING (
-    EXISTS (
-      SELECT 1 FROM users 
-      WHERE users.id = auth.uid() 
-      AND users.role = 'admin'
-    )
-  );
-
-CREATE POLICY "bible_notes_admin_delete" ON bible_notes FOR DELETE 
-  USING (
-    EXISTS (
-      SELECT 1 FROM users 
-      WHERE users.id = auth.uid() 
-      AND users.role = 'admin'
-    )
-  );
