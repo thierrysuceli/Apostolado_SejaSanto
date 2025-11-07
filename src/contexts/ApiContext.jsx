@@ -224,6 +224,24 @@ export const ApiProvider = ({ children }) => {
     getRegistrations: (id) => get(`/api/central/groups?id=${id}&resource=registrations`)
   };
 
+  // ==================== POLLS (Central) ====================
+  
+  const polls = {
+    vote: (pollId, optionIds) => post(`/api/central/polls/${pollId}?action=vote`, { option_ids: optionIds }),
+    create: (groupId, data) => post(`/api/central/groups/${groupId}/polls`, data),
+    update: (pollId, data) => put(`/api/central/polls/${pollId}/edit`, data),
+    delete: (pollId) => del(`/api/central/polls/${pollId}`)
+  };
+
+  // ==================== REGISTRATIONS (Central) ====================
+  
+  const registrations = {
+    register: (groupId, registrationId) => post(`/api/central/groups/${groupId}/registrations/${registrationId}/register`),
+    create: (groupId, data) => post(`/api/central/groups/${groupId}/registrations`, data),
+    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}/edit`, data),
+    delete: (registrationId) => del(`/api/central/registrations/${registrationId}`)
+  };
+
   // ==================== BIBLE NOTES ====================
   
   const bibleNotes = {
@@ -343,6 +361,8 @@ export const ApiProvider = ({ children }) => {
         tags,
         eventCategories,
         groups,
+        polls,
+        registrations,
         bible,
         bibleNotes,
         bibleComments,

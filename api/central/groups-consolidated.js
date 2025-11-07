@@ -509,6 +509,15 @@ export default async function handler(req, res) {
           
           reg.is_open = now >= startsAt && now <= endsAt;
           reg.is_full = reg.max_participants && reg.approved_count >= reg.max_participants;
+          
+          // Debug para verificar datas
+          console.log(`[Registration ${reg.id}] Status:`, {
+            now: now.toISOString(),
+            starts: startsAt.toISOString(),
+            ends: endsAt.toISOString(),
+            is_open: reg.is_open,
+            is_full: reg.is_full
+          });
         });
         
         return res.status(200).json({ registrations: registrations || [] });
