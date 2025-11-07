@@ -63,14 +63,28 @@ function generateAbbrev(nome) {
     'Abdias': 'ob', 'Jonas': 'jn', 'Miquéias': 'mq', 'Naum': 'na', 'Habacuc': 'hc',
     'Sofonias': 'sf', 'Ageu': 'ag', 'Zacarias': 'zc', 'Malaquias': 'ml',
     'I Macabeus': '1mc', 'II Macabeus': '2mc',
-    'Mateus': 'mt', 'Marcos': 'mc', 'Lucas': 'lc', 'João': 'jo', 'Atos': 'at',
-    'Romanos': 'rm', 'I Coríntios': '1co', 'II Coríntios': '2co', 'Gálatas': 'gl',
-    'Efésios': 'ef', 'Filipenses': 'fl', 'Colossenses': 'cl', 'I Tessalonicenses': '1ts',
-    'II Tessalonicenses': '2ts', 'I Timóteo': '1tm', 'II Timóteo': '2tm', 'Tito': 'tt',
-    'Filemon': 'fm', 'Hebreus': 'hb', 'Tiago': 'tg', 'I Pedro': '1pe', 'II Pedro': '2pe',
-    'I João': '1jo', 'II João': '2jo', 'III João': '3jo', 'Judas': 'jd', 'Apocalipse': 'ap'
+    // Novo Testamento - nomes exatos do JSON
+    'São Mateus': 'mt', 'Mateus': 'mt',
+    'São Marcos': 'mc', 'Marcos': 'mc',
+    'São Lucas': 'lc', 'Lucas': 'lc',
+    'São João': 'jo', 'João': 'jo',
+    'Atos dos Apóstolos': 'at', 'Atos': 'at',
+    'Romanos': 'rm',
+    'I Coríntios': '1co', 'II Coríntios': '2co',
+    'Gálatas': 'gl', 'Efésios': 'ef', 'Filipenses': 'fl', 'Colossenses': 'cl',
+    'I Tessalonicenses': '1ts', 'II Tessalonicenses': '2ts',
+    'I Timóteo': '1tm', 'II Timóteo': '2tm',
+    'Tito': 'tt', 'Filemon': 'fm', 'Filémon': 'fm', 'Filêmon': 'fm',
+    'Hebreus': 'hb',
+    'Tiago': 'tg', 'São Tiago': 'tg',
+    'I Pedro': '1pe', 'II Pedro': '2pe',
+    'I São Pedro': '1pe', 'II São Pedro': '2pe',
+    'I João': '1jo', 'II João': '2jo', 'III João': '3jo',
+    'I São João': '1jo', 'II São João': '2jo', 'III São João': '3jo',
+    'Judas': 'jd', 'São Judas': 'jd',
+    'Apocalipse': 'ap'
   };
-  return abbrevMap[nome] || nome.toLowerCase().replace(/\s+/g, '');
+  return abbrevMap[nome] || nome.toLowerCase().replace(/\s+/g, '').substring(0, 15);
 }
 
 // Função principal de importação
