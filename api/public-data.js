@@ -766,16 +766,15 @@ export default async function handler(req, res) {
       
       const { data, error } = await supabaseAdmin
         .from('user_bible_progress')
-        .select(`
-          *,
-          bible_books!inner(name, abbrev, testament, total_chapters)
-        `)
+        .select('*')
         .eq('user_id', req.user.id)
-        .order('last_read_at', { ascending: false});
+        .order('last_read_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
       if (error) throw error;
       
-      return res.status(200).json({ progress: data || [] });
+      return res.status(200).json({ progress: data });
     }
 
     // Bible Progress - POST/UPDATE

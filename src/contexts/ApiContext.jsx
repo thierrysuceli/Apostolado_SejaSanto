@@ -231,6 +231,10 @@ export const ApiProvider = ({ children }) => {
       const query = new URLSearchParams(params).toString();
       return get(`/api/bible-notes?${query}`, false);
     },
+    getByVerse: ({ book_abbrev, chapter, verse }) => {
+      const params = new URLSearchParams({ book_abbrev, chapter, verse }).toString();
+      return get(`/api/bible-notes?${params}`, false);
+    },
     getById: (id) => get(`/api/bible-notes/${id}`, false),
     create: (data) => post('/api/bible-notes', data),
     update: (id, data) => put(`/api/bible-notes/${id}`, data),
