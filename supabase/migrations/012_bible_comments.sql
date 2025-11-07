@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS bible_verse_comments (
   book_abbrev VARCHAR(20) NOT NULL,
   chapter INT NOT NULL,
   verse INT NOT NULL,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   comment_text TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
@@ -67,7 +67,7 @@ CREATE TRIGGER trigger_update_bible_verse_comments_updated_at
 -- Tabela de histórico de leitura da Bíblia
 CREATE TABLE IF NOT EXISTS user_bible_progress (
   id SERIAL PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   book_abbrev VARCHAR(20) NOT NULL,
   chapter INT NOT NULL,
   verse INT DEFAULT 1,

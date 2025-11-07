@@ -25,10 +25,6 @@ function TopicDetail() {
   const [replyContent, setReplyContent] = useState('');
   const [showTextContent, setShowTextContent] = useState(false);
 
-  // Progress tracking
-  const [viewStartTime, setViewStartTime] = useState(Date.now());
-  const [progressSeconds, setProgressSeconds] = useState(0);
-
   // Função para buscar respostas de um comentário
   const getCommentReplies = (parentId) => {
     return comments.filter(c => c.parent_comment_id === parentId);
@@ -70,35 +66,26 @@ function TopicDetail() {
     loadData();
   }, [topicId]);
 
-  // Auto-save course progress (time tracking)
+  // Salvar que visitou o tópico (apenas registro, sem tempo)
   useEffect(() => {
-    if (!user || !course) return;
+    if (!user || !course || !topicId) return;
 
     const saveProgress = async () => {
-      const timeSpent = Math.floor((Date.now() - viewStartTime) / 1000);
-      
       try {
         await api.progress.saveCourseProgress({
           course_id: course.id,
           topic_id: topicId,
-          progress_seconds: timeSpent,
-          completed: false // User must manually mark as complete
+          progress_seconds: 0,
+          completed: false
         });
-        setProgressSeconds(timeSpent);
       } catch (err) {
         console.error('Error saving progress:', err);
       }
     };
 
-    // Save every 10 seconds
-    const intervalId = setInterval(saveProgress, 10000);
-
-    // Save on unmount
-    return () => {
-      clearInterval(intervalId);
-      saveProgress();
-    };
-  }, [user, course, topicId, viewStartTime]);
+    // Salvar apenas uma vez ao carregar
+    saveProgress();
+  }, [user, course, topicId]);
 
   const handleDeleteComment = async (commentId) => {
     if (!confirm('Tem certeza que deseja deletar este comentário?')) return;

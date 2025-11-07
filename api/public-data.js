@@ -366,7 +366,7 @@ export default async function handler(req, res) {
         )
         .select(`
           *,
-          courses(id, title, thumbnail_url, duration)
+          courses(id, title, cover_image_url)
         `)
         .single();
       
@@ -452,7 +452,7 @@ export default async function handler(req, res) {
         )
         .select(`
           *,
-          posts(id, title, thumbnail_url)
+          posts(id, title, cover_image_url)
         `)
         .single();
       

@@ -209,51 +209,54 @@ const Biblia = () => {
         </div>
       )}
 
+      {/* Navegação de Capítulos - SEMPRE VISÍVEL SE TEM LIVRO */}
+      {livroSelecionado && capituloSelecionado && (
+        <div className="fixed top-[57px] left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 shadow-sm">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base md:text-lg font-bold text-gray-900 dark:text-white">
+                {livroSelecionado.name} {capituloSelecionado}
+              </h2>
+              <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+                {versiculos.length} versículos
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => capituloSelecionado > 1 && handleSelectCapitulo(capituloSelecionado - 1)}
+                disabled={capituloSelecionado <= 1}
+                className="px-2 md:px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-amber-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                ← Ant
+              </button>
+              
+              <select
+                value={capituloSelecionado}
+                onChange={(e) => handleSelectCapitulo(parseInt(e.target.value))}
+                className="px-2 md:px-3 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-semibold"
+              >
+                {Array.from({ length: livroSelecionado.total_chapters }, (_, i) => i + 1).map((cap) => (
+                  <option key={cap} value={cap}>Cap. {cap}</option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => capituloSelecionado < livroSelecionado.total_chapters && handleSelectCapitulo(capituloSelecionado + 1)}
+                disabled={capituloSelecionado >= livroSelecionado.total_chapters}
+                className="px-2 md:px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-amber-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Prox →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Conteúdo Principal - Estilo Medieval */}
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-28">
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-32">
         {livroSelecionado && capituloSelecionado && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
-            {/* Navegação de Capítulos - FIXA */}
-            <div className="fixed top-[57px] left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 shadow-sm">
-              <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                    {livroSelecionado.name} {capituloSelecionado}
-                  </h2>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {versiculos.length} versículos
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => capituloSelecionado > 1 && handleSelectCapitulo(capituloSelecionado - 1)}
-                    disabled={capituloSelecionado <= 1}
-                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-amber-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    ← Anterior
-                  </button>
-                  
-                  <select
-                    value={capituloSelecionado}
-                    onChange={(e) => handleSelectCapitulo(parseInt(e.target.value))}
-                    className="px-3 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-semibold"
-                  >
-                    {Array.from({ length: livroSelecionado.total_chapters }, (_, i) => i + 1).map((cap) => (
-                      <option key={cap} value={cap}>Cap. {cap}</option>
-                    ))}
-                  </select>
-
-                  <button
-                    onClick={() => capituloSelecionado < livroSelecionado.total_chapters && handleSelectCapitulo(capituloSelecionado + 1)}
-                    disabled={capituloSelecionado >= livroSelecionado.total_chapters}
-                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-amber-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    Próximo →
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {/* Loading */}
             {loading && (
