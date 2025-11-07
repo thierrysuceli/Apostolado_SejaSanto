@@ -318,7 +318,7 @@ export default async function handler(req, res) {
         .from('user_course_progress')
         .select(`
           *,
-          courses(id, title, cover_image_url)
+          courses!inner(id, title, cover_image_url)
         `)
         .eq('user_id', req.user.id)
         .order('updated_at', { ascending: false });
@@ -360,13 +360,12 @@ export default async function handler(req, res) {
             updated_at: new Date().toISOString()
           },
           {
-            onConflict: 'user_id,course_id', // unique constraint
-            returning: 'representation'
+            onConflict: 'user_id, course_id'
           }
         )
         .select(`
           *,
-          courses(id, title, cover_image_url)
+          courses!inner(id, title, cover_image_url)
         `)
         .single();
       
@@ -405,7 +404,7 @@ export default async function handler(req, res) {
         .from('user_post_progress')
         .select(`
           *,
-          posts(id, title, cover_image_url)
+          posts!inner(id, title, cover_image_url)
         `)
         .eq('user_id', req.user.id)
         .order('updated_at', { ascending: false });
@@ -446,13 +445,12 @@ export default async function handler(req, res) {
             updated_at: new Date().toISOString()
           },
           {
-            onConflict: 'user_id,post_id',
-            returning: 'representation'
+            onConflict: 'user_id, post_id'
           }
         )
         .select(`
           *,
-          posts(id, title, cover_image_url)
+          posts!inner(id, title, cover_image_url)
         `)
         .single();
       

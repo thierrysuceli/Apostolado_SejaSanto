@@ -181,7 +181,7 @@ const Admin = () => {
 
         {/* Tabs */}
         <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-2 mb-8 flex flex-wrap gap-2">
-          {['dashboard', 'users', 'roles', 'content'].map(tab => (
+          {['dashboard', 'users', 'roles', 'content', 'bible-notes'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -195,6 +195,7 @@ const Admin = () => {
               {tab === 'users' && '👥 Usuários'}
               {tab === 'roles' && '🔐 Roles & Permissões'}
               {tab === 'content' && '📝 Conteúdo'}
+              {tab === 'bible-notes' && '📖 Notas Bíblicas'}
             </button>
           ))}
         </div>
@@ -523,6 +524,23 @@ const Admin = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bible Notes Tab */}
+        {activeTab === 'bible-notes' && (
+          <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6">
+            <p className="text-center text-secondary-600 dark:text-gray-400 mb-4">
+              Redirecionando para interface completa de Notas Bíblicas...
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => navigate('/admin/bible-notes')}
+                className="px-6 py-3 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-600 transition"
+              >
+                Acessar Gerenciador de Notas
+              </button>
             </div>
           </div>
         )}

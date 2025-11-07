@@ -27,6 +27,7 @@ import AdminCourseModules from './pages/AdminCourseModules';
 import AdminTags from './pages/AdminTags';
 import AdminUsers from './pages/AdminUsers';
 import AdminRoles from './pages/AdminRoles';
+import AdminBibleNotes from './pages/AdminBibleNotes';
 import Biblia from './pages/Biblia';
 import Historico from './pages/Historico';
 
@@ -66,6 +67,7 @@ function App() {
                   <Route path="/admin/tags" element={<AdminTags />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/roles" element={<AdminRoles />} />
+                  <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
                 </Routes>
               </main>
               <Footer />

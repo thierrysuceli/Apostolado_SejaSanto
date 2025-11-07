@@ -11,11 +11,13 @@ const About = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-amber-500/5 dark:from-amber-500/5"></div>
         
         <div className="relative max-w-4xl mx-auto text-center">
-          {/* Decorative Cross */}
-          <div className="inline-flex items-center justify-center w-20 h-20 mb-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow-2xl">
-            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L10 10H6L2 12L6 14V18L12 22L18 18V14L22 12L18 10H14L12 2Z" />
-            </svg>
+          {/* Logo do Apostolado */}
+          <div className="inline-flex items-center justify-center w-32 h-32 mb-8">
+            <img 
+              src="/Apostolado_PNG.png" 
+              alt="Logo Apostolado Seja Santo" 
+              className="w-full h-full object-contain drop-shadow-2xl"
+            />
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
@@ -29,7 +31,7 @@ const About = () => {
             "Não haverá mais belo Apostolado nem mais valiosa obra de zelo que levar aos homens os argumentos e as razões da Fé Católica"
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            — Cardeal Sebastião Leme e Dom Bosco
+            — Cardeal Sebastião Leme
           </p>
         </div>
       </section>

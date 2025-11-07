@@ -13,6 +13,7 @@ export default function Historico() {
   const { isDark } = useTheme();
   const [courseProgress, setCourseProgress] = useState([]);
   const [postProgress, setPostProgress] = useState([]);
+  const [bibleProgress, setBibleProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,14 +26,16 @@ export default function Historico() {
       setLoading(true);
       setError(null);
 
-      // Carregar progresso de cursos e posts em paralelo
-      const [coursesData, postsData] = await Promise.all([
+      // Carregar progresso de cursos, posts e bíblia em paralelo
+      const [coursesData, postsData, bibleData] = await Promise.all([
         api.progress.getCourseProgress(),
-        api.progress.getPostProgress()
+        api.progress.getPostProgress(),
+        api.bibleProgress.get()
       ]);
 
       setCourseProgress(coursesData.progress || []);
       setPostProgress(postsData.progress || []);
+      setBibleProgress(bibleData.progress || null);
     } catch (err) {
       console.error('Erro ao carregar histórico:', err);
       setError('Erro ao carregar seu histórico. Tente novamente.');
@@ -120,7 +123,7 @@ export default function Historico() {
     );
   }
 
-  const hasProgress = courseProgress.length > 0 || postProgress.length > 0;
+  const hasProgress = courseProgress.length > 0 || postProgress.length > 0 || bibleProgress;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -135,6 +138,38 @@ export default function Historico() {
             Continue de onde você parou
           </p>
         </div>
+
+        {/* Card Leitura da Bíblia */}
+        {bibleProgress && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <BookOpenIcon className="w-6 h-6 text-amber-500" />
+              Leitura da Bíblia
+            </h2>
+            <div className={`rounded-xl overflow-hidden shadow-lg ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+              <Link to={`/biblia?book=${bibleProgress.book_abbrev}&chapter=${bibleProgress.chapter}`}>
+                <div className="p-6 hover:bg-amber-500/5 transition">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-amber-500 font-semibold mb-1">Última leitura</p>
+                      <h3 className="text-2xl font-bold mb-2">
+                        {bibleProgress.book_abbrev.toUpperCase()} {bibleProgress.chapter}:{bibleProgress.verse}
+                      </h3>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {formatDate(bibleProgress.last_read_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-6 py-3 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-600 transition">
+                        Continuar Leitura
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {!hasProgress ? (
           <div className="text-center py-20">
@@ -289,7 +324,7 @@ export default function Historico() {
                         } shadow-lg hover:shadow-xl transition`}
                       >
                         {/* Thumbnail */}
-                        <Link to={`/artigos/${post.id}`} className="block">
+                        <Link to={`/posts/${post.id}`} className="block">
                           <div className="relative aspect-video overflow-hidden">
                             {post.cover_image_url ? (
                               <img
@@ -312,7 +347,7 @@ export default function Historico() {
 
                         {/* Content */}
                         <div className="p-4">
-                          <Link to={`/artigos/${post.id}`}>
+                          <Link to={`/posts/${post.id}`}>
                             <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
                               {post.title}
                             </h3>
@@ -343,7 +378,7 @@ export default function Historico() {
                             </span>
                             <div className="flex gap-2">
                               <Link
-                                to={`/artigos/${post.id}`}
+                                to={`/posts/${post.id}`}
                                 className="px-4 py-2 bg-amber-500 text-black text-sm font-medium rounded-lg hover:bg-amber-600 transition"
                               >
                                 Continuar

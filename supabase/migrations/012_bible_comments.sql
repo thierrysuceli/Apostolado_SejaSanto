@@ -21,21 +21,25 @@ CREATE INDEX IF NOT EXISTS idx_bible_verse_comments_user ON bible_verse_comments
 ALTER TABLE bible_verse_comments ENABLE ROW LEVEL SECURITY;
 
 -- Everyone can read comments
+DROP POLICY IF EXISTS "Anyone can view bible verse comments" ON bible_verse_comments;
 CREATE POLICY "Anyone can view bible verse comments"
   ON bible_verse_comments FOR SELECT
   USING (true);
 
 -- Logged users can create comments
+DROP POLICY IF EXISTS "Logged users can create bible verse comments" ON bible_verse_comments;
 CREATE POLICY "Logged users can create bible verse comments"
   ON bible_verse_comments FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Users can update their own comments
+DROP POLICY IF EXISTS "Users can update own bible verse comments" ON bible_verse_comments;
 CREATE POLICY "Users can update own bible verse comments"
   ON bible_verse_comments FOR UPDATE
   USING (auth.uid() = user_id);
 
 -- Users can delete their own comments OR admins can delete any
+DROP POLICY IF EXISTS "Users can delete own comments or admins delete any" ON bible_verse_comments;
 CREATE POLICY "Users can delete own comments or admins delete any"
   ON bible_verse_comments FOR DELETE
   USING (
@@ -82,18 +86,22 @@ CREATE INDEX IF NOT EXISTS idx_user_bible_progress_last_read ON user_bible_progr
 -- RLS
 ALTER TABLE user_bible_progress ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own bible progress" ON user_bible_progress;
 CREATE POLICY "Users can view own bible progress"
   ON user_bible_progress FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own bible progress" ON user_bible_progress;
 CREATE POLICY "Users can insert own bible progress"
   ON user_bible_progress FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own bible progress" ON user_bible_progress;
 CREATE POLICY "Users can update own bible progress"
   ON user_bible_progress FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own bible progress" ON user_bible_progress;
 CREATE POLICY "Users can delete own bible progress"
   ON user_bible_progress FOR DELETE
   USING (auth.uid() = user_id);
