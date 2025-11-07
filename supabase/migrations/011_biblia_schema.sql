@@ -7,7 +7,7 @@
 -- Tabela de Livros da Bíblia
 CREATE TABLE bible_books (
   id SERIAL PRIMARY KEY,
-  abbrev VARCHAR(10) UNIQUE NOT NULL,
+  abbrev VARCHAR(20) UNIQUE NOT NULL,
   name TEXT NOT NULL,
   testament VARCHAR(20) NOT NULL, -- 'Antigo Testamento' ou 'Novo Testamento'
   book_order INTEGER NOT NULL,
