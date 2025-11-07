@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { bibliaLivros, BIBLIA_API_URL } from '../data/bibliaLivros';
 

@@ -224,6 +224,51 @@ export const ApiProvider = ({ children }) => {
     getRegistrations: (id) => get(`/api/central/groups?id=${id}&resource=registrations`)
   };
 
+  // ==================== BIBLE NOTES ====================
+  
+  const bibleNotes = {
+    getAll: (params) => {
+      const query = new URLSearchParams(params).toString();
+      return get(`/api/bible-notes?${query}`, false);
+    },
+    getById: (id) => get(`/api/bible-notes/${id}`, false),
+    create: (data) => post('/api/bible-notes', data),
+    update: (id, data) => put(`/api/bible-notes/${id}`, data),
+    delete: (id) => del(`/api/bible-notes/${id}`)
+  };
+
+  // ==================== USER PROGRESS ====================
+  
+  const progress = {
+    // Course Progress
+    getCourseProgress: (courseId = null) => {
+      const url = courseId 
+        ? `/api/public-data?type=course-progress&course_id=${courseId}`
+        : '/api/public-data?type=course-progress';
+      return get(url, true);
+    },
+    saveCourseProgress: (data) => {
+      return post('/api/public-data?type=course-progress', data, true);
+    },
+    deleteCourseProgress: (courseId) => {
+      return del(`/api/public-data?type=course-progress&course_id=${courseId}`, null, true);
+    },
+    
+    // Post Progress
+    getPostProgress: (postId = null) => {
+      const url = postId 
+        ? `/api/public-data?type=post-progress&post_id=${postId}`
+        : '/api/public-data?type=post-progress';
+      return get(url, true);
+    },
+    savePostProgress: (data) => {
+      return post('/api/public-data?type=post-progress', data, true);
+    },
+    deletePostProgress: (postId) => {
+      return del(`/api/public-data?type=post-progress&post_id=${postId}`, null, true);
+    }
+  };
+
   // ==================== ADMIN ====================
   
   const admin = {
@@ -268,6 +313,8 @@ export const ApiProvider = ({ children }) => {
         tags,
         eventCategories,
         groups,
+        bibleNotes,
+        progress,
         roles,
         users,
         admin

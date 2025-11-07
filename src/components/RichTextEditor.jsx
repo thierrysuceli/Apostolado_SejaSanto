@@ -1,7 +1,11 @@
-import React, { useMemo, useRef } from 'react';
-import ReactQuill from 'react-quill';
+import React, { useMemo, useRef, useEffect } from 'react';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { supabase } from '../lib/supabaseClient';
+import ImageResize from 'quill-image-resize-module-react';
+
+// Register the Image Resize module
+Quill.register('modules/imageResize', ImageResize);
 
 const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px', isAdmin = false }) => {
   const quillRef = useRef(null);
@@ -87,6 +91,10 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
             image: imageHandler
           }
         },
+        imageResize: {
+          parchment: Quill.import('parchment'),
+          modules: ['Resize', 'DisplaySize', 'Toolbar']
+        },
         clipboard: {
           matchVisual: false
         }
@@ -107,6 +115,10 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
         handlers: {
           image: imageHandler
         }
+      },
+      imageResize: {
+        parchment: Quill.import('parchment'),
+        modules: ['Resize', 'DisplaySize']
       },
       clipboard: {
         matchVisual: false
@@ -355,6 +367,66 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
       height: auto;
       border-radius: 8px;
       margin: 16px 0;
+      cursor: move;
+    }
+
+    .rich-text-editor .ql-editor img:hover {
+      box-shadow: 0 0 0 3px rgba(230, 164, 0, 0.3);
+    }
+
+    /* Image resize handles */
+    .rich-text-editor .ql-editor .image-resizer {
+      position: absolute;
+      border: 2px solid #e6a400;
+      box-sizing: border-box;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #e6a400;
+      border: 1px solid white;
+      box-sizing: border-box;
+      border-radius: 50%;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-handle-nw {
+      top: -6px;
+      left: -6px;
+      cursor: nw-resize;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-handle-ne {
+      top: -6px;
+      right: -6px;
+      cursor: ne-resize;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-handle-sw {
+      bottom: -6px;
+      left: -6px;
+      cursor: sw-resize;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-handle-se {
+      bottom: -6px;
+      right: -6px;
+      cursor: se-resize;
+    }
+
+    .rich-text-editor .ql-editor .image-resizer-display-size {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #e6a400;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
     }
 
     .rich-text-editor .ql-editor video {

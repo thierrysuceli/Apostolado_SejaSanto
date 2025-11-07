@@ -290,9 +290,9 @@ function PostDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
       {/* Article Header Banner */}
-      <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-gray-900 dark:via-gray-800 dark:to-black py-12 md:py-20">
+      <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 py-12 md:py-20">
         <div className="container mx-auto px-4 max-w-5xl">
           {/* Breadcrumb */}
           <div className="mb-6 flex items-center gap-2 text-sm text-white/80">
@@ -391,7 +391,7 @@ function PostDetail() {
       )}
 
       {/* Article Content */}
-      <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 md:py-16 max-w-5xl">
         {/* Featured Image */}
         {post.image && !isEditing && (
           <div className="mb-12 -mx-4 md:mx-0">
@@ -403,20 +403,29 @@ function PostDetail() {
           </div>
         )}
 
-        {/* Article Body - Typography Optimized */}
-        <div className={`
+        {/* Article Body - Typography Optimized with Unified Dark Background */}
+        <article className={`
+          min-h-screen
           prose prose-lg dark:prose-invert max-w-none
-          prose-headings:font-serif prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-gray-100
+          ${isDark ? 'bg-black' : 'bg-white'}
+          prose-headings:font-serif prose-headings:font-bold 
+          prose-headings:text-gray-900 dark:prose-headings:text-gray-100
           prose-h1:text-4xl prose-h1:mb-6 prose-h1:leading-tight
-          prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-800 prose-h2:pb-2
+          prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4 
+          prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-800 prose-h2:pb-2
           prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-3
-          prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-6
-          prose-a:text-amber-600 dark:prose-a:text-amber-500 prose-a:no-underline hover:prose-a:underline
+          prose-p:text-gray-700 dark:prose-p:text-gray-300 
+          prose-p:leading-relaxed prose-p:text-lg prose-p:mb-6
+          prose-a:text-amber-600 dark:prose-a:text-amber-500 
+          prose-a:no-underline hover:prose-a:underline
           prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-strong:font-semibold
-          prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-gray-900 
+          prose-blockquote:border-l-4 prose-blockquote:border-amber-500 
+          prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-gray-900 
           prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:italic
-          prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
-          prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:text-gray-100 prose-pre:rounded-xl prose-pre:shadow-lg
+          prose-code:bg-gray-100 dark:prose-code:bg-gray-900 
+          prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
+          prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 
+          prose-pre:text-gray-100 prose-pre:rounded-xl prose-pre:shadow-lg
           prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-2
           prose-ol:list-decimal prose-ol:pl-6 prose-ol:space-y-2
           prose-li:text-gray-700 dark:prose-li:text-gray-300
@@ -430,13 +439,15 @@ function PostDetail() {
               minHeight="400px"
             />
           ) : (
-            <RichTextEditor 
-              value={post.content}
-              readOnly={true}
-              minHeight="auto"
-            />
+            <div className={isDark ? 'bg-black' : 'bg-white'}>
+              <RichTextEditor 
+                value={post.content}
+                readOnly={true}
+                minHeight="auto"
+              />
+            </div>
           )}
-        </div>
+        </article>
 
         {/* Attachments Section */}
         {post.attachments && post.attachments.length > 0 && (
@@ -468,7 +479,7 @@ function PostDetail() {
       </div>
 
       {/* Comments Section - New Container */}
-      <section className="bg-gray-50 dark:bg-gray-900 py-12 md:py-16 mt-12 border-t-4 border-amber-500">
+      <section className="bg-gray-50 dark:bg-gray-950 py-12 md:py-16 mt-12 border-t-4 border-amber-500">
         <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="text-gray-900 dark:text-gray-100 text-3xl md:text-4xl font-bold mb-8 font-serif flex items-center gap-3">
             <span>💬</span>

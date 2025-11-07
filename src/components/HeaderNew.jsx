@@ -20,6 +20,11 @@ const Header = () => {
     { id: 'central', label: 'Central', path: '/central' },
   ];
 
+  // Adicionar Histórico apenas para usuários logados
+  if (currentUser) {
+    menuItems.push({ id: 'historico', label: 'Histórico', path: '/historico' });
+  }
+
   if (isAdmin()) {
     menuItems.push({ id: 'admin', label: 'Admin Panel', path: '/admin' });
   }

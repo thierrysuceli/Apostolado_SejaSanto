@@ -27,8 +27,8 @@ import AdminCourseModules from './pages/AdminCourseModules';
 import AdminTags from './pages/AdminTags';
 import AdminUsers from './pages/AdminUsers';
 import AdminRoles from './pages/AdminRoles';
-import About from './pages/About';
 import Biblia from './pages/Biblia';
+import Historico from './pages/Historico';
 
 function App() {
   return (
@@ -51,6 +51,7 @@ function App() {
                   <Route path="/posts/:id" element={<PostDetail />} />
                   <Route path="/calendar" element={<Calendar />} />
                   <Route path="/central" element={<Central />} />
+                  <Route path="/historico" element={<Historico />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/admin" element={<Admin />} />

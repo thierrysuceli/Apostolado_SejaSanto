@@ -17,6 +17,7 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedPollOptions, setSelectedPollOptions] = useState({});
   
   // Swipe/Drag state
   const [touchStart, setTouchStart] = useState(0);
@@ -165,6 +166,95 @@ const Home = () => {
     
     return () => clearInterval(interval);
   }, [heroItems.length]);
+
+  // Handlers para interações
+  const handleVotePoll = async (pollId, optionIds) => {
+    if (!user) {
+      alert('Faça login para votar');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await api.polls.vote(pollId, optionIds);
+      // Recarregar dados
+      const groupsData = await api.groups?.getAll().catch(() => ({ groups: [] }));
+      const recentActivity = [];
+      
+      if (groupsData.groups && Array.isArray(groupsData.groups)) {
+        for (const group of groupsData.groups) {
+          const groupDetails = await api.groups.getById(group.id).catch(() => null);
+          if (groupDetails?.group?.polls) {
+            groupDetails.group.polls.forEach(poll => {
+              recentActivity.push({
+                ...poll,
+                type: 'poll',
+                group_name: group.name,
+                group_emoji: group.emoji
+              });
+            });
+          }
+        }
+      }
+      
+      setRecentItems(prev => 
+        prev.map(item => {
+          if (item.type === 'poll') {
+            const updated = recentActivity.find(p => p.id === item.id);
+            return updated || item;
+          }
+          return item;
+        })
+      );
+    } catch (error) {
+      console.error('Erro ao votar:', error);
+      alert(error.response?.data?.error || 'Erro ao votar');
+    }
+  };
+
+  const handleSubscribeRegistration = async (registrationId) => {
+    if (!user) {
+      alert('Faça login para se inscrever');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await api.registrations.subscribe(registrationId);
+      // Recarregar dados
+      const groupsData = await api.groups?.getAll().catch(() => ({ groups: [] }));
+      const recentActivity = [];
+      
+      if (groupsData.groups && Array.isArray(groupsData.groups)) {
+        for (const group of groupsData.groups) {
+          const groupDetails = await api.groups.getById(group.id).catch(() => null);
+          if (groupDetails?.group?.registrations) {
+            groupDetails.group.registrations.forEach(reg => {
+              recentActivity.push({
+                ...reg,
+                type: 'registration',
+                group_name: group.name,
+                group_emoji: group.emoji
+              });
+            });
+          }
+        }
+      }
+      
+      setRecentItems(prev => 
+        prev.map(item => {
+          if (item.type === 'registration') {
+            const updated = recentActivity.find(r => r.id === item.id);
+            return updated || item;
+          }
+          return item;
+        })
+      );
+    } catch (error) {
+      console.error('Erro ao se inscrever:', error);
+      alert(error.response?.data?.error || 'Erro ao se inscrever');
+    }
+  };
 
   // Swipe/Drag handlers
   const handleTouchStart = (e) => {
@@ -335,72 +425,189 @@ const Home = () => {
                   return 'Atividade';
                 };
                 
-                const handleClick = () => {
-                  if (item.type === 'event') navigate('/calendar');
-                  else if (item.type === 'post' || item.type === 'poll' || item.type === 'registration') navigate('/central');
-                };
-                
                 return (
                   <div
                     key={`${item.type}-${item.id}-${index}`}
-                    onClick={handleClick}
-                    className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer border border-gray-200 dark:border-gray-700/50 hover:border-amber-500/50 shadow-sm hover:shadow-md"
+                    className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700/50 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all"
                   >
-                    {/* Type Badge */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-1 min-w-0">
-                        <span className="text-amber-600 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
-                          {getTypeLabel()}
-                        </span>
-                        {item.group_name && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {item.group_name}
-                          </p>
+                    {/* Header clicável */}
+                    <div 
+                      onClick={() => {
+                        if (item.type === 'event') navigate('/calendar');
+                        else navigate('/central');
+                      }}
+                      className="p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      {/* Type Badge */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-amber-600 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
+                            {getTypeLabel()}
+                          </span>
+                          {item.group_name && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {item.group_name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 hover:text-amber-600 dark:hover:text-amber-500 transition-colors">
+                        {item.type === 'poll' ? item.question : item.title}
+                      </h3>
+
+                      {/* Description */}
+                      {(item.excerpt || item.description || item.content) && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
+                          {(item.excerpt || item.description || item.content)?.replace(/<[^>]*>/g, '')}
+                        </p>
+                      )}
+
+                      {/* Meta Info */}
+                      <div className="flex flex-col gap-2 text-sm text-gray-500 dark:text-gray-500">
+                        {item.created_at && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                          </span>
+                        )}
+                        {item.type === 'event' && item.start_date && item.end_date && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(item.start_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} - {new Date(item.end_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                          </span>
+                        )}
+                        {item.type === 'poll' && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {item.total_votes || 0} votos
+                          </span>
+                        )}
+                        {item.type === 'registration' && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            {item.approved_count || 0}{item.max_participants ? `/${item.max_participants}` : ''} inscritos
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Title */}
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 hover:text-amber-600 dark:hover:text-amber-500 transition-colors">
-                      {item.title}
-                    </h3>
-
-                    {/* Description/Excerpt */}
-                    {(item.excerpt || item.description || item.content) && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
-                        {(item.excerpt || item.description || item.content)?.replace(/<[^>]*>/g, '')}
-                      </p>
+                    {/* Botões de Interação */}
+                    {item.type === 'poll' && !item.user_voted && (
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="space-y-2 mb-3">
+                          {item.options?.slice(0, 3).map((option) => {
+                            const pollKey = `poll-${item.id}`;
+                            const isSelected = selectedPollOptions[pollKey]?.includes(option.id);
+                            
+                            return (
+                              <button
+                                key={option.id}
+                                onClick={() => {
+                                  const currentSelected = selectedPollOptions[pollKey] || [];
+                                  if (item.allow_multiple) {
+                                    setSelectedPollOptions(prev => ({
+                                      ...prev,
+                                      [pollKey]: isSelected 
+                                        ? currentSelected.filter(id => id !== option.id)
+                                        : [...currentSelected, option.id]
+                                    }));
+                                  } else {
+                                    setSelectedPollOptions(prev => ({
+                                      ...prev,
+                                      [pollKey]: [option.id]
+                                    }));
+                                  }
+                                }}
+                                className={`w-full p-2 text-sm rounded-lg border transition-all ${
+                                  isSelected
+                                    ? 'border-amber-500 bg-amber-100 dark:bg-amber-500/20 text-gray-900 dark:text-white'
+                                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 hover:border-amber-500/50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                    isSelected ? 'border-amber-500 bg-amber-500' : 'border-gray-400 dark:border-gray-600'
+                                  }`}>
+                                    {isSelected && (
+                                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <span className="truncate">{option.text}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                          {item.options?.length > 3 && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">+{item.options.length - 3} opções</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const pollKey = `poll-${item.id}`;
+                            const selected = selectedPollOptions[pollKey] || [];
+                            if (selected.length > 0) {
+                              handleVotePoll(item.id, selected);
+                              setSelectedPollOptions(prev => ({ ...prev, [pollKey]: [] }));
+                            }
+                          }}
+                          disabled={!selectedPollOptions[`poll-${item.id}`]?.length}
+                          className="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          Votar
+                        </button>
+                      </div>
                     )}
 
-                    {/* Meta Info */}
-                    <div className="flex flex-col gap-2 text-sm text-gray-500 dark:text-gray-500">
-                      {item.created_at && (
-                        <span className="flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Criado em {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                        </span>
-                      )}
-                      {item.type === 'event' && item.start_date && item.end_date && (
-                        <span className="flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          De {new Date(item.start_date).toLocaleDateString('pt-BR', { 
-                            day: '2-digit', 
-                            month: 'short', 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })} até {new Date(item.end_date).toLocaleDateString('pt-BR', { 
-                            day: '2-digit', 
-                            month: 'short', 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </span>
-                      )}
-                    </div>
+                    {item.type === 'poll' && item.user_voted && (
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 border border-green-500/50 rounded-lg text-green-700 dark:text-green-400 text-xs text-center font-medium">
+                          ✓ Você já votou
+                        </div>
+                      </div>
+                    )}
+
+                    {item.type === 'registration' && !item.user_subscribed && item.is_open && !item.is_full && (
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleSubscribeRegistration(item.id)}
+                          className="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all text-sm"
+                        >
+                          Inscrever-se
+                        </button>
+                      </div>
+                    )}
+
+                    {item.type === 'registration' && item.user_subscribed && (
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div className={`p-2 rounded-lg text-xs text-center font-medium ${
+                          item.user_status === 'approved'
+                            ? 'bg-green-100 dark:bg-green-900/30 border border-green-500/50 text-green-700 dark:text-green-400'
+                            : 'bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-500/50 text-yellow-700 dark:text-yellow-400'
+                        }`}>
+                          {item.user_status === 'approved' ? '✓ Inscrito e aprovado' : '⏳ Aguardando aprovação'}
+                        </div>
+                      </div>
+                    )}
+
+                    {item.type === 'registration' && (!item.is_open || item.is_full) && !item.user_subscribed && (
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div className="p-2 bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-xs text-center font-medium">
+                          {item.is_full ? '🔒 Vagas esgotadas' : '⏰ Inscrições encerradas'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
