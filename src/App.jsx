@@ -27,6 +27,8 @@ import AdminCourseModules from './pages/AdminCourseModules';
 import AdminTags from './pages/AdminTags';
 import AdminUsers from './pages/AdminUsers';
 import AdminRoles from './pages/AdminRoles';
+import About from './pages/About';
+import Biblia from './pages/Biblia';
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/biblia" element={<Biblia />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/courses/:id" element={<CourseDetailNew />} />
                   <Route path="/courses/:courseId/topics/:topicId" element={<TopicDetail />} />
