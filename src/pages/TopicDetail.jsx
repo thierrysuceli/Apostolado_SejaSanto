@@ -78,34 +78,68 @@ function TopicDetail() {
     }
 
     const saveProgress = async () => {
+      // Verificações rigorosas
+      if (!user || !user.id) {
+        console.warn('[TopicDetail] SKIP: Usuário não autenticado');
+        return;
+      }
+      
+      if (!course || !course.id) {
+        console.warn('[TopicDetail] SKIP: Curso não carregado');
+        return;
+      }
+      
+      if (!topicId) {
+        console.warn('[TopicDetail] SKIP: Topic ID ausente');
+        return;
+      }
+
       try {
-        console.log('[TopicDetail] Salvando progresso:', {
+        console.log('[TopicDetail] ✓ Iniciando salvamento de progresso:', {
+          user_id: user.id,
+          user_email: user.email,
           course_id: course.id,
-          topic_id: topicId,
-          user_id: user.id
+          course_title: course.title,
+          topic_id: topicId
         });
         
-        const result = await api.progress.saveCourseProgress({
+        const payload = {
           course_id: course.id,
           topic_id: topicId,
           progress_seconds: 0,
           completed: false
-        });
+        };
         
-        console.log('[TopicDetail] Progresso salvo com sucesso:', result);
+        console.log('[TopicDetail] → Payload sendo enviado:', payload);
+        
+        const result = await api.progress.saveCourseProgress(payload);
+        
+        console.log('[TopicDetail] ✓✓✓ PROGRESSO SALVO COM SUCESSO! ✓✓✓');
+        console.log('[TopicDetail] Resposta da API:', result);
+        
+        // Verificar se realmente salvou no banco
+        if (result && result.progress) {
+          console.log('[TopicDetail] ✓ Confirmado: registro criado/atualizado no banco');
+          console.log('[TopicDetail] ID do registro:', result.progress.id);
+        }
+        
       } catch (err) {
-        console.error('[TopicDetail] Error saving progress:', err);
-        console.error('[TopicDetail] Error details:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
+        console.error('[TopicDetail] ❌❌❌ ERRO AO SALVAR PROGRESSO ❌❌❌');
+        console.error('[TopicDetail] Erro completo:', err);
+        console.error('[TopicDetail] Mensagem:', err.message);
+        console.error('[TopicDetail] Response data:', err.response?.data);
+        console.error('[TopicDetail] Status:', err.response?.status);
+        console.error('[TopicDetail] Headers:', err.response?.headers);
       }
     };
 
-    // Salvar apenas uma vez ao carregar
-    saveProgress();
-  }, [user, course, topicId]);
+    // Salvar apenas uma vez ao carregar (com delay para garantir que user e course estejam prontos)
+    const timer = setTimeout(() => {
+      saveProgress();
+    }, 500); // 500ms de delay
+
+    return () => clearTimeout(timer);
+  }, [user, course, topicId, api]);
 
   const handleDeleteComment = async (commentId) => {
     if (!confirm('Tem certeza que deseja deletar este comentário?')) return;

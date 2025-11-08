@@ -240,72 +240,8 @@ const Biblia = () => {
         </div>
       )}
 
-      {/* Navegação Fixa - Livro + Capítulos */}
-      {livroSelecionado && (
-        <div className="fixed top-[57px] left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4">
-            {/* Linha 1: Seletor de Livro */}
-            <div className="py-3 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                  {livroSelecionado.name}
-                </h2>
-                <button
-                  onClick={() => setShowLivroModal(true)}
-                  className="px-4 py-2 bg-amber-500 text-black text-sm font-semibold rounded-lg hover:bg-amber-600 transition"
-                >
-                  Trocar Livro
-                </button>
-              </div>
-            </div>
-            
-            {/* Linha 2: Navegação de Capítulos */}
-            {capituloSelecionado && (
-              <div className="py-3 flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-base md:text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    Capítulo {capituloSelecionado}
-                  </h3>
-                  <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
-                    {versiculos.length} versículos
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => capituloSelecionado > 1 && handleSelectCapitulo(capituloSelecionado - 1)}
-                    disabled={capituloSelecionado <= 1}
-                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-amber-500 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    ← Ant
-                  </button>
-                  
-                  <select
-                    value={capituloSelecionado}
-                    onChange={(e) => handleSelectCapitulo(parseInt(e.target.value))}
-                    className="px-3 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-semibold"
-                  >
-                    {Array.from({ length: livroSelecionado.total_chapters }, (_, i) => i + 1).map((cap) => (
-                      <option key={cap} value={cap}>Cap. {cap}</option>
-                    ))}
-                  </select>
-
-                  <button
-                    onClick={() => capituloSelecionado < livroSelecionado.total_chapters && handleSelectCapitulo(capituloSelecionado + 1)}
-                    disabled={capituloSelecionado >= livroSelecionado.total_chapters}
-                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-amber-500 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    Prox →
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Conteúdo Principal - Estilo Medieval */}
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-40">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {livroSelecionado && capituloSelecionado && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
 

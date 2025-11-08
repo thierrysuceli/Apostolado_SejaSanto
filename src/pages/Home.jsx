@@ -81,8 +81,27 @@ const Home = () => {
   // Função para recarregar APENAS recent activity (após votar ou se inscrever)
   const loadRecentActivity = async () => {
     try {
+      // Se não estiver autenticado, apenas mostrar eventos públicos
+      if (!user) {
+        console.log('[Home] Usuário não autenticado, buscando apenas eventos públicos');
+        const eventsResponse = await api.get('/api/events');
+        const eventsData = eventsResponse.events || [];
+        const upcomingEvents = eventsData
+          .filter(event => new Date(event.start_date) >= new Date())
+          .map(event => ({
+            ...event,
+            type: 'event',
+            title: event.title || event.name
+          }))
+          .slice(0, 12);
+        
+        setRecentItems(upcomingEvents);
+        console.log('[Home] Total Recent Activities (não autenticado):', upcomingEvents.length);
+        return;
+      }
+
       // Buscar grupos consolidados (já inclui posts, polls, registrations com flags calculadas)
-      const groupsResponse = await api.get('/api/central/groups-consolidated');
+      const groupsResponse = await api.get('/api/central/groups-consolidated', null, true); // true = requiresAuth
       const groupsData = groupsResponse.groups || [];
       
       const recentActivity = [];
