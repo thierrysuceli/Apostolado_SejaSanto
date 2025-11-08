@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -17,6 +17,10 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   const [submitting, setSubmitting] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [noteFormData, setNoteFormData] = useState({ title: '', content: '' });
+  const [editingComment, setEditingComment] = useState(null);
+  const [editingNote, setEditingNote] = useState(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [editNoteData, setEditNoteData] = useState({ title: '', content: '' });
 
   // Verificar se usuário é admin pela ROLE, não pela permissão
   // Usuários com role ADMIN podem criar notas e deletar qualquer comentário
@@ -130,6 +134,65 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
     }
   };
 
+  const handleEditComment = (comment) => {
+    setEditingComment(comment.id);
+    setEditCommentText(comment.comment_text);
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingComment(null);
+    setEditCommentText('');
+  };
+
+  const handleUpdateComment = async (commentId) => {
+    if (!editCommentText.trim()) return;
+
+    try {
+      setSubmitting(true);
+      await api.bibleComments.update(commentId, {
+        comment_text: editCommentText.trim()
+      });
+      setEditingComment(null);
+      setEditCommentText('');
+      loadCommentsAndNotes();
+    } catch (error) {
+      console.error('Erro ao atualizar comentário:', error);
+      alert('Erro ao atualizar comentário.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditNote = (note) => {
+    setEditingNote(note.id);
+    setEditNoteData({ title: note.title, content: note.content });
+  };
+
+  const handleCancelEditNote = () => {
+    setEditingNote(null);
+    setEditNoteData({ title: '', content: '' });
+  };
+
+  const handleUpdateNote = async (noteId) => {
+    if (!editNoteData.title.trim() || !editNoteData.content.trim()) return;
+
+    try {
+      setSubmitting(true);
+      await api.bibleNotes.update(noteId, {
+        title: editNoteData.title.trim(),
+        content: editNoteData.content
+      });
+      setEditingNote(null);
+      setEditNoteData({ title: '', content: '' });
+      loadCommentsAndNotes();
+    } catch (error) {
+      console.error('Erro ao atualizar nota:', error);
+      alert('Erro ao atualizar nota.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Data desconhecida';
     
@@ -200,30 +263,89 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                   key={`note-${note.id}`}
                   className="p-6 rounded-lg border-2 border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <h3 className="text-xl font-bold text-green-600 dark:text-green-500 flex-1">
-                      {note.title}
-                    </h3>
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition flex-shrink-0"
-                        title="Excluir nota"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <RichTextEditor
-                      value={note.content}
-                      readOnly={true}
-                      minHeight="auto"
-                    />
-                  </div>
-                  <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                    Nota de estudo • {formatDate(note.created_at)}
-                  </p>
+                  {editingNote === note.id ? (
+                    // Modo de edição
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-green-600 dark:text-green-500">
+                          Título da Nota
+                        </label>
+                        <input
+                          type="text"
+                          value={editNoteData.title}
+                          onChange={(e) => setEditNoteData({ ...editNoteData, title: e.target.value })}
+                          className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-green-500 transition ${
+                            isDark 
+                              ? 'bg-gray-900 border-gray-600 text-white' 
+                              : 'bg-white border-gray-300 text-gray-900'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-green-600 dark:text-green-500">
+                          Conteúdo
+                        </label>
+                        <RichTextEditor
+                          value={editNoteData.content}
+                          onChange={(content) => setEditNoteData({ ...editNoteData, content })}
+                          minHeight="250px"
+                          isAdmin={true}
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={handleCancelEditNote}
+                          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleUpdateNote(note.id)}
+                          disabled={submitting}
+                          className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:opacity-50 transition"
+                        >
+                          {submitting ? 'Salvando...' : 'Salvar'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Modo de visualização
+                    <>
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <h3 className="text-xl font-bold text-green-600 dark:text-green-500 flex-1">
+                          {note.title}
+                        </h3>
+                        {isAdmin && (
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => handleEditNote(note)}
+                              className="p-2 text-green-600 dark:text-green-500 hover:bg-green-500/10 rounded-lg transition"
+                              title="Editar nota"
+                            >
+                              <PencilIcon className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                              title="Excluir nota"
+                            >
+                              <TrashIcon className="w-5 h-5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        <RichTextEditor
+                          value={note.content}
+                          readOnly={true}
+                          minHeight="auto"
+                        />
+                      </div>
+                      <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Nota de estudo • {formatDate(note.created_at)}
+                      </p>
+                    </>
+                  )}
                 </div>
               ))}
 
@@ -246,35 +368,78 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                         isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                              {userName.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-base text-amber-600 dark:text-amber-500">
-                                {userName}
-                              </p>
-                              <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                {formatDate(comment.created_at)}
-                              </span>
-                            </div>
+                      {editingComment === comment.id ? (
+                        // Modo de edição
+                        <div className="space-y-3">
+                          <textarea
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            rows={3}
+                            className={`w-full px-4 py-3 rounded-lg border-2 resize-none focus:outline-none focus:border-amber-500 transition ${
+                              isDark 
+                                ? 'bg-gray-900 border-gray-600 text-white' 
+                                : 'bg-white border-gray-300 text-gray-900'
+                            }`}
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={handleCancelEditComment}
+                              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={() => handleUpdateComment(comment.id)}
+                              disabled={submitting}
+                              className="px-4 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-50 transition"
+                            >
+                              {submitting ? 'Salvando...' : 'Salvar'}
+                            </button>
                           </div>
-                          <p className="text-base leading-relaxed whitespace-pre-wrap pl-13">
-                            {comment.comment_text}
-                          </p>
                         </div>
-                        {user && (comment.user_id === user.id || isAdmin) && (
-                          <button
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition flex-shrink-0"
-                            title="Excluir comentário"
-                          >
-                            <TrashIcon className="w-5 h-5" />
-                          </button>
-                        )}
-                      </div>
+                      ) : (
+                        // Modo de visualização
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {userName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-base text-amber-600 dark:text-amber-500">
+                                  {userName}
+                                </p>
+                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                  {formatDate(comment.created_at)}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-base leading-relaxed whitespace-pre-wrap pl-13">
+                              {comment.comment_text}
+                            </p>
+                          </div>
+                          {user && (comment.user_id === user.id || isAdmin) && (
+                            <div className="flex gap-1 flex-shrink-0">
+                              {comment.user_id === user.id && (
+                                <button
+                                  onClick={() => handleEditComment(comment)}
+                                  className="p-2 text-amber-600 dark:text-amber-500 hover:bg-amber-500/10 rounded-lg transition"
+                                  title="Editar comentário"
+                                >
+                                  <PencilIcon className="w-5 h-5" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                                title="Excluir comentário"
+                              >
+                                <TrashIcon className="w-5 h-5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })

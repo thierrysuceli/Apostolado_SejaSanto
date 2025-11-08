@@ -1125,6 +1125,67 @@ export default async function handler(req, res) {
       return res.status(201).json({ comment: data });
     }
 
+    // Bible Verse Comments - PUT (update - owner or admin)
+    if (type === 'bible-verse-comments' && req.method === 'PUT' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar se o comentário pertence ao usuário
+      const { data: existingComment } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+
+      if (!existingComment) {
+        return res.status(404).json({ error: 'Comentário não encontrado' });
+      }
+
+      // Verificar se é admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'ADMIN')
+        .single();
+      
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', req.user.id);
+      
+      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+
+      // Apenas o dono ou admin pode editar
+      if (existingComment.user_id !== req.user.id && !isAdmin) {
+        return res.status(403).json({ error: 'Você não tem permissão para editar este comentário' });
+      }
+
+      const { comment_text } = req.body;
+      
+      if (!comment_text || !comment_text.trim()) {
+        return res.status(400).json({ error: 'Texto do comentário é obrigatório' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .update({
+          comment_text: sanitizeText(comment_text.trim()),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select(`
+          *,
+          users!bible_verse_comments_user_id_fkey (
+            id, name, email, avatar_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return res.status(200).json({ comment: data });
+    }
+
     // Bible Verse Comments - DELETE (admin only)
     if (type === 'bible-verse-comments' && req.method === 'DELETE' && id) {
       await authenticate(req, res);

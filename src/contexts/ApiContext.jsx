@@ -314,6 +314,10 @@ export const ApiProvider = ({ children }) => {
     create: ({ book_abbrev, chapter, verse, comment_text }) => 
       post('/api/public-data?type=bible-verse-comments', 
         { book_abbrev, chapter, verse, comment_text }, true),
+    // Atualizar comentário
+    update: (id, { comment_text }) => 
+      put(`/api/public-data?type=bible-verse-comments&id=${id}`, 
+        { comment_text }, true),
     // Deletar comentário (admin only)
     delete: (id) => del(`/api/public-data?type=bible-verse-comments&id=${id}`, null, true)
   };

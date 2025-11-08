@@ -10,6 +10,27 @@ Quill.register('modules/imageResize', ImageResize);
 const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px', isAdmin = false }) => {
   const quillRef = useRef(null);
 
+  // Adicionar estilos globais para image resize quando componente montar
+  useEffect(() => {
+    // Adicionar CSS do resize module se ainda não existir
+    if (!document.getElementById('quill-image-resize-css')) {
+      const style = document.createElement('style');
+      style.id = 'quill-image-resize-css';
+      style.innerHTML = `
+        .ql-editor img {
+          max-width: 100%;
+          height: auto;
+          cursor: pointer;
+        }
+        
+        .ql-editor img.selected {
+          outline: 2px solid #e6a400;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   // Image handler function
   const imageHandler = () => {
     const input = document.createElement('input');
