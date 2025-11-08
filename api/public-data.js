@@ -1053,6 +1053,106 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ message: 'Nota deletada com sucesso' });
     }
+
+    // ============================================
+    // BIBLE VERSE COMMENTS (Comentários de Usuários)
+    // ============================================
+
+    // Bible Verse Comments - GET
+    if (type === 'bible-verse-comments' && req.method === 'GET') {
+      const { book_abbrev, chapter, verse } = req.query;
+      
+      if (!book_abbrev || !chapter || !verse) {
+        return res.status(400).json({ error: 'book_abbrev, chapter e verse são obrigatórios' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .select(`
+          *,
+          user:users!bible_verse_comments_user_id_fkey (
+            id,
+            name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('book_abbrev', book_abbrev)
+        .eq('chapter', parseInt(chapter))
+        .eq('verse', parseInt(verse))
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return res.status(200).json({ comments: data || [] });
+    }
+
+    // Bible Verse Comments - POST (criar comentário)
+    if (type === 'bible-verse-comments' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      const { book_abbrev, chapter, verse, comment_text } = req.body;
+      
+      if (!book_abbrev || !chapter || !verse || !comment_text) {
+        return res.status(400).json({ error: 'Dados incompletos' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .insert({
+          book_abbrev,
+          chapter: parseInt(chapter),
+          verse: parseInt(verse),
+          user_id: req.user.id,
+          comment_text: comment_text.trim()
+        })
+        .select(`
+          *,
+          user:users!bible_verse_comments_user_id_fkey (
+            id,
+            name,
+            email,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return res.status(201).json({ comment: data });
+    }
+
+    // Bible Verse Comments - DELETE (admin only)
+    if (type === 'bible-verse-comments' && req.method === 'DELETE' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'ADMIN')
+        .single();
+      
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', req.user.id);
+      
+      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas administradores podem deletar comentários' });
+      }
+
+      const { error } = await supabaseAdmin
+        .from('bible_verse_comments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return res.status(200).json({ message: 'Comentário deletado com sucesso' });
+    }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });
   } catch (error) {
