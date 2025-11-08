@@ -35,8 +35,13 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
         api.bibleNotes.getByVerse({ book_abbrev, chapter, verse })
       ]);
       
-      setComments(commentsData || []);
-      setAdminNotes(Array.isArray(notesData) ? notesData : (notesData ? [notesData] : []));
+      // Comentários vem em { comments: [...] }
+      const commentsList = commentsData?.comments || [];
+      setComments(commentsList);
+      
+      // Notas vem em { note: {...} } ou { notes: [...] }
+      const notesList = notesData?.note ? [notesData.note] : (notesData?.notes || []);
+      setAdminNotes(notesList);
     } catch (error) {
       console.error('Erro ao carregar comentários:', error);
     } finally {
@@ -217,7 +222,7 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <p className="font-semibold text-sm text-amber-500">
-                            {comment.user_name || 'Anônimo'}
+                            {comment.user?.name || comment.user_name || 'Anônimo'}
                           </p>
                           <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                             {formatDate(comment.created_at)}

@@ -14,7 +14,7 @@ const Biblia = () => {
   const [livroSelecionado, setLivroSelecionado] = useState(null);
   const [capituloSelecionado, setCapituloSelecionado] = useState(null);
   const [versiculos, setVersiculos] = useState([]);
-  const [versesWithContent, setVersesWithContent] = useState(new Set()); // versículos com comentários/notas
+  const [versesWithContent, setVersesWithContent] = useState(new Map()); // Map<verse_number, {hasComments, hasNotes}>
   const [loading, setLoading] = useState(false);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [error, setError] = useState('');
@@ -79,6 +79,9 @@ const Biblia = () => {
       const response = await api.bible.getVerses(abbrev, capitulo);
       setVersiculos(response.verses || []);
       
+      // Carregar comentários e notas para marcar versículos com conteúdo
+      await carregarIndicadoresComentarios(abbrev, capitulo, response.verses || []);
+      
       // Salvar progresso se usuário logado
       if (user) {
         try {
@@ -96,6 +99,33 @@ const Biblia = () => {
       setError('Erro ao buscar versículos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Carregar comentários e notas para mostrar indicadores
+  const carregarIndicadoresComentarios = async (abbrev, capitulo, verses) => {
+    try {
+      const versesData = new Map(); // { verse_number: { hasComments: bool, hasNotes: bool } }
+      
+      // Buscar comentários e notas de todos os versículos deste capítulo
+      const promises = verses.map(async (v) => {
+        const [commentsRes, notesRes] = await Promise.all([
+          api.bibleComments.getAll({ book_abbrev: abbrev, chapter: capitulo, verse: v.verse_number }).catch(() => ({ comments: [] })),
+          api.bibleNotes.getByVerse({ book_abbrev: abbrev, chapter: capitulo, verse: v.verse_number }).catch(() => ({ note: null }))
+        ]);
+        
+        const hasComments = (commentsRes?.comments || []).length > 0;
+        const hasNotes = !!notesRes?.note;
+        
+        if (hasComments || hasNotes) {
+          versesData.set(v.verse_number, { hasComments, hasNotes });
+        }
+      });
+      
+      await Promise.all(promises);
+      setVersesWithContent(versesData);
+    } catch (err) {
+      console.error('Erro ao carregar indicadores:', err);
     }
   };
 
@@ -377,18 +407,41 @@ const Biblia = () => {
                       title="Clique para comentar"
                     >
                       <div className="flex gap-2 items-start">
-                        {/* Número do Versículo - Estilo Medieval */}
-                        <span 
-                          className="flex-shrink-0 select-none text-amber-700 dark:text-amber-500 font-serif pt-0.5"
-                          style={{ 
-                            fontFamily: "'Cinzel Decorative', 'Playfair Display', serif",
-                            fontSize: '0.85rem',
-                            fontWeight: '700',
-                            lineHeight: '1.6'
-                          }}
-                        >
-                          {versiculo.verse_number}
-                        </span>
+                        {/* Número do Versículo - Estilo Medieval com Indicadores */}
+                        <div className="flex-shrink-0 relative">
+                          <span 
+                            className="select-none text-amber-700 dark:text-amber-500 font-serif pt-0.5 block"
+                            style={{ 
+                              fontFamily: "'Cinzel Decorative', 'Playfair Display', serif",
+                              fontSize: '0.85rem',
+                              fontWeight: '700',
+                              lineHeight: '1.6'
+                            }}
+                          >
+                            {versiculo.verse_number}
+                          </span>
+                          
+                          {/* Indicadores - Barrinhas sutis */}
+                          {versesWithContent.get(versiculo.verse_number) && (
+                            <div className="absolute -left-1.5 top-0 bottom-0 flex flex-col gap-0.5 justify-center">
+                              {/* Barrinha cinza para comentários */}
+                              {versesWithContent.get(versiculo.verse_number).hasComments && (
+                                <div 
+                                  className="w-0.5 h-3 bg-gray-400 dark:bg-gray-500 rounded-full opacity-60"
+                                  title="Tem comentários"
+                                />
+                              )}
+                              
+                              {/* Barrinha verde para notas de admin */}
+                              {versesWithContent.get(versiculo.verse_number).hasNotes && (
+                                <div 
+                                  className="w-0.5 h-3 bg-green-500 dark:bg-green-400 rounded-full opacity-70"
+                                  title="Tem nota de estudo"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         {/* Texto do Versículo */}
                         <p 
@@ -467,6 +520,10 @@ const Biblia = () => {
           onClose={() => {
             setCommentModalOpen(false);
             setSelectedVerse(null);
+            // Recarregar indicadores quando fechar o modal
+            if (livroSelecionado && capituloSelecionado) {
+              carregarIndicadoresComentarios(livroSelecionado.abbrev, capituloSelecionado, versiculos);
+            }
           }}
           book_abbrev={livroSelecionado?.abbrev}
           chapter={capituloSelecionado}
