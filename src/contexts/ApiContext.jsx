@@ -300,15 +300,30 @@ export const ApiProvider = ({ children }) => {
   };
 
   const bibleComments = {
-    getAll: (filters = {}) => {
-      const params = new URLSearchParams({
-        type: 'bible-verse-comments',
-        ...filters
-      });
-      return get(`/api/public-data?${params}`);
+    // Buscar comentários e nota de um versículo
+    getAll: ({ book_abbrev, chapter, verse }) => {
+      const params = new URLSearchParams({ book_abbrev, chapter, verse });
+      return get(`/api/bible-comments?${params}`, false);
     },
-    create: (data) => post('/api/public-data?type=bible-verse-comments', data, true),
-    delete: (id) => del(`/api/public-data?type=bible-verse-comments&id=${id}`, null, true)
+    // Criar comentário normal
+    create: ({ book_abbrev, chapter, verse, comment_text }) => 
+      post(`/api/bible-comments?book_abbrev=${book_abbrev}&chapter=${chapter}&verse=${verse}`, 
+        { comment_text, is_note: false }, true),
+    // Criar/atualizar nota de admin
+    createNote: ({ book_abbrev, chapter, verse, title, content }) =>
+      post(`/api/bible-comments?book_abbrev=${book_abbrev}&chapter=${chapter}&verse=${verse}`,
+        { title, content, is_note: true }, true),
+    // Deletar comentário (admin only)
+    delete: (comment_id) => {
+      return fetch(`/api/bible-comments`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ comment_id })
+      }).then(r => r.json());
+    }
   };
 
   const bibleProgress = {
