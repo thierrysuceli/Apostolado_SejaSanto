@@ -236,10 +236,10 @@ export const ApiProvider = ({ children }) => {
   // ==================== REGISTRATIONS (Central) ====================
   
   const registrations = {
-    register: (groupId, registrationId) => post(`/api/central/groups/${groupId}/registrations/${registrationId}/register`),
-    create: (groupId, data) => post(`/api/central/groups/${groupId}/registrations`, data),
-    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}/edit`, data),
-    delete: (registrationId) => del(`/api/central/registrations/${registrationId}`)
+    register: (registrationId) => post(`/api/central/registrations/${registrationId}?action=subscribe`),
+    create: (groupId, data) => post(`/api/central/groups?id=${groupId}&resource=registrations`, data),
+    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}?action=edit`, data),
+    delete: (registrationId) => del(`/api/central/registrations/${registrationId}?action=delete`)
   };
 
   // ==================== BIBLE NOTES ====================

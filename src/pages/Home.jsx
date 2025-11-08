@@ -195,36 +195,10 @@ const Home = () => {
     }
 
     try {
-      await api.registrations.subscribe(registrationId);
-      // Recarregar dados
-      const groupsData = await api.groups?.getAll().catch(() => ({ groups: [] }));
-      const recentActivity = [];
-      
-      if (groupsData.groups && Array.isArray(groupsData.groups)) {
-        for (const group of groupsData.groups) {
-          const groupDetails = await api.groups.getById(group.id).catch(() => null);
-          if (groupDetails?.group?.registrations) {
-            groupDetails.group.registrations.forEach(reg => {
-              recentActivity.push({
-                ...reg,
-                type: 'registration',
-                group_name: group.name,
-                group_emoji: group.emoji
-              });
-            });
-          }
-        }
-      }
-      
-      setRecentItems(prev => 
-        prev.map(item => {
-          if (item.type === 'registration') {
-            const updated = recentActivity.find(r => r.id === item.id);
-            return updated || item;
-          }
-          return item;
-        })
-      );
+      await api.registrations.register(registrationId);
+      alert('Inscrição realizada com sucesso!');
+      // Recarregar atividades
+      loadRecentActivity();
     } catch (error) {
       console.error('Erro ao se inscrever:', error);
       alert(error.response?.data?.error || 'Erro ao se inscrever');
