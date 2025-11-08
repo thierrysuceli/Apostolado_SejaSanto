@@ -61,9 +61,6 @@ const Home = () => {
         
         setHeroItems(heroContent.slice(0, 5));
         
-        // Carregar atividades recentes
-        await loadRecentActivity();
-        
         // Show only first 4 of each for bottom sections
         setCourses(coursesData.courses?.slice(0, 4) || []);
         setPosts(postsData.posts?.slice(0, 6) || []);
@@ -76,6 +73,11 @@ const Home = () => {
     };
     
     loadData();
+  }, []);
+  
+  // Carregar Recentes separadamente quando user estiver pronto
+  useEffect(() => {
+    loadRecentActivity();
   }, [user]);
 
   // Função para recarregar APENAS recent activity (após votar ou se inscrever)
