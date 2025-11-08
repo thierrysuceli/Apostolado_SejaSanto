@@ -31,6 +31,95 @@ const Home = () => {
   const [recentTouchEnd, setRecentTouchEnd] = useState(0);
   const [isRecentDragging, setIsRecentDragging] = useState(false);
 
+  // Função para carregar atividades recentes
+  const loadRecentActivity = async () => {
+    try {
+      // Se não estiver autenticado, apenas mostrar eventos públicos
+      if (!user) {
+        console.log('[Home] Usuário não autenticado, buscando apenas eventos públicos');
+        try {
+          const eventsResponse = await api.get('/api/events');
+          const eventsData = eventsResponse.events || [];
+          const upcomingEvents = eventsData
+            .filter(event => new Date(event.start_date) >= new Date())
+            .map(event => ({
+              ...event,
+              type: 'event',
+              title: event.title || event.name
+            }))
+            .slice(0, 12);
+          
+          setRecentItems(upcomingEvents);
+          console.log('[Home] Total Recent Activities (não autenticado):', upcomingEvents.length);
+        } catch (err) {
+          console.log('[Home] Erro ao buscar eventos:', err);
+          setRecentItems([]);
+        }
+        return;
+      }
+
+      // Usuário autenticado - buscar grupos consolidados
+      try {
+        const groupsResponse = await api.get('/api/central/groups-consolidated', null, true);
+        const groupsData = groupsResponse.groups || [];
+        
+        const recentActivity = [];
+        
+        // Extrair posts, polls e registrations de todos os grupos
+        groupsData.forEach(group => {
+          // Posts do grupo
+          (group.posts || []).forEach(post => {
+            recentActivity.push({
+              ...post,
+              type: 'post',
+              group_name: group.name,
+              group_emoji: group.emoji
+            });
+          });
+          
+          // Polls do grupo
+          (group.polls || []).forEach(poll => {
+            recentActivity.push({
+              ...poll,
+              type: 'poll',
+              group_id: group.id,
+              group_name: group.name,
+              group_emoji: group.emoji
+            });
+          });
+          
+          // Registrations do grupo
+          (group.registrations || []).forEach(reg => {
+            recentActivity.push({
+              ...reg,
+              type: 'registration',
+              group_id: group.id,
+              group_name: group.name,
+              group_emoji: group.emoji
+            });
+          });
+        });
+        
+        // Ordenar por data mais recente
+        recentActivity.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.published_at || a.date);
+          const dateB = new Date(b.created_at || b.published_at || b.date);
+          return dateB - dateA;
+        });
+        
+        setRecentItems(recentActivity.slice(0, 12));
+        console.log('[Home] Total Recent Activities:', recentActivity.length);
+      } catch (err) {
+        console.error('[Home] Error reloading recent activity:', err);
+        // Se der erro, mostrar array vazio
+        setRecentItems([]);
+      }
+    } catch (err) {
+      console.error('[Home] Error in loadRecentActivity:', err);
+      setRecentItems([]);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -61,6 +150,9 @@ const Home = () => {
         
         setHeroItems(heroContent.slice(0, 5));
         
+        // Carregar atividades recentes
+        await loadRecentActivity();
+        
         // Show only first 4 of each for bottom sections
         setCourses(coursesData.courses?.slice(0, 4) || []);
         setPosts(postsData.posts?.slice(0, 6) || []);
@@ -74,101 +166,6 @@ const Home = () => {
     
     loadData();
   }, []);
-  
-  // Carregar Recentes separadamente quando user estiver pronto
-  useEffect(() => {
-    loadRecentActivity();
-  }, [user]);
-
-  // Função para recarregar APENAS recent activity (após votar ou se inscrever)
-  const loadRecentActivity = async () => {
-    try {
-      // Se não estiver autenticado, apenas mostrar eventos públicos
-      if (!user) {
-        console.log('[Home] Usuário não autenticado, buscando apenas eventos públicos');
-        const eventsResponse = await api.get('/api/events');
-        const eventsData = eventsResponse.events || [];
-        const upcomingEvents = eventsData
-          .filter(event => new Date(event.start_date) >= new Date())
-          .map(event => ({
-            ...event,
-            type: 'event',
-            title: event.title || event.name
-          }))
-          .slice(0, 12);
-        
-        setRecentItems(upcomingEvents);
-        console.log('[Home] Total Recent Activities (não autenticado):', upcomingEvents.length);
-        return;
-      }
-
-      // Buscar grupos consolidados (já inclui posts, polls, registrations com flags calculadas)
-      const groupsResponse = await api.get('/api/central/groups-consolidated', null, true); // true = requiresAuth
-      const groupsData = groupsResponse.groups || [];
-      
-      const recentActivity = [];
-      
-      // Extrair posts, polls e registrations de todos os grupos
-      groupsData.forEach(group => {
-        // Posts do grupo
-        (group.posts || []).forEach(post => {
-          recentActivity.push({
-            ...post,
-            type: 'post',
-            group_name: group.name,
-            group_emoji: group.emoji
-          });
-        });
-        
-        // Polls do grupo
-        (group.polls || []).forEach(poll => {
-          recentActivity.push({
-            ...poll,
-            type: 'poll',
-            group_id: group.id,
-            group_name: group.name,
-            group_emoji: group.emoji
-          });
-        });
-        
-        // Registrations do grupo
-        (group.registrations || []).forEach(reg => {
-          recentActivity.push({
-            ...reg,
-            type: 'registration',
-            group_id: group.id,
-            group_name: group.name,
-            group_emoji: group.emoji
-          });
-        });
-      });
-      
-      // Adicionar eventos futuros do calendário
-      const eventsResponse = await api.get('/api/events');
-      const eventsData = eventsResponse.events || [];
-      const upcomingEvents = eventsData
-        .filter(event => new Date(event.start_date) >= new Date())
-        .map(event => ({
-          ...event,
-          type: 'event',
-          title: event.title || event.name
-        }));
-      
-      recentActivity.push(...upcomingEvents);
-      
-      // Ordenar por data de criação/início (mais recente primeiro)
-      recentActivity.sort((a, b) => {
-        const dateA = new Date(a.created_at || a.start_date);
-        const dateB = new Date(b.created_at || b.start_date);
-        return dateB - dateA;
-      });
-      
-      console.log('[Home] Total Recent Activities:', recentActivity.length);
-      setRecentItems(recentActivity.slice(0, 12)); // Pegar as 12 atividades mais recentes
-    } catch (err) {
-      console.error('Error reloading recent activity:', err);
-    }
-  };
 
   const handleVotePoll = async (pollId, optionIds) => {
     if (!user) {

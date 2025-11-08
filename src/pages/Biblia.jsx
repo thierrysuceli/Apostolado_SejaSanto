@@ -23,19 +23,41 @@ const Biblia = () => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedVerse, setSelectedVerse] = useState(null);
 
-  // Carregar todos os livros
+  // Carregar todos os livros e último progresso do usuário
   useEffect(() => {
     const carregarLivros = async () => {
       try {
         const response = await api.bible.getBooks();
         setLivros(response.books || []);
         
-        // Auto-selecionar João 3
-        const joao = response.books.find(l => l.abbrev === 'jo');
-        if (joao) {
-          setLivroSelecionado(joao);
-          setCapituloSelecionado(3);
-          await buscarVersiculos(joao.abbrev, 3);
+        let livroInicial = null;
+        let capituloInicial = 1;
+        
+        // Se usuário logado, carregar último progresso
+        if (user) {
+          try {
+            const progressResponse = await api.bibleProgress.get();
+            if (progressResponse?.progress) {
+              const { book_abbrev, chapter } = progressResponse.progress;
+              livroInicial = response.books.find(l => l.abbrev === book_abbrev);
+              capituloInicial = chapter || 1;
+              console.log(`[BIBLIA] Carregando último progresso: ${book_abbrev} ${chapter}`);
+            }
+          } catch (err) {
+            console.error('[BIBLIA] Erro ao carregar progresso:', err);
+          }
+        }
+        
+        // Se não tem progresso, auto-selecionar João 3
+        if (!livroInicial) {
+          livroInicial = response.books.find(l => l.abbrev === 'jo');
+          capituloInicial = 3;
+        }
+        
+        if (livroInicial) {
+          setLivroSelecionado(livroInicial);
+          setCapituloSelecionado(capituloInicial);
+          await buscarVersiculos(livroInicial.abbrev, capituloInicial);
         }
       } catch (err) {
         console.error('Erro ao carregar livros:', err);
@@ -46,7 +68,7 @@ const Biblia = () => {
     };
     
     carregarLivros();
-  }, []);
+  }, [user]);
 
   const buscarVersiculos = async (abbrev, capitulo) => {
     setLoading(true);
@@ -156,18 +178,18 @@ const Biblia = () => {
 
           {/* Linha 2: Seletor de Capítulos (quando houver livro selecionado) */}
           {livroSelecionado && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 pb-2">
-              <div className="flex items-center gap-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 pb-2 overflow-hidden">
+              <div className="flex items-center gap-2 min-w-0">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">
                   Cap:
                 </span>
-                <div className="flex-1 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
-                  <div className="flex gap-2">
+                <div className="flex-1 overflow-x-auto min-w-0" style={{ msOverflowStyle: 'none', scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}>
+                  <div className="flex gap-1.5 py-1">
                     {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
                       <button
                         key={cap}
                         onClick={() => handleSelectCapitulo(cap)}
-                        className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all flex-shrink-0 ${
+                        className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition-all flex-shrink-0 ${
                           capituloSelecionado === cap
                             ? 'bg-amber-600 text-white shadow-md'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700'
