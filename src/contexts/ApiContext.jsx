@@ -227,19 +227,19 @@ export const ApiProvider = ({ children }) => {
   // ==================== POLLS (Central) ====================
   
   const polls = {
-    vote: (pollId, optionIds) => post(`/api/central/polls/${pollId}?action=vote`, { option_ids: optionIds }),
-    create: (groupId, data) => post(`/api/central/groups/${groupId}/polls`, data),
-    update: (pollId, data) => put(`/api/central/polls/${pollId}/edit`, data),
-    delete: (pollId) => del(`/api/central/polls/${pollId}`)
+    vote: (pollId, optionIds) => post(`/api/central/polls-actions?id=${pollId}&action=vote`, { option_ids: optionIds }),
+    create: (groupId, data) => post(`/api/central/groups?id=${groupId}&resource=polls`, data),
+    update: (pollId, data) => put(`/api/central/polls-actions?id=${pollId}&action=edit`, data),
+    delete: (pollId) => del(`/api/central/polls-actions?id=${pollId}&action=delete`)
   };
 
   // ==================== REGISTRATIONS (Central) ====================
   
   const registrations = {
-    register: (registrationId) => post(`/api/central/registrations/${registrationId}?action=subscribe`),
+    register: (registrationId) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`),
     create: (groupId, data) => post(`/api/central/groups?id=${groupId}&resource=registrations`, data),
-    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}?action=edit`, data),
-    delete: (registrationId) => del(`/api/central/registrations/${registrationId}?action=delete`)
+    update: (registrationId, data) => put(`/api/central/registrations-actions?id=${registrationId}&action=edit`, data),
+    delete: (registrationId) => del(`/api/central/registrations-actions?id=${registrationId}&action=delete`)
   };
 
   // ==================== BIBLE NOTES ====================
@@ -247,16 +247,15 @@ export const ApiProvider = ({ children }) => {
   const bibleNotes = {
     getAll: (params) => {
       const query = new URLSearchParams(params).toString();
-      return get(`/api/bible-notes?${query}`, false);
+      return get(`/api/public-data?type=bible-notes&${query}`, false);
     },
     getByVerse: ({ book_abbrev, chapter, verse }) => {
-      const params = new URLSearchParams({ book_abbrev, chapter, verse }).toString();
-      return get(`/api/bible-notes?${params}`, false);
+      return get(`/api/public-data?type=bible-notes&book_abbrev=${book_abbrev}&chapter=${chapter}&verse=${verse}&_t=${Date.now()}`, false);
     },
-    getById: (id) => get(`/api/bible-notes/${id}`, false),
-    create: (data) => post('/api/bible-notes', data),
-    update: (id, data) => put(`/api/bible-notes/${id}`, data),
-    delete: (id) => del(`/api/bible-notes/${id}`)
+    getById: (id) => get(`/api/public-data?type=bible-notes&id=${id}`, false),
+    create: (data) => post('/api/public-data?type=bible-notes', data),
+    update: (id, data) => put(`/api/public-data?type=bible-notes&id=${id}`, data),
+    delete: (id) => del(`/api/public-data?type=bible-notes&id=${id}`)
   };
 
   // ==================== USER PROGRESS ====================

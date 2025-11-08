@@ -805,6 +805,184 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ progress: data });
     }
+
+    // ============================================
+    // BIBLE NOTES (Admin Study Notes)
+    // ============================================
+    
+    // Bible Notes - GET
+    if (type === 'bible-notes' && req.method === 'GET') {
+      const { book_abbrev, chapter, verse } = req.query;
+      
+      if (!book_abbrev || !chapter || !verse) {
+        return res.status(400).json({ error: 'Parâmetros incompletos: book_abbrev, chapter, verse são obrigatórios' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_notes')
+        .select(`
+          *,
+          author:users!bible_notes_author_id_fkey (
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('book_abbrev', book_abbrev)
+        .eq('chapter', parseInt(chapter))
+        .eq('verse', parseInt(verse))
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return res.status(200).json({ notes: data || [] });
+    }
+
+    // Bible Notes - POST (criar nota - apenas admin)
+    if (type === 'bible-notes' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar se é admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'ADMIN')
+        .single();
+      
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', req.user.id);
+      
+      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas administradores podem criar notas de estudo' });
+      }
+
+      const { book_abbrev, chapter, verse, title, content, tags } = req.body;
+      
+      if (!book_abbrev || !chapter || !verse || !title || !content) {
+        return res.status(400).json({ error: 'Dados incompletos' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_notes')
+        .insert({
+          book_abbrev,
+          chapter: parseInt(chapter),
+          verse: parseInt(verse),
+          author_id: req.user.id,
+          title: title.trim(),
+          content: content.trim(),
+          tags: tags || []
+        })
+        .select(`
+          *,
+          author:users!bible_notes_author_id_fkey (
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          return res.status(409).json({ error: 'Já existe uma nota para este versículo' });
+        }
+        throw error;
+      }
+
+      return res.status(201).json({ note: data });
+    }
+
+    // Bible Notes - PUT (atualizar - apenas admin)
+    if (type === 'bible-notes' && req.method === 'PUT') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'ADMIN')
+        .single();
+      
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', req.user.id);
+      
+      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas administradores podem editar notas' });
+      }
+
+      const { title, content, tags } = req.body;
+      
+      if (!id) {
+        return res.status(400).json({ error: 'ID da nota é obrigatório' });
+      }
+
+      const updateData = { updated_at: new Date().toISOString() };
+      if (title) updateData.title = title.trim();
+      if (content) updateData.content = content.trim();
+      if (tags !== undefined) updateData.tags = tags;
+
+      const { data, error } = await supabaseAdmin
+        .from('bible_notes')
+        .update(updateData)
+        .eq('id', id)
+        .select(`
+          *,
+          author:users!bible_notes_author_id_fkey (
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return res.status(200).json({ note: data });
+    }
+
+    // Bible Notes - DELETE (apenas admin)
+    if (type === 'bible-notes' && req.method === 'DELETE' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Não autorizado' });
+
+      // Verificar admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'ADMIN')
+        .single();
+      
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', req.user.id);
+      
+      const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+      const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas administradores podem deletar notas' });
+      }
+
+      const { error } = await supabaseAdmin
+        .from('bible_notes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return res.status(200).json({ message: 'Nota deletada com sucesso' });
+    }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });
   } catch (error) {
