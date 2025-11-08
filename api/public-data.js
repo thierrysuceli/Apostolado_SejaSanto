@@ -2,6 +2,7 @@
 // Consolida: comments, event-categories, modules, topics, misc (roles/tags)
 import { authenticate, hasRole } from '../middleware-api/auth.js';
 import { supabaseAdmin } from '../lib-api/supabaseServer.js';
+import { sanitizeHTML, sanitizeText } from '../lib-api/sanitize.js';
 
 export default async function handler(req, res) {
   const { type, id } = req.query;
@@ -937,6 +938,9 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Dados incompletos' });
       }
 
+      // Sanitizar HTML do Quill (não usar trim, preservar formatação)
+      const sanitizedContent = sanitizeHTML(content);
+
       const { data, error } = await supabaseAdmin
         .from('bible_notes')
         .insert({
@@ -945,7 +949,7 @@ export default async function handler(req, res) {
           verse: parseInt(verse),
           author_id: req.user.id,
           title: title.trim(),
-          content: content.trim(),
+          content: sanitizedContent,
           tags: tags || []
         })
         .select(`

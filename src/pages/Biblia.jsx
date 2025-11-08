@@ -111,11 +111,14 @@ const Biblia = () => {
       const promises = verses.map(async (v) => {
         const [commentsRes, notesRes] = await Promise.all([
           api.bibleComments.getAll({ book_abbrev: abbrev, chapter: capitulo, verse: v.verse_number }).catch(() => ({ comments: [] })),
-          api.bibleNotes.getByVerse({ book_abbrev: abbrev, chapter: capitulo, verse: v.verse_number }).catch(() => ({ note: null }))
+          api.bibleNotes.getByVerse({ book_abbrev: abbrev, chapter: capitulo, verse: v.verse_number }).catch(() => ({ note: null, notes: [] }))
         ]);
         
         const hasComments = (commentsRes?.comments || []).length > 0;
-        const hasNotes = !!notesRes?.note;
+        // Verificar tanto 'note' (singular) quanto 'notes' (plural)
+        const hasNotes = !!(notesRes?.note || (notesRes?.notes && notesRes.notes.length > 0));
+        
+        console.log(`[INDICADORES] Verso ${v.verse_number}: comments=${hasComments}, notes=${hasNotes}`, notesRes);
         
         if (hasComments || hasNotes) {
           versesData.set(v.verse_number, { hasComments, hasNotes });
@@ -123,6 +126,7 @@ const Biblia = () => {
       });
       
       await Promise.all(promises);
+      console.log('[INDICADORES] Total verses with content:', versesData.size, versesData);
       setVersesWithContent(versesData);
     } catch (err) {
       console.error('Erro ao carregar indicadores:', err);
@@ -182,8 +186,8 @@ const Biblia = () => {
               </div>
             </div>
 
-            {/* Controles */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Controles Desktop */}
+            <div className="hidden md:flex items-center gap-2 flex-shrink-0">
               {/* Dropdown Testamento */}
               <select
                 value={testamento}
@@ -205,6 +209,30 @@ const Biblia = () => {
                 📖 {livroSelecionado ? 'Trocar' : 'Livros'}
               </button>
             </div>
+          </div>
+
+          {/* Controles Mobile - Linha separada */}
+          <div className="md:hidden flex flex-col gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
+            {/* Dropdown Testamento */}
+            <select
+              value={testamento}
+              onChange={(e) => {
+                setTestamento(e.target.value);
+                setMenuLivrosAberto(false);
+              }}
+              className="w-full px-3 py-2 rounded-lg border-2 border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold text-sm"
+            >
+              <option value="Antigo Testamento">Antigo Testamento</option>
+              <option value="Novo Testamento">Novo Testamento</option>
+            </select>
+
+            {/* Botão Menu Livros */}
+            <button
+              onClick={() => setMenuLivrosAberto(!menuLivrosAberto)}
+              className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all flex items-center justify-center gap-2 text-sm"
+            >
+              📖 {livroSelecionado ? 'Trocar Livro' : 'Selecionar Livro'}
+            </button>
           </div>
 
           {/* Linha 2: Navegação de Capítulos - MOBILE FIRST */}
