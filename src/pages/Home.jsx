@@ -185,19 +185,6 @@ const Home = () => {
       console.error('Erro ao votar:', err);
       alert(`Erro ao votar: ${err.message || 'Tente novamente'}`);
     }
-  }; 
-        prev.map(item => {
-          if (item.type === 'poll') {
-            const updated = recentActivity.find(p => p.id === item.id);
-            return updated || item;
-          }
-          return item;
-        })
-      );
-    } catch (error) {
-      console.error('Erro ao votar:', error);
-      alert(error.response?.data?.error || 'Erro ao votar');
-    }
   };
 
   const handleSubscribeRegistration = async (registrationId) => {
