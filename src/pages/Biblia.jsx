@@ -183,7 +183,7 @@ const Biblia = () => {
             </div>
 
             {/* Controles */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Dropdown Testamento */}
               <select
                 value={testamento}
@@ -191,7 +191,7 @@ const Biblia = () => {
                   setTestamento(e.target.value);
                   setMenuLivrosAberto(false);
                 }}
-                className="px-3 py-2 rounded-lg border-2 border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold text-sm"
+                className="px-3 py-2 rounded-lg border-2 border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold text-sm whitespace-nowrap"
               >
                 <option value="Antigo Testamento">Antigo Testamento</option>
                 <option value="Novo Testamento">Novo Testamento</option>
@@ -200,7 +200,7 @@ const Biblia = () => {
               {/* Botão Menu Livros */}
               <button
                 onClick={() => setMenuLivrosAberto(!menuLivrosAberto)}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all flex items-center gap-2 text-sm whitespace-nowrap flex-shrink-0"
               >
                 📖 {livroSelecionado ? 'Trocar' : 'Livros'}
               </button>
@@ -421,22 +421,22 @@ const Biblia = () => {
                             {versiculo.verse_number}
                           </span>
                           
-                          {/* Indicadores - Barrinhas sutis */}
+                          {/* Indicadores - Badges visíveis */}
                           {versesWithContent.get(versiculo.verse_number) && (
-                            <div className="absolute -left-1.5 top-0 bottom-0 flex flex-col gap-0.5 justify-center">
-                              {/* Barrinha cinza para comentários */}
-                              {versesWithContent.get(versiculo.verse_number).hasComments && (
+                            <div className="absolute -top-1 -right-1 flex gap-0.5">
+                              {/* Badge verde para notas de admin (mais visível) */}
+                              {versesWithContent.get(versiculo.verse_number).hasNotes && (
                                 <div 
-                                  className="w-0.5 h-3 bg-gray-400 dark:bg-gray-500 rounded-full opacity-60"
-                                  title="Tem comentários"
+                                  className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full ring-2 ring-white dark:ring-gray-800 shadow-sm"
+                                  title="Tem nota de estudo"
                                 />
                               )}
                               
-                              {/* Barrinha verde para notas de admin */}
-                              {versesWithContent.get(versiculo.verse_number).hasNotes && (
+                              {/* Badge cinza para comentários */}
+                              {versesWithContent.get(versiculo.verse_number).hasComments && (
                                 <div 
-                                  className="w-0.5 h-3 bg-green-500 dark:bg-green-400 rounded-full opacity-70"
-                                  title="Tem nota de estudo"
+                                  className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full ring-2 ring-white dark:ring-gray-800 shadow-sm"
+                                  title="Tem comentários"
                                 />
                               )}
                             </div>
