@@ -25,6 +25,16 @@ function TopicDetail() {
   const [replyContent, setReplyContent] = useState('');
   const [showTextContent, setShowTextContent] = useState(false);
 
+  // LOG: Monitorar mudanças no user
+  useEffect(() => {
+    console.log('[TopicDetail] 👤 USER MUDOU:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userName: user?.name
+    });
+  }, [user]);
+
   // Função para buscar respostas de um comentário
   const getCommentReplies = (parentId) => {
     return comments.filter(c => c.parent_comment_id === parentId);
@@ -68,32 +78,18 @@ function TopicDetail() {
 
   // Salvar que visitou o tópico (apenas registro, sem tempo)
   useEffect(() => {
-    if (!user || !course || !topicId) {
-      console.log('[TopicDetail] Não salvando progresso:', { 
-        hasUser: !!user, 
-        hasCourse: !!course, 
+    // SÓ executa se TODOS os dados estiverem disponíveis
+    if (!user?.id || !course?.id || !topicId) {
+      console.log('[TopicDetail] 🔄 Aguardando dados:', { 
+        hasUser: !!user?.id, 
+        hasCourse: !!course?.id, 
         hasTopicId: !!topicId 
       });
       return;
     }
 
+    // Dados prontos, salvar imediatamente
     const saveProgress = async () => {
-      // Verificações rigorosas
-      if (!user || !user.id) {
-        console.warn('[TopicDetail] SKIP: Usuário não autenticado');
-        return;
-      }
-      
-      if (!course || !course.id) {
-        console.warn('[TopicDetail] SKIP: Curso não carregado');
-        return;
-      }
-      
-      if (!topicId) {
-        console.warn('[TopicDetail] SKIP: Topic ID ausente');
-        return;
-      }
-
       try {
         console.log('[TopicDetail] ✓ Iniciando salvamento de progresso:', {
           user_id: user.id,
@@ -114,32 +110,29 @@ function TopicDetail() {
         
         const result = await api.progress.saveCourseProgress(payload);
         
-        console.log('[TopicDetail] ✓✓✓ PROGRESSO SALVO COM SUCESSO! ✓✓✓');
+        console.log('[TopicDetail] ✅✅✅ PROGRESSO SALVO COM SUCESSO! ✅✅✅');
         console.log('[TopicDetail] Resposta da API:', result);
         
         // Verificar se realmente salvou no banco
         if (result && result.progress) {
-          console.log('[TopicDetail] ✓ Confirmado: registro criado/atualizado no banco');
+          console.log('[TopicDetail] ✅ Confirmado: registro criado/atualizado no banco');
           console.log('[TopicDetail] ID do registro:', result.progress.id);
+          console.log('[TopicDetail] Dados salvos:', result.progress);
         }
         
       } catch (err) {
         console.error('[TopicDetail] ❌❌❌ ERRO AO SALVAR PROGRESSO ❌❌❌');
         console.error('[TopicDetail] Erro completo:', err);
         console.error('[TopicDetail] Mensagem:', err.message);
-        console.error('[TopicDetail] Response data:', err.response?.data);
-        console.error('[TopicDetail] Status:', err.response?.status);
-        console.error('[TopicDetail] Headers:', err.response?.headers);
+        if (err.response) {
+          console.error('[TopicDetail] Response data:', err.response.data);
+          console.error('[TopicDetail] Status:', err.response.status);
+        }
       }
     };
 
-    // Salvar apenas uma vez ao carregar (com delay para garantir que user e course estejam prontos)
-    const timer = setTimeout(() => {
-      saveProgress();
-    }, 500); // 500ms de delay
-
-    return () => clearTimeout(timer);
-  }, [user, course, topicId, api]);
+    saveProgress();
+  }, [user?.id, course?.id, topicId, api]);
 
   const handleDeleteComment = async (commentId) => {
     if (!confirm('Tem certeza que deseja deletar este comentário?')) return;
