@@ -68,18 +68,38 @@ function TopicDetail() {
 
   // Salvar que visitou o tópico (apenas registro, sem tempo)
   useEffect(() => {
-    if (!user || !course || !topicId) return;
+    if (!user || !course || !topicId) {
+      console.log('[TopicDetail] Não salvando progresso:', { 
+        hasUser: !!user, 
+        hasCourse: !!course, 
+        hasTopicId: !!topicId 
+      });
+      return;
+    }
 
     const saveProgress = async () => {
       try {
-        await api.progress.saveCourseProgress({
+        console.log('[TopicDetail] Salvando progresso:', {
+          course_id: course.id,
+          topic_id: topicId,
+          user_id: user.id
+        });
+        
+        const result = await api.progress.saveCourseProgress({
           course_id: course.id,
           topic_id: topicId,
           progress_seconds: 0,
           completed: false
         });
+        
+        console.log('[TopicDetail] Progresso salvo com sucesso:', result);
       } catch (err) {
-        console.error('Error saving progress:', err);
+        console.error('[TopicDetail] Error saving progress:', err);
+        console.error('[TopicDetail] Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
       }
     };
 

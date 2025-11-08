@@ -92,6 +92,7 @@ const Home = () => {
                     recentActivity.push({
                       ...poll,
                       type: 'poll',
+                      group_id: group.id,
                       group_name: group.name,
                       group_emoji: group.emoji
                     });
@@ -107,6 +108,7 @@ const Home = () => {
                     recentActivity.push({
                       ...reg,
                       type: 'registration',
+                      group_id: group.id,
                       group_name: group.name,
                       group_emoji: group.emoji
                     });
@@ -254,17 +256,18 @@ const Home = () => {
 
     try {
       console.log('Votando:', { pollId, optionIds });
-      await api.polls.vote(pollId, optionIds);
+      await api.post(`/api/central/polls/${pollId}/vote`, { option_ids: optionIds });
       alert('Voto registrado com sucesso!');
-      // Recarregar atividades recentes
-      loadRecentActivity();
+      
+      // Recarregar atividades recentes para refletir mudanças
+      await loadRecentActivity();
     } catch (err) {
       console.error('Erro ao votar:', err);
-      alert(`Erro ao votar: ${err.message || 'Tente novamente'}`);
+      alert(`Erro ao votar: ${err.response?.data?.error || err.message || 'Tente novamente'}`);
     }
   };
 
-  const handleSubscribeRegistration = async (registrationId) => {
+  const handleSubscribeRegistration = async (groupId, registrationId) => {
     if (!user) {
       alert('Faça login para se inscrever');
       navigate('/login');
@@ -272,10 +275,10 @@ const Home = () => {
     }
 
     try {
-      await api.registrations.register(registrationId);
-      alert('Inscrição realizada com sucesso!');
-      // Recarregar atividades
-      loadRecentActivity();
+      const response = await api.registrations.subscribe(registrationId);
+      alert(response.message || 'Inscrição realizada com sucesso!');
+      // Recarregar atividades para refletir mudanças
+      await loadRecentActivity();
     } catch (error) {
       console.error('Erro ao se inscrever:', error);
       alert(error.response?.data?.error || 'Erro ao se inscrever');
@@ -607,7 +610,7 @@ const Home = () => {
                     {item.type === 'registration' && !item.user_subscribed && item.is_open && !item.is_full && (
                       <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => handleSubscribeRegistration(item.id)}
+                          onClick={() => handleSubscribeRegistration(item.group_id, item.id)}
                           className="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all text-sm"
                         >
                           Inscrever-se

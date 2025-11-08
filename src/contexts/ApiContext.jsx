@@ -227,19 +227,19 @@ export const ApiProvider = ({ children }) => {
   // ==================== POLLS (Central) ====================
   
   const polls = {
-    vote: (pollId, optionIds) => post(`/api/central/polls-actions?id=${pollId}&action=vote`, { option_ids: optionIds }),
-    create: (groupId, data) => post(`/api/central/groups?id=${groupId}&resource=polls`, data),
-    update: (pollId, data) => put(`/api/central/polls-actions?id=${pollId}&action=edit`, data),
-    delete: (pollId) => del(`/api/central/polls-actions?id=${pollId}&action=delete`)
+    vote: (pollId, optionIds) => post(`/api/central/polls/${pollId}?action=vote`, { option_ids: optionIds }),
+    create: (groupId, data) => post(`/api/central/groups/${groupId}/polls`, data),
+    update: (pollId, data) => put(`/api/central/polls/${pollId}?action=edit`, data),
+    delete: (pollId) => del(`/api/central/polls/${pollId}?action=delete`)
   };
 
   // ==================== REGISTRATIONS (Central) ====================
   
   const registrations = {
-    register: (registrationId) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`),
-    create: (groupId, data) => post(`/api/central/groups?id=${groupId}&resource=registrations`, data),
-    update: (registrationId, data) => put(`/api/central/registrations-actions?id=${registrationId}&action=edit`, data),
-    delete: (registrationId) => del(`/api/central/registrations-actions?id=${registrationId}&action=delete`)
+    subscribe: (registrationId) => post(`/api/central/registrations/${registrationId}/subscribe`),
+    create: (groupId, data) => post(`/api/central/groups/${groupId}/registrations`, data),
+    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}/edit`, data),
+    delete: (registrationId) => del(`/api/central/registrations/${registrationId}`)
   };
 
   // ==================== BIBLE NOTES ====================
