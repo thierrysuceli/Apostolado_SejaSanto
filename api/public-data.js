@@ -847,75 +847,32 @@ export default async function handler(req, res) {
         verse
       });
 
-      // WORKAROUND: A FK user_bible_progress_user_id_fkey está com problema
-      // Vamos usar SQL RAW para fazer UPSERT direto
       try {
-        const { data, error } = await supabaseAdmin.rpc('upsert_bible_progress', {
-          p_user_id: req.user.id,
-          p_book_abbrev: book_abbrev,
-          p_chapter: parseInt(chapter),
-          p_verse: parseInt(verse || 1)
-        });
-
-        if (error) {
-          console.error('[BIBLE PROGRESS] RPC ERROR:', error);
-          throw error;
-        }
-
-        // Se RPC não existe, tentar approach alternativo
-        if (!data) {
-          // Tentar deletar e inserir novamente (contorna FK)
-          await supabaseAdmin
-            .from('user_bible_progress')
-            .delete()
-            .eq('user_id', req.user.id)
-            .eq('book_abbrev', book_abbrev);
-
-          const { data: inserted, error: insertError } = await supabaseAdmin
-            .from('user_bible_progress')
-            .insert({
-              user_id: req.user.id,
-              book_abbrev,
-              chapter: parseInt(chapter),
-              verse: parseInt(verse || 1),
-              last_read_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('[BIBLE PROGRESS] INSERT ERROR:', insertError);
-            // FK still failing, return success anyway (log only)
-            console.log('[BIBLE PROGRESS] FK constraint blocking insert, but data is valid');
-            return res.status(200).json({ 
-              progress: {
-                user_id: req.user.id,
-                book_abbrev,
-                chapter: parseInt(chapter),
-                verse: parseInt(verse || 1),
-                last_read_at: new Date().toISOString()
-              }
-            });
-          }
-
-          console.log('[BIBLE PROGRESS] Success via DELETE+INSERT!', inserted.id);
-          return res.status(200).json({ progress: inserted });
-        }
-
-        console.log('[BIBLE PROGRESS] Success via RPC!');
-        return res.status(200).json({ progress: data });
-      } catch (err) {
-        console.error('[BIBLE PROGRESS] FATAL ERROR:', err);
-        // Retornar sucesso mesmo com erro (já logamos)
-        return res.status(200).json({
-          progress: {
+        // UPSERT direto (tabela foi recriada com FK correta)
+        const { data, error } = await supabaseAdmin
+          .from('user_bible_progress')
+          .upsert({
             user_id: req.user.id,
             book_abbrev,
             chapter: parseInt(chapter),
             verse: parseInt(verse || 1),
             last_read_at: new Date().toISOString()
-          }
-        });
+          }, {
+            onConflict: 'user_id,book_abbrev'
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('[BIBLE PROGRESS] UPSERT ERROR:', error);
+          return res.status(500).json({ error: 'Erro ao salvar progresso' });
+        }
+
+        console.log('[BIBLE PROGRESS] ✅ Success!', data.id);
+        return res.status(200).json({ progress: data });
+      } catch (err) {
+        console.error('[BIBLE PROGRESS] FATAL ERROR:', err);
+        return res.status(500).json({ error: 'Erro interno ao salvar progresso' });
       }
     }
 

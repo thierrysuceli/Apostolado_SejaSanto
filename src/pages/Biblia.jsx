@@ -176,30 +176,69 @@ const Biblia = () => {
             </div>
           </div>
 
-          {/* Linha 2: Seletor de Capítulos (quando houver livro selecionado) */}
+          {/* Linha 2: Navegação de Capítulos */}
           {livroSelecionado && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 pb-2 overflow-hidden">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">
-                  Cap:
-                </span>
-                <div className="flex-1 overflow-x-auto min-w-0" style={{ msOverflowStyle: 'none', scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}>
-                  <div className="flex gap-1.5 py-1">
-                    {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
-                      <button
-                        key={cap}
-                        onClick={() => handleSelectCapitulo(cap)}
-                        className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition-all flex-shrink-0 ${
-                          capituloSelecionado === cap
-                            ? 'bg-amber-600 text-white shadow-md'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {cap}
-                      </button>
-                    ))}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 pb-2">
+              <div className="flex items-center gap-3">
+                {/* Botão Anterior */}
+                <button
+                  onClick={() => {
+                    if (capituloSelecionado > 1) {
+                      handleSelectCapitulo(capituloSelecionado - 1);
+                    }
+                  }}
+                  disabled={capituloSelecionado === 1}
+                  className={`flex-shrink-0 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    capituloSelecionado === 1
+                      ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      : 'bg-amber-600 text-white hover:bg-amber-700 shadow-md'
+                  }`}
+                >
+                  ← Anterior
+                </button>
+
+                {/* Lista de Capítulos */}
+                <div className="flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">
+                      Cap:
+                    </span>
+                    <div className="flex-1 overflow-x-auto min-w-0" style={{ msOverflowStyle: 'none', scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}>
+                      <div className="flex gap-1.5 py-1">
+                        {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
+                          <button
+                            key={cap}
+                            onClick={() => handleSelectCapitulo(cap)}
+                            className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition-all flex-shrink-0 ${
+                              capituloSelecionado === cap
+                                ? 'bg-amber-600 text-white shadow-md'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            {cap}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Botão Próximo */}
+                <button
+                  onClick={() => {
+                    if (capituloSelecionado < livroSelecionado.chapters) {
+                      handleSelectCapitulo(capituloSelecionado + 1);
+                    }
+                  }}
+                  disabled={capituloSelecionado === livroSelecionado.chapters}
+                  className={`flex-shrink-0 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    capituloSelecionado === livroSelecionado.chapters
+                      ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      : 'bg-amber-600 text-white hover:bg-amber-700 shadow-md'
+                  }`}
+                >
+                  Próximo →
+                </button>
               </div>
             </div>
           )}
