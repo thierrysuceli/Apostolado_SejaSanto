@@ -106,17 +106,18 @@ const Biblia = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 pb-20">
-      {/* Header Compacto */}
+      {/* Header Unificado - Compacto e Fixo */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          {/* Linha 1: Título e Controles */}
+          <div className="flex items-center justify-between gap-4 mb-3">
             {/* Título */}
             <div className="flex items-center gap-3">
-              <svg className="w-8 h-8 text-amber-600 dark:text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7 text-amber-600 dark:text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 1H8.99C7.89 1 7 1.9 7 3h10c1.1 0 2 .9 2 2v13c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-4 4H5c-1.1 0-2 .9-2 2v16l7-3 7 3V7c0-1.1-.9-2-2-2z"/>
               </svg>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   Bíblia Sagrada
                 </h1>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -128,7 +129,7 @@ const Biblia = () => {
               </div>
             </div>
 
-            {/* Controles Compactos */}
+            {/* Controles */}
             <div className="flex items-center gap-2">
               {/* Dropdown Testamento */}
               <select
@@ -144,16 +145,42 @@ const Biblia = () => {
               </select>
 
               {/* Botão Menu Livros */}
-              {livroSelecionado && (
-                <button
-                  onClick={() => setMenuLivrosAberto(!menuLivrosAberto)}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all flex items-center gap-2 text-sm"
-                >
-                  📖 Livros
-                </button>
-              )}
+              <button
+                onClick={() => setMenuLivrosAberto(!menuLivrosAberto)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all flex items-center gap-2 text-sm"
+              >
+                📖 {livroSelecionado ? 'Trocar' : 'Livros'}
+              </button>
             </div>
           </div>
+
+          {/* Linha 2: Seletor de Capítulos (quando houver livro selecionado) */}
+          {livroSelecionado && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  Capítulo:
+                </span>
+                <div className="flex-1 overflow-x-auto">
+                  <div className="flex gap-2">
+                    {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
+                      <button
+                        key={cap}
+                        onClick={() => handleSelectCapitulo(cap)}
+                        className={`px-3 py-1.5 rounded-lg font-semibold text-sm transition-all flex-shrink-0 ${
+                          capituloSelecionado === cap
+                            ? 'bg-amber-600 text-white shadow-md'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {cap}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

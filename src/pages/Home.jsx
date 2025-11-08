@@ -4,6 +4,7 @@ import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import CourseCard from '../components/CourseCard';
 import PostCard from '../components/PostCard';
+import { PollCard, RegistrationCard, EventCard } from '../components/CentralCards';
 
 const Home = () => {
   const api = useApi();
@@ -13,16 +14,22 @@ const Home = () => {
   const [heroItems, setHeroItems] = useState([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [recentItems, setRecentItems] = useState([]);
+  const [currentRecentIndex, setCurrentRecentIndex] = useState(0);
   const [courses, setCourses] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedPollOptions, setSelectedPollOptions] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
   
-  // Swipe/Drag state
+  // Swipe/Drag state (Hero)
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // Swipe/Drag state (Recentes)
+  const [recentTouchStart, setRecentTouchStart] = useState(0);
+  const [recentTouchEnd, setRecentTouchEnd] = useState(0);
+  const [isRecentDragging, setIsRecentDragging] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -30,11 +37,13 @@ const Home = () => {
         setLoading(true);
         setError('');
         
-        const [coursesData, postsData, groupsData, eventsData] = await Promise.all([
+        // Verificar se é admin
+        const userIsAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
+        setIsAdmin(userIsAdmin);
+        
+        const [coursesData, postsData] = await Promise.all([
           api.courses.getAll(),
-          api.posts.getAll(),
-          api.groups?.getAll().catch(() => ({ groups: [] })) || { groups: [] },
-          api.events?.getAll().catch(() => ({ events: [] })) || { events: [] }
+          api.posts.getAll()
         ]);
         
         // Últimos 5 para o HERO (misturar posts e cursos)
@@ -52,97 +61,8 @@ const Home = () => {
         
         setHeroItems(heroContent.slice(0, 5));
         
-        // Para "RECENTES" - puxar do Central (posts de grupos, polls, registrations) + Eventos do calendário
-        const recentActivity = [];
-        
-        // Puxar posts, polls e registrations dos grupos que o user participa
-        if (groupsData.groups && Array.isArray(groupsData.groups)) {
-          console.log('[Home] Processando grupos:', groupsData.groups.length);
-          for (const group of groupsData.groups) {
-            try {
-              // Buscar conteúdo específico do grupo via API
-              console.log('[Home] Buscando detalhes do grupo:', group.id, group.name);
-              const groupDetails = await api.groups.getById(group.id).catch((err) => {
-                console.error('[Home] Erro ao buscar grupo:', err);
-                return null;
-              });
-              
-              console.log('[Home] Detalhes do grupo recebidos:', groupDetails);
-              
-              if (groupDetails && groupDetails.group) {
-                // Posts do grupo
-                if (groupDetails.group.group_posts && Array.isArray(groupDetails.group.group_posts)) {
-                  console.log('[Home] Posts encontrados:', groupDetails.group.group_posts.length);
-                  groupDetails.group.group_posts.forEach(post => {
-                    recentActivity.push({
-                      ...post,
-                      type: 'post',
-                      group_name: group.name,
-                      group_emoji: group.emoji
-                    });
-                  });
-                } else {
-                  console.log('[Home] Nenhum post encontrado para grupo', group.name);
-                }
-                
-                // Polls do grupo
-                if (groupDetails.group.polls && Array.isArray(groupDetails.group.polls)) {
-                  console.log('[Home] Polls encontrados:', groupDetails.group.polls.length);
-                  groupDetails.group.polls.forEach(poll => {
-                    recentActivity.push({
-                      ...poll,
-                      type: 'poll',
-                      group_id: group.id,
-                      group_name: group.name,
-                      group_emoji: group.emoji
-                    });
-                  });
-                } else {
-                  console.log('[Home] Nenhuma poll encontrada para grupo', group.name);
-                }
-                
-                // Registrations do grupo
-                if (groupDetails.group.registrations && Array.isArray(groupDetails.group.registrations)) {
-                  console.log('[Home] Registrations encontrados:', groupDetails.group.registrations.length);
-                  groupDetails.group.registrations.forEach(reg => {
-                    recentActivity.push({
-                      ...reg,
-                      type: 'registration',
-                      group_id: group.id,
-                      group_name: group.name,
-                      group_emoji: group.emoji
-                    });
-                  });
-                } else {
-                  console.log('[Home] Nenhuma registration encontrada para grupo', group.name);
-                }
-              }
-            } catch (err) {
-              console.error(`[Home] Error loading group ${group.id} content:`, err);
-            }
-          }
-        }
-        
-        // Adicionar eventos do calendário (filtrados por role do user)
-        if (eventsData.events && Array.isArray(eventsData.events)) {
-          eventsData.events.forEach(event => {
-            recentActivity.push({
-              ...event,
-              type: 'event',
-              title: event.title || event.name
-            });
-          });
-        }
-        
-        // Ordenar por data de criação
-        recentActivity.sort((a, b) => {
-          const dateA = new Date(a.created_at || a.date || a.start_date);
-          const dateB = new Date(b.created_at || b.date || b.start_date);
-          return dateB - dateA;
-        });
-        
-        console.log('[Home] Recent Activity Items:', recentActivity.length); // Debug
-        setRecentItems(recentActivity.slice(0, 5));
+        // Carregar atividades recentes
+        await loadRecentActivity();
         
         // Show only first 4 of each for bottom sections
         setCourses(coursesData.courses?.slice(0, 4) || []);
@@ -161,77 +81,101 @@ const Home = () => {
   // Função para recarregar APENAS recent activity (após votar ou se inscrever)
   const loadRecentActivity = async () => {
     try {
-      const [groupsData, eventsData] = await Promise.all([
-        api.groups?.getAll().catch(() => ({ groups: [] })) || { groups: [] },
-        api.events?.getAll().catch(() => ({ events: [] })) || { events: [] }
-      ]);
+      // Buscar grupos consolidados (já inclui posts, polls, registrations com flags calculadas)
+      const groupsResponse = await api.get('/api/central/groups-consolidated');
+      const groupsData = groupsResponse.groups || [];
       
       const recentActivity = [];
       
-      if (groupsData.groups && Array.isArray(groupsData.groups)) {
-        for (const group of groupsData.groups) {
-          try {
-            const groupDetails = await api.groups.getById(group.id).catch(() => null);
-            
-            if (groupDetails && groupDetails.group) {
-              if (groupDetails.group.group_posts && Array.isArray(groupDetails.group.group_posts)) {
-                groupDetails.group.group_posts.forEach(post => {
-                  recentActivity.push({
-                    ...post,
-                    type: 'post',
-                    group_name: group.name,
-                    group_emoji: group.emoji
-                  });
-                });
-              }
-              
-              if (groupDetails.group.polls && Array.isArray(groupDetails.group.polls)) {
-                groupDetails.group.polls.forEach(poll => {
-                  recentActivity.push({
-                    ...poll,
-                    type: 'poll',
-                    group_name: group.name,
-                    group_emoji: group.emoji
-                  });
-                });
-              }
-              
-              if (groupDetails.group.registrations && Array.isArray(groupDetails.group.registrations)) {
-                groupDetails.group.registrations.forEach(reg => {
-                  recentActivity.push({
-                    ...reg,
-                    type: 'registration',
-                    group_name: group.name,
-                    group_emoji: group.emoji
-                  });
-                });
-              }
-            }
-          } catch (err) {
-            console.error(`Error reloading group ${group.id}:`, err);
-          }
-        }
-      }
-      
-      if (eventsData.events && Array.isArray(eventsData.events)) {
-        eventsData.events.forEach(event => {
+      // Extrair posts, polls e registrations de todos os grupos
+      groupsData.forEach(group => {
+        // Posts do grupo
+        (group.posts || []).forEach(post => {
           recentActivity.push({
-            ...event,
-            type: 'event',
-            title: event.title || event.name
+            ...post,
+            type: 'post',
+            group_name: group.name,
+            group_emoji: group.emoji
           });
         });
-      }
+        
+        // Polls do grupo
+        (group.polls || []).forEach(poll => {
+          recentActivity.push({
+            ...poll,
+            type: 'poll',
+            group_id: group.id,
+            group_name: group.name,
+            group_emoji: group.emoji
+          });
+        });
+        
+        // Registrations do grupo
+        (group.registrations || []).forEach(reg => {
+          recentActivity.push({
+            ...reg,
+            type: 'registration',
+            group_id: group.id,
+            group_name: group.name,
+            group_emoji: group.emoji
+          });
+        });
+      });
       
+      // Adicionar eventos futuros do calendário
+      const eventsResponse = await api.get('/api/events');
+      const eventsData = eventsResponse.events || [];
+      const upcomingEvents = eventsData
+        .filter(event => new Date(event.start_date) >= new Date())
+        .map(event => ({
+          ...event,
+          type: 'event',
+          title: event.title || event.name
+        }));
+      
+      recentActivity.push(...upcomingEvents);
+      
+      // Ordenar por data de criação/início (mais recente primeiro)
       recentActivity.sort((a, b) => {
-        const dateA = new Date(a.created_at || a.date || a.start_date);
-        const dateB = new Date(b.created_at || b.date || b.start_date);
+        const dateA = new Date(a.created_at || a.start_date);
+        const dateB = new Date(b.created_at || b.start_date);
         return dateB - dateA;
       });
       
-      setRecentItems(recentActivity.slice(0, 5));
+      console.log('[Home] Total Recent Activities:', recentActivity.length);
+      setRecentItems(recentActivity.slice(0, 12)); // Pegar as 12 atividades mais recentes
     } catch (err) {
       console.error('Error reloading recent activity:', err);
+    }
+  };
+
+  const handleVotePoll = async (pollId, optionIds) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await api.post(`/api/central/polls/${pollId}/vote`, { option_ids: optionIds });
+      await loadRecentActivity(); // Recarregar atividades
+    } catch (error) {
+      console.error('Error voting:', error);
+      alert('Erro ao votar. Tente novamente.');
+    }
+  };
+
+  const handleSubscribeRegistration = async (registrationId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await api.post(`/api/central/registrations/${registrationId}/subscribe`);
+      await loadRecentActivity(); // Recarregar atividades
+    } catch (error) {
+      console.error('Error subscribing:', error);
+      alert('Erro ao se inscrever. Tente novamente.');
     }
   };
 
@@ -245,45 +189,6 @@ const Home = () => {
     
     return () => clearInterval(interval);
   }, [heroItems.length]);
-
-  // Handlers para interações
-  const handleVotePoll = async (pollId, optionIds) => {
-    if (!user) {
-      alert('Faça login para votar');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      console.log('Votando:', { pollId, optionIds });
-      await api.post(`/api/central/polls/${pollId}/vote`, { option_ids: optionIds });
-      alert('Voto registrado com sucesso!');
-      
-      // Recarregar atividades recentes para refletir mudanças
-      await loadRecentActivity();
-    } catch (err) {
-      console.error('Erro ao votar:', err);
-      alert(`Erro ao votar: ${err.response?.data?.error || err.message || 'Tente novamente'}`);
-    }
-  };
-
-  const handleSubscribeRegistration = async (groupId, registrationId) => {
-    if (!user) {
-      alert('Faça login para se inscrever');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const response = await api.registrations.subscribe(registrationId);
-      alert(response.message || 'Inscrição realizada com sucesso!');
-      // Recarregar atividades para refletir mudanças
-      await loadRecentActivity();
-    } catch (error) {
-      console.error('Erro ao se inscrever:', error);
-      alert(error.response?.data?.error || 'Erro ao se inscrever');
-    }
-  };
 
   // Swipe/Drag handlers
   const handleTouchStart = (e) => {
@@ -335,6 +240,67 @@ const Home = () => {
       setIsDragging(false);
       setTouchStart(0);
       setTouchEnd(0);
+    }
+  };
+
+  // Handlers para carrossel de Recentes
+  const handleRecentPrev = () => {
+    setCurrentRecentIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleRecentNext = () => {
+    setCurrentRecentIndex(prev => Math.min(recentItems.length - 1, prev + 1));
+  };
+
+  const handleRecentTouchStart = (e) => {
+    setRecentTouchStart(e.targetTouches[0].clientX);
+    setIsRecentDragging(true);
+  };
+
+  const handleRecentTouchMove = (e) => {
+    setRecentTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleRecentTouchEnd = () => {
+    if (!recentTouchStart || !recentTouchEnd) return;
+    
+    const distance = recentTouchStart - recentTouchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe && currentRecentIndex < recentItems.length - 1) {
+      handleRecentNext();
+    }
+    
+    if (isRightSwipe && currentRecentIndex > 0) {
+      handleRecentPrev();
+    }
+    
+    setRecentTouchStart(0);
+    setRecentTouchEnd(0);
+    setIsRecentDragging(false);
+  };
+
+  const handleRecentMouseDown = (e) => {
+    setRecentTouchStart(e.clientX);
+    setIsRecentDragging(true);
+  };
+
+  const handleRecentMouseMove = (e) => {
+    if (!isRecentDragging) return;
+    setRecentTouchEnd(e.clientX);
+  };
+
+  const handleRecentMouseUp = () => {
+    if (!isRecentDragging) return;
+    handleRecentTouchEnd();
+  };
+
+  const handleRecentMouseLeave = () => {
+    if (isRecentDragging) {
+      setIsRecentDragging(false);
+      setRecentTouchStart(0);
+      setRecentTouchEnd(0);
     }
   };
 
@@ -435,211 +401,145 @@ const Home = () => {
         </section>
       )}
 
-      {/* Recentes Section - Feed Unificado (Central + Calendário) */}
+      {/* Recentes Section - Carrossel Horizontal */}
       {recentItems.length > 0 && (
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-100 dark:bg-gray-950">
           <div className="max-w-7xl mx-auto">
             <div className="mb-10">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Recentes</h2>
-              <p className="text-gray-600 dark:text-gray-400">Últimas atividades dos seus grupos e eventos</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Atividades Recentes</h2>
+              <p className="text-gray-600 dark:text-gray-400">Últimas atualizações dos seus grupos e eventos</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentItems.map((item, index) => {
-                const getTypeLabel = () => {
-                  if (item.type === 'post') return 'Post';
-                  if (item.type === 'poll') return 'Enquete';
-                  if (item.type === 'registration') return 'Inscrição';
-                  if (item.type === 'event') return 'Evento';
-                  return 'Atividade';
-                };
-                
-                return (
-                  <div
-                    key={`${item.type}-${item.id}-${index}`}
-                    className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700/50 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all"
-                  >
-                    {/* Header clicável */}
-                    <div 
-                      onClick={() => {
-                        if (item.type === 'event') navigate('/calendar');
-                        else navigate('/central');
-                      }}
-                      className="p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      {/* Type Badge */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-1 min-w-0">
-                          <span className="text-amber-600 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
-                            {getTypeLabel()}
-                          </span>
-                          {item.group_name && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {item.group_name}
-                            </p>
-                          )}
+            {/* Carrossel */}
+            <div className="relative">
+              {/* Botão Anterior */}
+              {currentRecentIndex > 0 && (
+                <button
+                  onClick={handleRecentPrev}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-amber-500 text-black rounded-full shadow-lg hover:bg-amber-400 transition-all flex items-center justify-center"
+                  aria-label="Anterior"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Container do Carrossel */}
+              <div 
+                className="overflow-hidden cursor-grab active:cursor-grabbing"
+                onTouchStart={handleRecentTouchStart}
+                onTouchMove={handleRecentTouchMove}
+                onTouchEnd={handleRecentTouchEnd}
+                onMouseDown={handleRecentMouseDown}
+                onMouseMove={handleRecentMouseMove}
+                onMouseUp={handleRecentMouseUp}
+                onMouseLeave={handleRecentMouseLeave}
+              >
+                <div
+                  className="flex gap-6 transition-transform duration-500 ease-out"
+                  style={{
+                    transform: `translateX(-${currentRecentIndex * (window.innerWidth >= 768 ? 33.333 : 100)}%)`
+                  }}
+                >
+                  {recentItems.map((item, index) => {
+                    const key = `${item.type}-${item.id}-${index}`;
+                    
+                    // Render do card baseado no tipo
+                    if (item.type === 'poll') {
+                      return (
+                        <div key={key} className="flex-shrink-0 w-full md:w-1/3 px-2">
+                          <PollCard 
+                            poll={item} 
+                            onVote={handleVotePoll}
+                            isAdmin={isAdmin}
+                          />
                         </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 hover:text-amber-600 dark:hover:text-amber-500 transition-colors">
-                        {item.type === 'poll' ? item.question : item.title}
-                      </h3>
-
-                      {/* Description */}
-                      {(item.excerpt || item.description || item.content) && (
-                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
-                          {(item.excerpt || item.description || item.content)?.replace(/<[^>]*>/g, '')}
-                        </p>
-                      )}
-
-                      {/* Meta Info */}
-                      <div className="flex flex-col gap-2 text-sm text-gray-500 dark:text-gray-500">
-                        {item.created_at && (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                          </span>
-                        )}
-                        {item.type === 'event' && item.start_date && item.end_date && (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {new Date(item.start_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} - {new Date(item.end_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                          </span>
-                        )}
-                        {item.type === 'poll' && (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {item.total_votes || 0} votos
-                          </span>
-                        )}
-                        {item.type === 'registration' && (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            {item.approved_count || 0}{item.max_participants ? `/${item.max_participants}` : ''} inscritos
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Botões de Interação */}
-                    {item.type === 'poll' && !item.user_voted && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="space-y-2 mb-3">
-                          {item.options?.slice(0, 3).map((option) => {
-                            const pollKey = `poll-${item.id}`;
-                            const isSelected = selectedPollOptions[pollKey]?.includes(option.id);
-                            
-                            return (
-                              <button
-                                key={option.id}
-                                onClick={() => {
-                                  const currentSelected = selectedPollOptions[pollKey] || [];
-                                  if (item.allow_multiple) {
-                                    setSelectedPollOptions(prev => ({
-                                      ...prev,
-                                      [pollKey]: isSelected 
-                                        ? currentSelected.filter(id => id !== option.id)
-                                        : [...currentSelected, option.id]
-                                    }));
-                                  } else {
-                                    setSelectedPollOptions(prev => ({
-                                      ...prev,
-                                      [pollKey]: [option.id]
-                                    }));
-                                  }
-                                }}
-                                className={`w-full p-2 text-sm rounded-lg border transition-all ${
-                                  isSelected
-                                    ? 'border-amber-500 bg-amber-100 dark:bg-amber-500/20 text-gray-900 dark:text-white'
-                                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 hover:border-amber-500/50'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                    isSelected ? 'border-amber-500 bg-amber-500' : 'border-gray-400 dark:border-gray-600'
-                                  }`}>
-                                    {isSelected && (
-                                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                  <span className="truncate">{option.text}</span>
-                                </div>
-                              </button>
-                            );
-                          })}
-                          {item.options?.length > 3 && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">+{item.options.length - 3} opções</p>
-                          )}
+                      );
+                    }
+                    
+                    if (item.type === 'registration') {
+                      return (
+                        <div key={key} className="flex-shrink-0 w-full md:w-1/3 px-2">
+                          <RegistrationCard 
+                            registration={item} 
+                            onSubscribe={handleSubscribeRegistration}
+                            isAdmin={isAdmin}
+                          />
                         </div>
-                        <button
-                          onClick={() => {
-                            const pollKey = `poll-${item.id}`;
-                            const selected = selectedPollOptions[pollKey] || [];
-                            if (selected.length > 0) {
-                              handleVotePoll(item.id, selected);
-                              setSelectedPollOptions(prev => ({ ...prev, [pollKey]: [] }));
-                            }
-                          }}
-                          disabled={!selectedPollOptions[`poll-${item.id}`]?.length}
-                          className="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      );
+                    }
+                    
+                    if (item.type === 'event') {
+                      return (
+                        <Link
+                          key={key}
+                          to="/calendar"
+                          className="flex-shrink-0 w-full md:w-1/3 px-2"
                         >
-                          Votar
-                        </button>
-                      </div>
-                    )}
-
-                    {item.type === 'poll' && item.user_voted && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 border border-green-500/50 rounded-lg text-green-700 dark:text-green-400 text-xs text-center font-medium">
-                          ✓ Você já votou
-                        </div>
-                      </div>
-                    )}
-
-                    {item.type === 'registration' && !item.user_subscribed && item.is_open && !item.is_full && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleSubscribeRegistration(item.group_id, item.id)}
-                          className="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all text-sm"
+                          <EventCard event={item} />
+                        </Link>
+                      );
+                    }
+                    
+                    if (item.type === 'post') {
+                      return (
+                        <Link
+                          key={key}
+                          to="/central"
+                          className="flex-shrink-0 w-full md:w-1/3 px-2"
                         >
-                          Inscrever-se
-                        </button>
-                      </div>
-                    )}
+                          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 shadow-lg hover:shadow-amber-500/10 min-w-[320px] max-w-[400px]">
+                            <div className="p-4">
+                              <div className="text-xs text-amber-500 font-semibold mb-2">
+                                {item.group_emoji} {item.group_name}
+                              </div>
+                              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-tight line-clamp-2">
+                                {item.title}
+                              </h3>
+                              <div 
+                                className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+                                dangerouslySetInnerHTML={{ __html: item.content?.replace(/<[^>]*>/g, '') || '' }}
+                              />
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    }
+                    
+                    return null;
+                  })}
+                </div>
+              </div>
 
-                    {item.type === 'registration' && item.user_subscribed && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className={`p-2 rounded-lg text-xs text-center font-medium ${
-                          item.user_status === 'approved'
-                            ? 'bg-green-100 dark:bg-green-900/30 border border-green-500/50 text-green-700 dark:text-green-400'
-                            : 'bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-500/50 text-yellow-700 dark:text-yellow-400'
-                        }`}>
-                          {item.user_status === 'approved' ? '✓ Inscrito e aprovado' : '⏳ Aguardando aprovação'}
-                        </div>
-                      </div>
-                    )}
+              {/* Botão Próximo */}
+              {currentRecentIndex < recentItems.length - 1 && (
+                <button
+                  onClick={handleRecentNext}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-amber-500 text-black rounded-full shadow-lg hover:bg-amber-400 transition-all flex items-center justify-center"
+                  aria-label="Próximo"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
-                    {item.type === 'registration' && (!item.is_open || item.is_full) && !item.user_subscribed && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className="p-2 bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-xs text-center font-medium">
-                          {item.is_full ? '🔒 Vagas esgotadas' : '⏰ Inscrições encerradas'}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {/* Indicadores */}
+              <div className="flex justify-center gap-2 mt-8">
+                {recentItems.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentRecentIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentRecentIndex
+                        ? 'bg-amber-500 w-8'
+                        : 'bg-gray-400 dark:bg-gray-600 hover:bg-gray-500'
+                    }`}
+                    aria-label={`Ir para item ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </section>
