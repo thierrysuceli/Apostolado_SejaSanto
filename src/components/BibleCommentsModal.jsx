@@ -3,6 +3,7 @@ import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import { useTheme } from '../contexts/ThemeContext';
+import RichTextEditor from './RichTextEditor';
 
 const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) => {
   const { user } = useAuth();
@@ -21,11 +22,6 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   // Usuários com role ADMIN podem criar notas e deletar qualquer comentário
   const isAdmin = user?.roles?.some(role => role.name === 'ADMIN' || role.code === 'ADMIN') || false;
 
-  console.log('[BIBLE MODAL] User:', user);
-  console.log('[BIBLE MODAL] Roles:', user?.roles);
-  console.log('[BIBLE MODAL] Is Admin:', isAdmin);
-  console.log('[BIBLE MODAL] First role structure:', user?.roles?.[0]);
-
   useEffect(() => {
     if (isOpen && book_abbrev && chapter && verse) {
       loadCommentsAndNotes();
@@ -41,9 +37,6 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
         api.bibleComments.getAll({ book_abbrev, chapter, verse }),
         api.bibleNotes.getByVerse({ book_abbrev, chapter, verse })
       ]);
-      
-      console.log('[BIBLE MODAL] Comments data:', commentsData);
-      console.log('[BIBLE MODAL] Notes data:', notesData);
       
       // Comentários vem em { comments: [...] }
       const commentsList = commentsData?.comments || [];
@@ -99,7 +92,6 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
 
     try {
       setSubmitting(true);
-      console.log('[BIBLE MODAL] Creating note as admin:', user.id);
       await api.bibleNotes.create({
         book_abbrev,
         chapter,
@@ -157,7 +149,7 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`relative w-full max-w-2xl max-h-[80vh] rounded-xl shadow-2xl overflow-hidden ${
+      <div className={`relative w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden ${
         isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
       }`}>
         {/* Header */}
@@ -181,89 +173,92 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto"></div>
               <p className="mt-4 text-sm text-gray-500">Carregando...</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Notas do Admin - DESTAQUE */}
+            <div className="space-y-6">
+              {/* Notas do Admin - DESTAQUE com Quill */}
               {adminNotes.map((note) => (
                 <div
                   key={`note-${note.id}`}
-                  className="p-5 rounded-lg border-2 border-amber-500 bg-gradient-to-br from-amber-500/10 to-amber-500/5"
+                  className="p-6 rounded-lg border-2 border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="px-3 py-1 bg-amber-500 text-black text-xs font-bold rounded-full">
-                        NOTA DO ADMIN
-                      </div>
-                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {formatDate(note.created_at)}
-                      </span>
-                    </div>
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <h3 className="text-xl font-bold text-green-600 dark:text-green-500 flex-1">
+                      {note.title}
+                    </h3>
                     {isAdmin && (
                       <button
                         onClick={() => handleDeleteNote(note.id)}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition flex-shrink-0"
                         title="Excluir nota"
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        <TrashIcon className="w-5 h-5" />
                       </button>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold mb-2 text-amber-600 dark:text-amber-500">
-                    {note.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {note.content}
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <RichTextEditor
+                      value={note.content}
+                      readOnly={true}
+                      minHeight="auto"
+                    />
+                  </div>
+                  <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    Nota de estudo • {formatDate(note.created_at)}
                   </p>
                 </div>
               ))}
 
               {/* Comentários normais */}
               {comments.length === 0 && adminNotes.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>
+                <div className="text-center py-12">
+                  <p className={`text-lg ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     Nenhum comentário ainda. Seja o primeiro!
                   </p>
                 </div>
               ) : (
                 comments.map((comment) => {
-                  console.log('[COMMENT]', comment);
-                  console.log('[COMMENT USER]', comment.user);
-                  const userName = comment.user?.name || comment.user_name || 'Anônimo';
+                  // Backend retorna 'users' (plural), não 'user'
+                  const userName = comment.users?.name || comment.user?.name || 'Anônimo';
                   
                   return (
                     <div
                       key={comment.id}
-                      className={`p-4 rounded-lg ${
-                        isDark ? 'bg-gray-800' : 'bg-gray-50'
+                      className={`p-5 rounded-lg border ${
+                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <p className="font-semibold text-sm text-amber-500">
-                              {userName}
-                            </p>
-                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                              {formatDate(comment.created_at)}
-                            </span>
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                              {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-base text-amber-600 dark:text-amber-500">
+                                {userName}
+                              </p>
+                              <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {formatDate(comment.created_at)}
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          <p className="text-base leading-relaxed whitespace-pre-wrap pl-13">
                             {comment.comment_text}
                           </p>
                         </div>
                         {user && (comment.user_id === user.id || isAdmin) && (
                           <button
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition flex-shrink-0"
                             title="Excluir comentário"
                           >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="w-5 h-5" />
                           </button>
                         )}
                       </div>
@@ -292,46 +287,51 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
 
             {/* Form Nota Admin */}
             {isAdmin && showNoteForm && (
-              <form onSubmit={handleSubmitNote} className="space-y-3 mb-4 p-4 border-2 border-amber-500 rounded-lg bg-amber-500/5">
-                <input
-                  type="text"
-                  value={noteFormData.title}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, title: e.target.value })}
-                  placeholder="Título da nota..."
-                  required
-                  className={`w-full px-4 py-2 rounded-lg border-2 focus:outline-none focus:border-amber-500 transition ${
-                    isDark 
-                      ? 'bg-gray-900 border-gray-600 text-white placeholder-gray-500' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                  }`}
-                />
-                <textarea
-                  value={noteFormData.content}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, content: e.target.value })}
-                  placeholder="Conteúdo da nota de estudo..."
-                  rows={4}
-                  required
-                  className={`w-full px-4 py-3 rounded-lg border-2 resize-none focus:outline-none focus:border-amber-500 transition ${
-                    isDark 
-                      ? 'bg-gray-900 border-gray-600 text-white placeholder-gray-500' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                  }`}
-                />
-                <div className="flex gap-2 justify-end">
+              <form onSubmit={handleSubmitNote} className="space-y-4 mb-4 p-5 border-2 border-green-500 rounded-lg bg-green-500/5">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-green-600 dark:text-green-500">
+                    Título da Nota de Estudo
+                  </label>
+                  <input
+                    type="text"
+                    value={noteFormData.title}
+                    onChange={(e) => setNoteFormData({ ...noteFormData, title: e.target.value })}
+                    placeholder="Ex: Reflexão sobre o versículo..."
+                    required
+                    className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-green-500 transition ${
+                      isDark 
+                        ? 'bg-gray-900 border-gray-600 text-white placeholder-gray-500' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-green-600 dark:text-green-500">
+                    Conteúdo da Nota (Formatação rica)
+                  </label>
+                  <RichTextEditor
+                    value={noteFormData.content}
+                    onChange={(content) => setNoteFormData({ ...noteFormData, content })}
+                    placeholder="Escreva a nota de estudo com formatação..."
+                    minHeight="250px"
+                    isAdmin={true}
+                  />
+                </div>
+                <div className="flex gap-2 justify-end pt-2">
                   <button
                     type="button"
                     onClick={() => {
                       setShowNoteForm(false);
                       setNoteFormData({ title: '', content: '' });
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                    className="px-5 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-50 transition"
+                    className="px-5 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:opacity-50 transition"
                   >
                     {submitting ? 'Salvando...' : 'Criar Nota'}
                   </button>
