@@ -191,7 +191,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ topics: data || [] });
     }
     if (type === 'topics' && req.method === 'GET' && id) {
-      const { data, error } = await supabaseAdmin.from('topics').select('*').eq('id', id).single();
+      const { data, error } = await supabaseAdmin
+        .from('topics')
+        .select(`
+          *,
+          modules!inner(
+            id,
+            title,
+            course_id,
+            courses!inner(
+              id,
+              title,
+              description,
+              cover_image_url
+            )
+          )
+        `)
+        .eq('id', id)
+        .single();
       if (error) throw error;
       return res.status(200).json({ topic: data });
     }

@@ -157,12 +157,12 @@ const Biblia = () => {
           {/* Linha 2: Seletor de Capítulos (quando houver livro selecionado) */}
           {livroSelecionado && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Capítulo:
+              <div className="flex items-center gap-2 overflow-hidden">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">
+                  Cap:
                 </span>
-                <div className="flex-1 overflow-x-auto">
-                  <div className="flex gap-2">
+                <div className="flex-1 overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-2 pb-1">
                     {Array.from({ length: livroSelecionado.chapters }, (_, i) => i + 1).map((cap) => (
                       <button
                         key={cap}
