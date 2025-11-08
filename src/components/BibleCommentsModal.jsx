@@ -19,11 +19,12 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
 
   // Verificar se usuário é admin pela ROLE, não pela permissão
   // Usuários com role ADMIN podem criar notas e deletar qualquer comentário
-  const isAdmin = user?.roles?.some(role => role.code === 'ADMIN') || false;
+  const isAdmin = user?.roles?.some(role => role.name === 'ADMIN' || role.code === 'ADMIN') || false;
 
   console.log('[BIBLE MODAL] User:', user);
   console.log('[BIBLE MODAL] Roles:', user?.roles);
   console.log('[BIBLE MODAL] Is Admin:', isAdmin);
+  console.log('[BIBLE MODAL] First role structure:', user?.roles?.[0]);
 
   useEffect(() => {
     if (isOpen && book_abbrev && chapter && verse) {
@@ -231,7 +232,8 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                 </div>
               ) : (
                 comments.map((comment) => {
-                  console.log('[COMMENT]', comment); // Debug
+                  console.log('[COMMENT]', comment);
+                  console.log('[COMMENT USER]', comment.user);
                   const userName = comment.user?.name || comment.user_name || 'Anônimo';
                   
                   return (
