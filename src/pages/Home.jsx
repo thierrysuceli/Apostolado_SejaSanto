@@ -156,6 +156,83 @@ const Home = () => {
     loadData();
   }, [user]);
 
+  // Função para recarregar APENAS recent activity (após votar ou se inscrever)
+  const loadRecentActivity = async () => {
+    try {
+      const [groupsData, eventsData] = await Promise.all([
+        api.groups?.getAll().catch(() => ({ groups: [] })) || { groups: [] },
+        api.events?.getAll().catch(() => ({ events: [] })) || { events: [] }
+      ]);
+      
+      const recentActivity = [];
+      
+      if (groupsData.groups && Array.isArray(groupsData.groups)) {
+        for (const group of groupsData.groups) {
+          try {
+            const groupDetails = await api.groups.getById(group.id).catch(() => null);
+            
+            if (groupDetails && groupDetails.group) {
+              if (groupDetails.group.group_posts && Array.isArray(groupDetails.group.group_posts)) {
+                groupDetails.group.group_posts.forEach(post => {
+                  recentActivity.push({
+                    ...post,
+                    type: 'post',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+              
+              if (groupDetails.group.polls && Array.isArray(groupDetails.group.polls)) {
+                groupDetails.group.polls.forEach(poll => {
+                  recentActivity.push({
+                    ...poll,
+                    type: 'poll',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+              
+              if (groupDetails.group.registrations && Array.isArray(groupDetails.group.registrations)) {
+                groupDetails.group.registrations.forEach(reg => {
+                  recentActivity.push({
+                    ...reg,
+                    type: 'registration',
+                    group_name: group.name,
+                    group_emoji: group.emoji
+                  });
+                });
+              }
+            }
+          } catch (err) {
+            console.error(`Error reloading group ${group.id}:`, err);
+          }
+        }
+      }
+      
+      if (eventsData.events && Array.isArray(eventsData.events)) {
+        eventsData.events.forEach(event => {
+          recentActivity.push({
+            ...event,
+            type: 'event',
+            title: event.title || event.name
+          });
+        });
+      }
+      
+      recentActivity.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || a.start_date);
+        const dateB = new Date(b.created_at || b.date || b.start_date);
+        return dateB - dateA;
+      });
+      
+      setRecentItems(recentActivity.slice(0, 5));
+    } catch (err) {
+      console.error('Error reloading recent activity:', err);
+    }
+  };
+
   // Auto-rotate hero carousel
   useEffect(() => {
     if (heroItems.length === 0) return;

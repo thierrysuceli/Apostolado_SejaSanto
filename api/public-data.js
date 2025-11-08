@@ -346,6 +346,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'course_id é obrigatório' });
       }
       
+      console.log('[COURSE PROGRESS] Saving:', {
+        user_id: req.user.id,
+        course_id,
+        topic_id,
+        progress_seconds,
+        completed
+      });
+      
       // UPSERT: se existir atualiza, senão cria
       const { data, error } = await supabaseAdmin
         .from('user_course_progress')
@@ -369,7 +377,17 @@ export default async function handler(req, res) {
         `)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('[COURSE PROGRESS] ERROR:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('[COURSE PROGRESS] Success!', data.id);
       return res.status(200).json({ progress: data });
     }
     
@@ -706,6 +724,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Dados incompletos' });
       }
 
+      console.log('[BIBLE COMMENT] Creating:', {
+        user_id: req.user.id,
+        book_abbrev,
+        chapter,
+        verse
+      });
+
       const { data, error } = await supabaseAdmin
         .from('bible_verse_comments')
         .insert({
@@ -725,7 +750,17 @@ export default async function handler(req, res) {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[BIBLE COMMENT] ERROR:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('[BIBLE COMMENT] Success!', data.id);
       return res.status(201).json({ comment: data });
     }
 
@@ -788,6 +823,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Dados incompletos' });
       }
 
+      console.log('[BIBLE PROGRESS] Saving:', {
+        user_id: req.user.id,
+        book_abbrev,
+        chapter,
+        verse
+      });
+
       const { data, error } = await supabaseAdmin
         .from('user_bible_progress')
         .upsert({
@@ -802,7 +844,17 @@ export default async function handler(req, res) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[BIBLE PROGRESS] ERROR:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('[BIBLE PROGRESS] Success!', data.id);
       return res.status(200).json({ progress: data });
     }
 

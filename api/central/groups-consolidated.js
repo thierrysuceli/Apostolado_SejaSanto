@@ -504,19 +504,43 @@ export default async function handler(req, res) {
           
           // Verificar se pode se inscrever
           const now = new Date();
+          
+          // GARANTIR que registration_starts e registration_ends existem e são válidos
+          if (!reg.registration_starts) {
+            reg.registration_starts = now.toISOString();
+          }
+          if (!reg.registration_ends) {
+            // Default: 30 dias a partir de agora
+            const defaultEnds = new Date(now);
+            defaultEnds.setDate(defaultEnds.getDate() + 30);
+            reg.registration_ends = defaultEnds.toISOString();
+          }
+          
           const startsAt = new Date(reg.registration_starts);
           const endsAt = new Date(reg.registration_ends);
+          
+          // Verificar se datas são válidas
+          if (isNaN(startsAt.getTime())) {
+            console.error(`[Registration ${reg.id}] INVALID registration_starts:`, reg.registration_starts);
+            startsAt.setTime(now.getTime());
+          }
+          if (isNaN(endsAt.getTime())) {
+            console.error(`[Registration ${reg.id}] INVALID registration_ends:`, reg.registration_ends);
+            endsAt.setTime(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+          }
           
           reg.is_open = now >= startsAt && now <= endsAt;
           reg.is_full = reg.max_participants && reg.approved_count >= reg.max_participants;
           
           // Debug para verificar datas
           console.log(`[Registration ${reg.id}] Status:`, {
+            title: reg.title,
             now: now.toISOString(),
             starts: startsAt.toISOString(),
             ends: endsAt.toISOString(),
             is_open: reg.is_open,
-            is_full: reg.is_full
+            is_full: reg.is_full,
+            hasValidDates: !isNaN(startsAt.getTime()) && !isNaN(endsAt.getTime())
           });
         });
         
