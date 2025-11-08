@@ -695,7 +695,7 @@ export default async function handler(req, res) {
         .from('bible_verse_comments')
         .select(`
           *,
-          users:user_id (
+          users (
             id,
             name,
             email
@@ -742,7 +742,7 @@ export default async function handler(req, res) {
         })
         .select(`
           *,
-          users:user_id (
+          users (
             id,
             name,
             email
