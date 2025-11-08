@@ -25,7 +25,14 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   useEffect(() => {
     if (isOpen && book_abbrev && chapter && verse) {
       loadCommentsAndNotes();
+      // Bloquear scroll do body quando modal abrir
+      document.body.style.overflow = 'hidden';
     }
+    
+    // Restaurar scroll do body quando modal fechar
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen, book_abbrev, chapter, verse]);
 
   const loadCommentsAndNotes = async () => {
@@ -148,12 +155,18 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`relative w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden ${
-        isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
-      }`}>
-        {/* Header */}
-        <div className={`sticky top-0 z-10 px-6 py-4 border-b ${
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div 
+        className={`relative w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col ${
+          isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header - FIXO */}
+        <div className={`flex-shrink-0 px-6 py-4 border-b ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
         }`}>
           <div className="flex items-center justify-between">
@@ -172,8 +185,8 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
           </p>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+        {/* Content - SCROLLÁVEL */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto"></div>
@@ -270,9 +283,9 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
           )}
         </div>
 
-        {/* Footer - Forms */}
+        {/* Footer - Forms - FIXO */}
         {user && (
-          <div className={`sticky bottom-0 px-6 py-4 border-t ${
+          <div className={`flex-shrink-0 px-6 py-4 border-t ${
             isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
           }`}>
             {/* Botão Admin: Criar Nota */}
@@ -285,9 +298,10 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
               </button>
             )}
 
-            {/* Form Nota Admin */}
+            {/* Form Nota Admin - Com scroll interno */}
             {isAdmin && showNoteForm && (
-              <form onSubmit={handleSubmitNote} className="space-y-4 mb-4 p-5 border-2 border-green-500 rounded-lg bg-green-500/5">
+              <div className="max-h-[50vh] overflow-y-auto">
+                <form onSubmit={handleSubmitNote} className="space-y-4 p-5 border-2 border-green-500 rounded-lg bg-green-500/5">
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-green-600 dark:text-green-500">
                     Título da Nota de Estudo
@@ -337,6 +351,7 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                   </button>
                 </div>
               </form>
+              </div>
             )}
 
             {/* Form Comentário Normal */}
