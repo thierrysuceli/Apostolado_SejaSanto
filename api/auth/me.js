@@ -34,6 +34,7 @@ export default async function handler(req, res) {
           roles (
             id,
             name,
+            code:name,
             display_name,
             color,
             role_permissions (

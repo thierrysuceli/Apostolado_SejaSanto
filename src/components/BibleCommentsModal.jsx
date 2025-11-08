@@ -17,7 +17,13 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [noteFormData, setNoteFormData] = useState({ title: '', content: '' });
 
-  const isAdmin = user?.role === 'admin';
+  // Verificar se usuário é admin pela ROLE, não pela permissão
+  // Usuários com role ADMIN podem criar notas e deletar qualquer comentário
+  const isAdmin = user?.roles?.some(role => role.code === 'ADMIN') || false;
+
+  console.log('[BIBLE MODAL] User:', user);
+  console.log('[BIBLE MODAL] Roles:', user?.roles);
+  console.log('[BIBLE MODAL] Is Admin:', isAdmin);
 
   useEffect(() => {
     if (isOpen && book_abbrev && chapter && verse) {
@@ -34,6 +40,9 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
         api.bibleComments.getAll({ book_abbrev, chapter, verse }),
         api.bibleNotes.getByVerse({ book_abbrev, chapter, verse })
       ]);
+      
+      console.log('[BIBLE MODAL] Comments data:', commentsData);
+      console.log('[BIBLE MODAL] Notes data:', notesData);
       
       // Comentários vem em { comments: [...] }
       const commentsList = commentsData?.comments || [];
@@ -89,12 +98,14 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
 
     try {
       setSubmitting(true);
+      console.log('[BIBLE MODAL] Creating note as admin:', user.id);
       await api.bibleNotes.create({
         book_abbrev,
         chapter,
         verse,
         title: noteFormData.title.trim(),
-        content: noteFormData.content.trim()
+        content: noteFormData.content.trim(),
+        author_id: user.id // Adicionar author_id
       });
       setNoteFormData({ title: '', content: '' });
       setShowNoteForm(false);
@@ -120,6 +131,8 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'Data desconhecida';
+    
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
@@ -127,10 +140,16 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
+    if (diffMins < 1) return 'agora';
     if (diffMins < 60) return `${diffMins}min atrás`;
     if (diffHours < 24) return `${diffHours}h atrás`;
     if (diffDays < 7) return `${diffDays}d atrás`;
-    return date.toLocaleDateString('pt-BR');
+    
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   if (!isOpen) return null;
@@ -211,39 +230,44 @@ const BibleCommentsModal = ({ isOpen, onClose, book_abbrev, chapter, verse }) =>
                   </p>
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className={`p-4 rounded-lg ${
-                      isDark ? 'bg-gray-800' : 'bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="font-semibold text-sm text-amber-500">
-                            {comment.user?.name || comment.user_name || 'Anônimo'}
+                comments.map((comment) => {
+                  console.log('[COMMENT]', comment); // Debug
+                  const userName = comment.user?.name || comment.user_name || 'Anônimo';
+                  
+                  return (
+                    <div
+                      key={comment.id}
+                      className={`p-4 rounded-lg ${
+                        isDark ? 'bg-gray-800' : 'bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="font-semibold text-sm text-amber-500">
+                              {userName}
+                            </p>
+                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                              {formatDate(comment.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {comment.comment_text}
                           </p>
-                          <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            {formatDate(comment.created_at)}
-                          </span>
                         </div>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                          {comment.comment_text}
-                        </p>
+                        {user && (comment.user_id === user.id || isAdmin) && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                            title="Excluir comentário"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
-                      {user && (comment.user_id === user.id || isAdmin) && (
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
-                          title="Excluir comentário"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}

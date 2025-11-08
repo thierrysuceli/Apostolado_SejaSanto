@@ -236,7 +236,7 @@ const Biblia = () => {
                     paddingRight: '2.5rem'
                   }}
                 >
-                  {Array.from({ length: livroSelecionado.chapters || 0 }, (_, i) => i + 1).map((cap) => (
+                  {Array.from({ length: livroSelecionado.total_chapters || 0 }, (_, i) => i + 1).map((cap) => (
                     <option key={cap} value={cap}>
                       Cap. {cap}
                     </option>
@@ -244,10 +244,10 @@ const Biblia = () => {
                 </select>
                 
                 <button
-                  onClick={() => capituloSelecionado < (livroSelecionado.chapters || 0) && handleSelectCapitulo(capituloSelecionado + 1)}
-                  disabled={capituloSelecionado === (livroSelecionado.chapters || 0)}
+                  onClick={() => capituloSelecionado < (livroSelecionado.total_chapters || 0) && handleSelectCapitulo(capituloSelecionado + 1)}
+                  disabled={capituloSelecionado === (livroSelecionado.total_chapters || 0)}
                   className={`flex-1 px-4 py-3 rounded-lg font-bold text-sm transition-all ${
-                    capituloSelecionado === (livroSelecionado.chapters || 0)
+                    capituloSelecionado === (livroSelecionado.total_chapters || 0)
                       ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
                       : 'bg-amber-600 text-white hover:bg-amber-700 active:scale-95'
                   }`}
@@ -277,7 +277,7 @@ const Biblia = () => {
                     </span>
                     <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent">
                       <div className="flex gap-1.5 py-1">
-                        {Array.from({ length: livroSelecionado.chapters || 0 }, (_, i) => i + 1).map((cap) => (
+                        {Array.from({ length: livroSelecionado.total_chapters || 0 }, (_, i) => i + 1).map((cap) => (
                           <button
                             key={cap}
                             onClick={() => handleSelectCapitulo(cap)}
@@ -296,10 +296,10 @@ const Biblia = () => {
                 </div>
 
                 <button
-                  onClick={() => capituloSelecionado < (livroSelecionado.chapters || 0) && handleSelectCapitulo(capituloSelecionado + 1)}
-                  disabled={capituloSelecionado === (livroSelecionado.chapters || 0)}
+                  onClick={() => capituloSelecionado < (livroSelecionado.total_chapters || 0) && handleSelectCapitulo(capituloSelecionado + 1)}
+                  disabled={capituloSelecionado === (livroSelecionado.total_chapters || 0)}
                   className={`flex-shrink-0 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    capituloSelecionado === (livroSelecionado.chapters || 0)
+                    capituloSelecionado === (livroSelecionado.total_chapters || 0)
                       ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
                       : 'bg-amber-600 text-white hover:bg-amber-700'
                   }`}
