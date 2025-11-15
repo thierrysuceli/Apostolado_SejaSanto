@@ -8,10 +8,12 @@ const Header = () => {
   const { currentUser, isAdmin, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
 
   const menuItems = [
     { id: 'home', label: 'Home', path: '/' },
     { id: 'about', label: 'Sobre Nós', path: '/about' },
+    { id: 'liturgia', label: 'Liturgia', path: '/liturgia' },
     { id: 'biblia', label: 'Bíblia', path: '/biblia' },
     { id: 'cursos', label: 'Cursos', path: '/courses' },
     { id: 'postagens', label: 'Postagens', path: '/posts' },
@@ -54,6 +56,50 @@ const Header = () => {
 
   return (
     <>
+      {/* Desktop Header Bar with Hamburger */}
+      <header className="hidden md:block sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-beige-300 dark:border-gray-800 shadow-sm transition-colors duration-300">
+        <div className="h-16 px-4 flex items-center justify-between">
+          <button
+            onClick={() => setDesktopSidebarOpen(!desktopSidebarOpen)}
+            className="p-2 rounded-lg hover:bg-beige-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6 text-secondary-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-beige-200 dark:bg-gray-800 hover:bg-beige-300 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-secondary-700" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+
+            {currentUser && (
+              <Link
+                to="/profile"
+                className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center"
+              >
+                <span className="text-white font-bold text-xs">
+                  {currentUser.name.charAt(0).toUpperCase()}
+                </span>
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+
       {/* Mobile Header */}
       <header className="md:hidden sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-beige-300 dark:border-gray-800 shadow-sm transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -188,7 +234,9 @@ const Header = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col w-64 lg:w-72 bg-white dark:bg-gray-900 border-r border-beige-200 dark:border-gray-800 shadow-xl min-h-screen sticky top-0">
+      <aside className={`hidden md:flex md:flex-col w-64 lg:w-72 bg-white dark:bg-gray-900 border-r border-beige-200 dark:border-gray-800 shadow-xl fixed top-16 left-0 bottom-0 z-40 transition-transform duration-300 ${
+        desktopSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div className="px-6 pt-10 pb-8 border-b border-beige-200 dark:border-gray-800">
           <Link to="/" className="flex items-center">
             <img 

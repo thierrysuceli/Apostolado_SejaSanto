@@ -3,7 +3,7 @@
 // GET /api/admin/permissions
 // =====================================================
 
-import { supabaseAdmin } from '../lib/supabaseServer.js';
+import { supabaseAdmin } from '../lib/supabaseServer.js';w
 import { authenticate, requireRole } from '../middleware/auth.js';
 
 export default async function handler(req, res) {

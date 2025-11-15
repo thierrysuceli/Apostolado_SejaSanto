@@ -29,6 +29,7 @@ import AdminUsers from './pages/AdminUsers';
 import AdminRoles from './pages/AdminRoles';
 import AdminBibleNotes from './pages/AdminBibleNotes';
 import Biblia from './pages/Biblia';
+import Liturgia from './pages/Liturgia';
 import Historico from './pages/Historico';
 
 function App() {
@@ -37,13 +38,14 @@ function App() {
       <AuthProvider>
         <ApiProvider>
           <BrowserRouter>
-            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300 md:flex">
+            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
               <HeaderNew />
               <div className="flex-1 flex flex-col">
                 <main className="flex-1">
                   <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/liturgia" element={<Liturgia />} />
                   <Route path="/biblia" element={<Biblia />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/courses/:id" element={<CourseDetailNew />} />
