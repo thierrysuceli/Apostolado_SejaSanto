@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="bg-beige-100 dark:bg-gray-900 border-t border-beige-200 dark:border-gray-800 mt-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div>
             <div className="flex items-center mb-4">
@@ -28,7 +28,16 @@ const Footer = () => {
             <h3 className="text-secondary-700 dark:text-gray-200 font-bold mb-4 text-sm uppercase tracking-wider">Links Rápidos</h3>
             <ul className="space-y-2">
               <li><a href="/about" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Sobre Nós</a></li>
-              <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Contato</a></li>
+              <li>
+                <a 
+                  href="https://wa.me/5527999445700" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium"
+                >
+                  Contato (WhatsApp)
+                </a>
+              </li>
               <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Termos de Uso</a></li>
               <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Política de Privacidade</a></li>
             </ul>
@@ -50,6 +59,28 @@ const Footer = () => {
                 </svg>
               </a>
             </div>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="text-secondary-700 dark:text-gray-200 font-bold mb-4 text-sm uppercase tracking-wider">Contato</h3>
+            <p className="text-secondary-600 dark:text-gray-400 text-sm leading-relaxed mb-3">
+              Atendimento exclusivo por mensagens de WhatsApp.
+            </p>
+            <a
+              href="https://wa.me/5527999445700"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 text-primary-700 dark:text-primary-400 font-semibold text-base"
+            >
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white font-bold">
+                W
+              </span>
+              <span>(27) 99944-5700</span>
+            </a>
+            <p className="text-xs text-secondary-500 dark:text-gray-500 mt-3">
+              Preferimos responder o quanto antes, sempre por mensagens.
+            </p>
           </div>
         </div>
 

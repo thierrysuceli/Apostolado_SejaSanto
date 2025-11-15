@@ -37,10 +37,11 @@ function App() {
       <AuthProvider>
         <ApiProvider>
           <BrowserRouter>
-            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300 md:flex">
               <HeaderNew />
-              <main>
-                <Routes>
+              <div className="flex-1 flex flex-col">
+                <main className="flex-1">
+                  <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/biblia" element={<Biblia />} />
@@ -67,10 +68,11 @@ function App() {
                   <Route path="/admin/tags" element={<AdminTags />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/roles" element={<AdminRoles />} />
-                  <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
-                </Routes>
-              </main>
-              <Footer />
+                    <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
             </div>
           </BrowserRouter>
         </ApiProvider>
