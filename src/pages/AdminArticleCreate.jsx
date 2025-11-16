@@ -115,7 +115,7 @@ const AdminArticleCreate = () => {
       }
 
       // Create article
-      await api.post('/articles', articleData);
+      await api.post('/api/content?type=articles', articleData);
 
       // Navigate to articles page
       navigate('/artigos');

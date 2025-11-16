@@ -126,7 +126,7 @@ const AdminNewsCreate = () => {
       }
 
       // Create news
-      await api.post('/news', newsData);
+      await api.post('/api/content?type=news', newsData);
 
       // Navigate to news page
       navigate('/noticias');

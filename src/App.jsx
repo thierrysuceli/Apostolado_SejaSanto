@@ -34,6 +34,8 @@ import AdminTags from './pages/AdminTags';
 import AdminUsers from './pages/AdminUsers';
 import AdminRoles from './pages/AdminRoles';
 import AdminBibleNotes from './pages/AdminBibleNotes';
+import AdminEditorialColumns from './pages/admin/AdminEditorialColumns';
+import AdminNewsTags from './pages/admin/AdminNewsTags';
 import Biblia from './pages/Biblia';
 import Liturgia from './pages/Liturgia';
 import Historico from './pages/Historico';
@@ -82,6 +84,8 @@ function App() {
                   <Route path="/admin/tags" element={<AdminTags />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/roles" element={<AdminRoles />} />
+                  <Route path="/admin/editorial-columns" element={<AdminEditorialColumns />} />
+                  <Route path="/admin/news-tags" element={<AdminNewsTags />} />
                     <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
                   </Routes>
                 </main>

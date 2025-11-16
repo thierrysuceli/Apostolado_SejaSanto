@@ -254,6 +254,28 @@ const Admin = () => {
                 </button>
 
                 <button
+                  onClick={() => navigate('/admin/editorial-columns')}
+                  className="flex items-center gap-3 p-4 border-2 border-pink-500 bg-pink-50 dark:bg-pink-900/20 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors text-left"
+                >
+                  <div className="text-3xl">📰</div>
+                  <div>
+                    <h3 className="font-bold text-pink-700 dark:text-pink-500">Colunas Editoriais</h3>
+                    <p className="text-sm text-pink-600 dark:text-pink-400">Gerenciar colunas de artigos</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => navigate('/admin/news-tags')}
+                  className="flex items-center gap-3 p-4 border-2 border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors text-left"
+                >
+                  <div className="text-3xl">#️⃣</div>
+                  <div>
+                    <h3 className="font-bold text-cyan-700 dark:text-cyan-500">Tags de Notícias</h3>
+                    <p className="text-sm text-cyan-600 dark:text-cyan-400">Gerenciar tags de notícias</p>
+                  </div>
+                </button>
+
+                <button
                   onClick={() => navigate('/admin/courses/create')}
                   className="flex items-center gap-3 p-4 border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
                 >

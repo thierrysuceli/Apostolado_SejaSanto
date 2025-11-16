@@ -13,13 +13,12 @@ export default function Historico() {
   const api = useApi();
   const { isDark } = useTheme();
   const [courseProgress, setCourseProgress] = useState([]);
-  const [postProgress, setPostProgress] = useState([]);
   const [articleHistory, setArticleHistory] = useState([]);
   const [newsHistory, setNewsHistory] = useState([]);
   const [bibleProgress, setBibleProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('all'); // all, courses, posts, articles, news, bible
+  const [activeTab, setActiveTab] = useState('all'); // all, courses, articles, news, bible
 
   useEffect(() => {
     loadProgress();
@@ -30,17 +29,15 @@ export default function Historico() {
       setLoading(true);
       setError(null);
 
-      // Carregar progresso de cursos, posts, artigos, notícias e bíblia em paralelo
-      const [coursesData, postsData, articlesData, newsData, bibleData] = await Promise.all([
+      // Carregar progresso de cursos, artigos, notícias e bíblia em paralelo
+      const [coursesData, articlesData, newsData, bibleData] = await Promise.all([
         api.progress.getCourseProgress(),
-        api.progress.getPostProgress(),
         api.get('/api/public-data?type=article-history').catch(() => ({ history: [] })),
         api.get('/api/public-data?type=news-history').catch(() => ({ history: [] })),
         api.bibleProgress.get()
       ]);
 
       setCourseProgress(coursesData.progress || []);
-      setPostProgress(postsData.progress || []);
       setArticleHistory(articlesData.history || []);
       setNewsHistory(newsData.history || []);
       setBibleProgress(bibleData.progress || null);
@@ -61,18 +58,6 @@ export default function Historico() {
     } catch (err) {
       console.error('Erro ao deletar progresso:', err);
       alert('Erro ao remover curso do histórico');
-    }
-  };
-
-  const handleDeletePostProgress = async (postId) => {
-    if (!confirm('Deseja remover este artigo do seu histórico?')) return;
-
-    try {
-      await api.progress.deletePostProgress(postId);
-      setPostProgress(prev => prev.filter(p => p.post_id !== postId));
-    } catch (err) {
-      console.error('Erro ao deletar progresso:', err);
-      alert('Erro ao remover artigo do histórico');
     }
   };
 
@@ -103,7 +88,6 @@ export default function Historico() {
   const tabs = [
     { id: 'all', label: 'Tudo', icon: ClockIcon },
     { id: 'courses', label: 'Cursos', icon: AcademicCapIcon, count: courseProgress.length },
-    { id: 'posts', label: 'Posts', icon: DocumentTextIcon, count: postProgress.length },
     { id: 'articles', label: 'Artigos', icon: DocumentTextIcon, count: articleHistory.length },
     { id: 'news', label: 'Notícias', icon: NewspaperIcon, count: newsHistory.length },
     { id: 'bible', label: 'Bíblia', icon: BookOpenIcon, show: !!bibleProgress }
@@ -140,7 +124,7 @@ export default function Historico() {
     );
   }
 
-  const hasProgress = courseProgress.length > 0 || postProgress.length > 0 || articleHistory.length > 0 || newsHistory.length > 0 || bibleProgress;
+  const hasProgress = courseProgress.length > 0 || articleHistory.length > 0 || newsHistory.length > 0 || bibleProgress;
 
   const showSection = (section) => activeTab === 'all' || activeTab === section;
 
@@ -328,115 +312,6 @@ export default function Historico() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   handleDeleteCourseProgress(course.id);
-                                }}
-                                className={`p-2 rounded-lg transition ${
-                                  isDark 
-                                    ? 'hover:bg-red-500/20 text-red-400' 
-                                    : 'hover:bg-red-100 text-red-600'
-                                }`}
-                                title="Remover do histórico"
-                              >
-                                <TrashIcon className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </HorizontalScroller>
-              </section>
-            )}
-
-            {/* Posts */}
-            {postProgress.length > 0 && showSection('posts') && (
-              <section>
-                <div className="flex items-center gap-2 mb-6">
-                  <DocumentTextIcon className="w-6 h-6 text-amber-500" />
-                  <h2 className="text-2xl font-bold">Posts em Leitura</h2>
-                  <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {postProgress.length} {postProgress.length === 1 ? 'post' : 'posts'}
-                  </span>
-                </div>
-
-                <HorizontalScroller>
-                  {postProgress.map((progress) => {
-                    const post = progress.posts;
-                    if (!post) return null;
-
-                    const scrollPercentage = progress.scroll_percentage || 0;
-
-                    return (
-                      <div
-                        key={progress.id}
-                        className={`flex-shrink-0 w-80 rounded-xl overflow-hidden ${
-                          isDark ? 'bg-gray-900' : 'bg-white'
-                        } shadow-lg hover:shadow-xl transition`}
-                      >
-                        {/* Thumbnail */}
-                        <Link to={`/posts/${post.id}`} className="block">
-                          <div className="relative aspect-video overflow-hidden">
-                            {post.cover_image_url ? (
-                              <img
-                                src={post.cover_image_url}
-                                alt={post.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                <DocumentTextIcon className="w-16 h-16 text-white opacity-50" />
-                              </div>
-                            )}
-                            {progress.completed && (
-                              <div className="absolute top-2 right-2 bg-green-500 text-white p-2 rounded-full">
-                                <CheckCircleIcon className="w-5 h-5" />
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Content */}
-                        <div className="p-4">
-                          <Link to={`/posts/${post.id}`}>
-                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-amber-500 transition">
-                              {post.title}
-                            </h3>
-                          </Link>
-
-                          {/* Progress Bar */}
-                          <div className="mb-3">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                                {Math.round(scrollPercentage)}% lido
-                              </span>
-                              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                                {formatDuration(progress.reading_time_seconds)}
-                              </span>
-                            </div>
-                            <div className={`w-full h-2 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
-                              <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
-                                style={{ width: `${Math.min(100, scrollPercentage)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Footer */}
-                          <div className="flex items-center justify-between">
-                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                              {formatDate(progress.updated_at)}
-                            </span>
-                            <div className="flex gap-2">
-                              <Link
-                                to={`/posts/${post.id}`}
-                                className="px-4 py-2 bg-amber-500 text-black text-sm font-medium rounded-lg hover:bg-amber-600 transition"
-                              >
-                                Continuar
-                              </Link>
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleDeletePostProgress(post.id);
                                 }}
                                 className={`p-2 rounded-lg transition ${
                                   isDark 
