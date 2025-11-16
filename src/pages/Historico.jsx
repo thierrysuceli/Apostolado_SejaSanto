@@ -1,12 +1,13 @@
 // =====================================================
-// HISTÓRICO - Página de Progresso do Usuário
+// HISTÓRICO - Página de Progresso do Usuário (NOVA VERSÃO)
 // =====================================================
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { ClockIcon, BookOpenIcon, DocumentTextIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, BookOpenIcon, DocumentTextIcon, TrashIcon, CheckCircleIcon, NewspaperIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
+import HorizontalScroller from '../components/HorizontalScroller';
 
 export default function Historico() {
   const api = useApi();
@@ -18,6 +19,7 @@ export default function Historico() {
   const [bibleProgress, setBibleProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('all'); // all, courses, posts, articles, news, bible
 
   useEffect(() => {
     loadProgress();
@@ -98,6 +100,15 @@ export default function Historico() {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
+  const tabs = [
+    { id: 'all', label: 'Tudo', icon: ClockIcon },
+    { id: 'courses', label: 'Cursos', icon: AcademicCapIcon, count: courseProgress.length },
+    { id: 'posts', label: 'Posts', icon: DocumentTextIcon, count: postProgress.length },
+    { id: 'articles', label: 'Artigos', icon: DocumentTextIcon, count: articleHistory.length },
+    { id: 'news', label: 'Notícias', icon: NewspaperIcon, count: newsHistory.length },
+    { id: 'bible', label: 'Bíblia', icon: BookOpenIcon, show: !!bibleProgress }
+  ];
+
   if (loading) {
     return (
       <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -131,6 +142,8 @@ export default function Historico() {
 
   const hasProgress = courseProgress.length > 0 || postProgress.length > 0 || articleHistory.length > 0 || newsHistory.length > 0 || bibleProgress;
 
+  const showSection = (section) => activeTab === 'all' || activeTab === section;
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="container mx-auto px-4 py-8 sm:py-12">
@@ -145,9 +158,40 @@ export default function Historico() {
           </p>
         </div>
 
+        {/* Tabs - Filtros por Tipo */}
+        <div className="mb-8 flex flex-wrap gap-2 border-b border-gray-700 pb-4">
+          {tabs.map(tab => {
+            if (tab.show === false) return null;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                  activeTab === tab.id
+                    ? 'bg-amber-500 text-black'
+                    : isDark
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                    activeTab === tab.id ? 'bg-black text-amber-500' : 'bg-amber-500 text-black'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Card Leitura da Bíblia */}
-        {bibleProgress && (
-          <div className="mb-8">
+        {bibleProgress && showSection('bible') && (
+          <div className="mb-12">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <BookOpenIcon className="w-6 h-6 text-amber-500" />
               Leitura da Bíblia
@@ -194,17 +238,17 @@ export default function Historico() {
         ) : (
           <div className="space-y-12">
             {/* Cursos */}
-            {courseProgress.length > 0 && (
+            {courseProgress.length > 0 && showSection('courses') && (
               <section>
                 <div className="flex items-center gap-2 mb-6">
-                  <BookOpenIcon className="w-6 h-6 text-amber-500" />
+                  <AcademicCapIcon className="w-6 h-6 text-amber-500" />
                   <h2 className="text-2xl font-bold">Cursos em Andamento</h2>
                   <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     {courseProgress.length} {courseProgress.length === 1 ? 'curso' : 'cursos'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <HorizontalScroller>
                   {courseProgress.map((progress) => {
                     const course = progress.courses;
                     if (!course) return null;
@@ -216,7 +260,7 @@ export default function Historico() {
                     return (
                       <div
                         key={progress.id}
-                        className={`group relative rounded-xl overflow-hidden ${
+                        className={`flex-shrink-0 w-80 rounded-xl overflow-hidden ${
                           isDark ? 'bg-gray-900' : 'bg-white'
                         } shadow-lg hover:shadow-xl transition`}
                       >
@@ -245,7 +289,7 @@ export default function Historico() {
                         {/* Content */}
                         <div className="p-4">
                           <Link to={`/courses/${course.id}`}>
-                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-amber-500 transition">
                               {course.title}
                             </h3>
                           </Link>
@@ -300,22 +344,22 @@ export default function Historico() {
                       </div>
                     );
                   })}
-                </div>
+                </HorizontalScroller>
               </section>
             )}
 
-            {/* Artigos */}
-            {postProgress.length > 0 && (
+            {/* Posts */}
+            {postProgress.length > 0 && showSection('posts') && (
               <section>
                 <div className="flex items-center gap-2 mb-6">
                   <DocumentTextIcon className="w-6 h-6 text-amber-500" />
-                  <h2 className="text-2xl font-bold">Artigos em Leitura</h2>
+                  <h2 className="text-2xl font-bold">Posts em Leitura</h2>
                   <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {postProgress.length} {postProgress.length === 1 ? 'artigo' : 'artigos'}
+                    {postProgress.length} {postProgress.length === 1 ? 'post' : 'posts'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <HorizontalScroller>
                   {postProgress.map((progress) => {
                     const post = progress.posts;
                     if (!post) return null;
@@ -325,7 +369,7 @@ export default function Historico() {
                     return (
                       <div
                         key={progress.id}
-                        className={`group relative rounded-xl overflow-hidden ${
+                        className={`flex-shrink-0 w-80 rounded-xl overflow-hidden ${
                           isDark ? 'bg-gray-900' : 'bg-white'
                         } shadow-lg hover:shadow-xl transition`}
                       >
@@ -354,7 +398,7 @@ export default function Historico() {
                         {/* Content */}
                         <div className="p-4">
                           <Link to={`/posts/${post.id}`}>
-                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-amber-500 transition">
                               {post.title}
                             </h3>
                           </Link>
@@ -409,12 +453,12 @@ export default function Historico() {
                       </div>
                     );
                   })}
-                </div>
+                </HorizontalScroller>
               </section>
             )}
 
             {/* Artigos */}
-            {articleHistory.length > 0 && (
+            {articleHistory.length > 0 && showSection('articles') && (
               <section>
                 <div className="flex items-center gap-2 mb-6">
                   <DocumentTextIcon className="w-6 h-6 text-amber-500" />
@@ -424,7 +468,7 @@ export default function Historico() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <HorizontalScroller>
                   {articleHistory.map((history) => {
                     const article = history.article;
                     if (!article) return null;
@@ -432,7 +476,7 @@ export default function Historico() {
                     return (
                       <div
                         key={history.id}
-                        className={`group relative rounded-xl overflow-hidden ${
+                        className={`flex-shrink-0 w-80 rounded-xl overflow-hidden ${
                           isDark ? 'bg-gray-900' : 'bg-white'
                         } shadow-lg hover:shadow-xl transition`}
                       >
@@ -454,7 +498,7 @@ export default function Historico() {
 
                         <div className="p-4">
                           <Link to={`/artigos/${article.slug}`}>
-                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-amber-500 transition">
                               {article.title}
                             </h3>
                           </Link>
@@ -474,22 +518,22 @@ export default function Historico() {
                       </div>
                     );
                   })}
-                </div>
+                </HorizontalScroller>
               </section>
             )}
 
             {/* Notícias */}
-            {newsHistory.length > 0 && (
+            {newsHistory.length > 0 && showSection('news') && (
               <section>
                 <div className="flex items-center gap-2 mb-6">
-                  <DocumentTextIcon className="w-6 h-6 text-amber-500" />
+                  <NewspaperIcon className="w-6 h-6 text-amber-500" />
                   <h2 className="text-2xl font-bold">Notícias Lidas</h2>
                   <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     {newsHistory.length} {newsHistory.length === 1 ? 'notícia' : 'notícias'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <HorizontalScroller>
                   {newsHistory.map((history) => {
                     const news = history.news;
                     if (!news) return null;
@@ -497,7 +541,7 @@ export default function Historico() {
                     return (
                       <div
                         key={history.id}
-                        className={`group relative rounded-xl overflow-hidden ${
+                        className={`flex-shrink-0 w-80 rounded-xl overflow-hidden ${
                           isDark ? 'bg-gray-900' : 'bg-white'
                         } shadow-lg hover:shadow-xl transition`}
                       >
@@ -511,7 +555,7 @@ export default function Historico() {
                               />
                             ) : (
                               <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                                <DocumentTextIcon className="w-16 h-16 text-white opacity-50" />
+                                <NewspaperIcon className="w-16 h-16 text-white opacity-50" />
                               </div>
                             )}
                           </div>
@@ -519,7 +563,7 @@ export default function Historico() {
 
                         <div className="p-4">
                           <Link to={`/noticias/${news.slug}`}>
-                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-amber-500 transition">
                               {news.title}
                             </h3>
                           </Link>
@@ -539,7 +583,7 @@ export default function Historico() {
                       </div>
                     );
                   })}
-                </div>
+                </HorizontalScroller>
               </section>
             )}
           </div>
