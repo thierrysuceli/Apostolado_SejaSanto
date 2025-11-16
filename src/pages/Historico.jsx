@@ -13,6 +13,8 @@ export default function Historico() {
   const { isDark } = useTheme();
   const [courseProgress, setCourseProgress] = useState([]);
   const [postProgress, setPostProgress] = useState([]);
+  const [articleHistory, setArticleHistory] = useState([]);
+  const [newsHistory, setNewsHistory] = useState([]);
   const [bibleProgress, setBibleProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,15 +28,19 @@ export default function Historico() {
       setLoading(true);
       setError(null);
 
-      // Carregar progresso de cursos, posts e bíblia em paralelo
-      const [coursesData, postsData, bibleData] = await Promise.all([
+      // Carregar progresso de cursos, posts, artigos, notícias e bíblia em paralelo
+      const [coursesData, postsData, articlesData, newsData, bibleData] = await Promise.all([
         api.progress.getCourseProgress(),
         api.progress.getPostProgress(),
+        api.get('/public-data?type=article-history').catch(() => ({ history: [] })),
+        api.get('/public-data?type=news-history').catch(() => ({ history: [] })),
         api.bibleProgress.get()
       ]);
 
       setCourseProgress(coursesData.progress || []);
       setPostProgress(postsData.progress || []);
+      setArticleHistory(articlesData.history || []);
+      setNewsHistory(newsData.history || []);
       setBibleProgress(bibleData.progress || null);
     } catch (err) {
       console.error('Erro ao carregar histórico:', err);
@@ -123,7 +129,7 @@ export default function Historico() {
     );
   }
 
-  const hasProgress = courseProgress.length > 0 || postProgress.length > 0 || bibleProgress;
+  const hasProgress = courseProgress.length > 0 || postProgress.length > 0 || articleHistory.length > 0 || newsHistory.length > 0 || bibleProgress;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -398,6 +404,136 @@ export default function Historico() {
                                 <TrashIcon className="w-5 h-5" />
                               </button>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Artigos */}
+            {articleHistory.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-6">
+                  <DocumentTextIcon className="w-6 h-6 text-amber-500" />
+                  <h2 className="text-2xl font-bold">Artigos Lidos</h2>
+                  <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {articleHistory.length} {articleHistory.length === 1 ? 'artigo' : 'artigos'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {articleHistory.map((history) => {
+                    const article = history.article;
+                    if (!article) return null;
+
+                    return (
+                      <div
+                        key={history.id}
+                        className={`group relative rounded-xl overflow-hidden ${
+                          isDark ? 'bg-gray-900' : 'bg-white'
+                        } shadow-lg hover:shadow-xl transition`}
+                      >
+                        <Link to={`/artigos/${article.slug}`} className="block">
+                          <div className="relative aspect-video overflow-hidden">
+                            {article.cover_image_url ? (
+                              <img
+                                src={article.cover_image_url}
+                                alt={article.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                                <DocumentTextIcon className="w-16 h-16 text-white opacity-50" />
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+
+                        <div className="p-4">
+                          <Link to={`/artigos/${article.slug}`}>
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                              {article.title}
+                            </h3>
+                          </Link>
+
+                          <div className="flex items-center justify-between mt-3">
+                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                              {formatDate(history.last_read_at)}
+                            </span>
+                            <Link
+                              to={`/artigos/${article.slug}`}
+                              className="px-4 py-2 bg-amber-500 text-black text-sm font-medium rounded-lg hover:bg-amber-600 transition"
+                            >
+                              Ler
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Notícias */}
+            {newsHistory.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-6">
+                  <DocumentTextIcon className="w-6 h-6 text-amber-500" />
+                  <h2 className="text-2xl font-bold">Notícias Lidas</h2>
+                  <span className={`ml-auto text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {newsHistory.length} {newsHistory.length === 1 ? 'notícia' : 'notícias'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {newsHistory.map((history) => {
+                    const news = history.news;
+                    if (!news) return null;
+
+                    return (
+                      <div
+                        key={history.id}
+                        className={`group relative rounded-xl overflow-hidden ${
+                          isDark ? 'bg-gray-900' : 'bg-white'
+                        } shadow-lg hover:shadow-xl transition`}
+                      >
+                        <Link to={`/noticias/${news.slug}`} className="block">
+                          <div className="relative aspect-video overflow-hidden">
+                            {news.cover_image_url ? (
+                              <img
+                                src={news.cover_image_url}
+                                alt={news.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                                <DocumentTextIcon className="w-16 h-16 text-white opacity-50" />
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+
+                        <div className="p-4">
+                          <Link to={`/noticias/${news.slug}`}>
+                            <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-amber-500 transition">
+                              {news.title}
+                            </h3>
+                          </Link>
+
+                          <div className="flex items-center justify-between mt-3">
+                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                              {formatDate(history.last_read_at)}
+                            </span>
+                            <Link
+                              to={`/noticias/${news.slug}`}
+                              className="px-4 py-2 bg-amber-500 text-black text-sm font-medium rounded-lg hover:bg-amber-600 transition"
+                            >
+                              Ler
+                            </Link>
                           </div>
                         </div>
                       </div>

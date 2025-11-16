@@ -10,6 +10,10 @@ import Courses from './pages/Courses';
 import CourseDetailNew from './pages/CourseDetailNew';
 import Posts from './pages/Posts';
 import PostDetail from './pages/PostDetail';
+import Artigos from './pages/Artigos';
+import ArtigoDetail from './pages/ArtigoDetail';
+import Noticias from './pages/Noticias';
+import NoticiaDetail from './pages/NoticiaDetail';
 import TopicDetail from './pages/TopicDetail';
 import Calendar from './pages/Calendar';
 import Central from './pages/Central';
@@ -19,6 +23,8 @@ import Admin from './pages/Admin';
 import AdminContentEditor from './pages/AdminContentEditor';
 import AdminCourseCreate from './pages/AdminCourseCreate';
 import AdminPostCreate from './pages/AdminPostCreate';
+import AdminArticleCreate from './pages/AdminArticleCreate';
+import AdminNewsCreate from './pages/AdminNewsCreate';
 import AdminEventCreate from './pages/AdminEventCreate';
 import AdminCourseEdit from './pages/AdminCourseEdit';
 import AdminPostEdit from './pages/AdminPostEdit';
@@ -51,6 +57,10 @@ function App() {
                   <Route path="/courses/:id" element={<CourseDetailNew />} />
                   <Route path="/courses/:courseId/topics/:topicId" element={<TopicDetail />} />
                   <Route path="/courses/:courseId/modules/:moduleId/topics/:topicId" element={<TopicDetail />} />
+                  <Route path="/artigos" element={<Artigos />} />
+                  <Route path="/artigos/:slug" element={<ArtigoDetail />} />
+                  <Route path="/noticias" element={<Noticias />} />
+                  <Route path="/noticias/:slug" element={<NoticiaDetail />} />
                   <Route path="/posts" element={<Posts />} />
                   <Route path="/posts/:id" element={<PostDetail />} />
                   <Route path="/calendar" element={<Calendar />} />
@@ -62,6 +72,8 @@ function App() {
                   <Route path="/admin/content-editor" element={<AdminContentEditor />} />
                   <Route path="/admin/courses/create" element={<AdminCourseCreate />} />
                   <Route path="/admin/posts/create" element={<AdminPostCreate />} />
+                  <Route path="/admin/articles/create" element={<AdminArticleCreate />} />
+                  <Route path="/admin/news/create" element={<AdminNewsCreate />} />
                   <Route path="/admin/events/create" element={<AdminEventCreate />} />
                   <Route path="/admin/courses/:id/edit" element={<AdminCourseEdit />} />
                   <Route path="/admin/courses/:id/modules" element={<AdminCourseModules />} />

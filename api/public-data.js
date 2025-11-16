@@ -88,6 +88,96 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Tag deletada' });
     }
     
+    // EDITORIAL COLUMNS
+    if (type === 'editorial-columns' && req.method === 'GET') {
+      const { data, error } = await supabaseAdmin.from('editorial_columns').select('*').order('order_index', { ascending: true });
+      if (error) throw error;
+      return res.status(200).json({ columns: data || [] });
+    }
+    if (type === 'editorial-columns' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem criar colunas' });
+      const { name, description, color, order_index } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nome é obrigatório' });
+      const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const { data, error } = await supabaseAdmin.from('editorial_columns').insert({ name, slug, description, color: color || '#6b7280', order_index: order_index || 0 }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ column: data });
+    }
+    if (type === 'editorial-columns' && req.method === 'PUT') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem editar colunas' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const updateData = { ...req.body };
+      if (updateData.name) {
+        updateData.slug = updateData.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      }
+      const { data, error } = await supabaseAdmin.from('editorial_columns').update(updateData).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ column: data });
+    }
+    if (type === 'editorial-columns' && req.method === 'DELETE') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem deletar colunas' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const { error } = await supabaseAdmin.from('editorial_columns').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Coluna deletada' });
+    }
+
+    // NEWS TAGS
+    if (type === 'news-tags' && req.method === 'GET') {
+      const { data, error } = await supabaseAdmin.from('news_tags').select('*').order('name');
+      if (error) throw error;
+      return res.status(200).json({ tags: data || [] });
+    }
+    if (type === 'news-tags' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem criar tags de notícia' });
+      const { name, description, color } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nome é obrigatório' });
+      const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const { data, error } = await supabaseAdmin.from('news_tags').insert({ name, slug, description, color: color || '#6b7280' }).select().single();
+      if (error) throw error;
+      return res.status(201).json({ tag: data });
+    }
+    if (type === 'news-tags' && req.method === 'PUT') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem editar tags de notícia' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const updateData = { ...req.body };
+      if (updateData.name) {
+        updateData.slug = updateData.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      }
+      const { data, error } = await supabaseAdmin.from('news_tags').update(updateData).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json({ tag: data });
+    }
+    if (type === 'news-tags' && req.method === 'DELETE') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const isAdmin = await hasRole(req.user.id, 'ADMIN');
+      if (!isAdmin) return res.status(403).json({ error: 'Apenas admins podem deletar tags de notícia' });
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
+      const { error } = await supabaseAdmin.from('news_tags').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ message: 'Tag deletada' });
+    }
+    
     // EVENT CATEGORIES
     if (type === 'event-categories' && req.method === 'GET') {
       const { data, error } = await supabaseAdmin.from('event_categories').select('*').order('name');
@@ -1217,6 +1307,136 @@ export default async function handler(req, res) {
 
       if (error) throw error;
       return res.status(200).json({ message: 'Comentário deletado com sucesso' });
+    }
+    
+    // ========================================
+    // ARTICLE & NEWS HISTORY
+    // ========================================
+    
+    // GET article history
+    if (type === 'article-history' && req.method === 'GET') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      
+      const { article_id } = req.query;
+      
+      let query = supabaseAdmin
+        .from('user_article_history')
+        .select(`
+          *,
+          articles!inner(id, title, slug, cover_image_url, excerpt, published_at)
+        `)
+        .eq('user_id', req.user.id)
+        .order('last_read_at', { ascending: false });
+      
+      if (article_id) {
+        query = query.eq('article_id', article_id).single();
+        const { data, error } = await query;
+        if (error && error.code !== 'PGRST116') throw error;
+        return res.status(200).json({ history: data || null });
+      } else {
+        const { data, error } = await query;
+        if (error) throw error;
+        return res.status(200).json({ history: data || [] });
+      }
+    }
+    
+    // POST article history (register read)
+    if (type === 'article-history' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      
+      const { article_id, scroll_percentage, reading_time_seconds } = req.body;
+      
+      if (!article_id) {
+        return res.status(400).json({ error: 'article_id é obrigatório' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('user_article_history')
+        .upsert(
+          {
+            user_id: req.user.id,
+            article_id,
+            scroll_percentage: scroll_percentage || 0,
+            reading_time_seconds: reading_time_seconds || 0,
+            last_read_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'user_id, article_id'
+          }
+        )
+        .select(`
+          *,
+          articles!inner(id, title, slug, cover_image_url, excerpt)
+        `)
+        .single();
+      
+      if (error) throw error;
+      return res.status(200).json({ history: data });
+    }
+    
+    // GET news history
+    if (type === 'news-history' && req.method === 'GET') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      
+      const { news_id } = req.query;
+      
+      let query = supabaseAdmin
+        .from('user_news_history')
+        .select(`
+          *,
+          news!inner(id, title, slug, cover_image_url, excerpt, published_at)
+        `)
+        .eq('user_id', req.user.id)
+        .order('last_read_at', { ascending: false });
+      
+      if (news_id) {
+        query = query.eq('news_id', news_id).single();
+        const { data, error } = await query;
+        if (error && error.code !== 'PGRST116') throw error;
+        return res.status(200).json({ history: data || null });
+      } else {
+        const { data, error } = await query;
+        if (error) throw error;
+        return res.status(200).json({ history: data || [] });
+      }
+    }
+    
+    // POST news history (register read)
+    if (type === 'news-history' && req.method === 'POST') {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      
+      const { news_id, scroll_percentage, reading_time_seconds } = req.body;
+      
+      if (!news_id) {
+        return res.status(400).json({ error: 'news_id é obrigatório' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('user_news_history')
+        .upsert(
+          {
+            user_id: req.user.id,
+            news_id,
+            scroll_percentage: scroll_percentage || 0,
+            reading_time_seconds: reading_time_seconds || 0,
+            last_read_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'user_id, news_id'
+          }
+        )
+        .select(`
+          *,
+          news!inner(id, title, slug, cover_image_url, excerpt)
+        `)
+        .single();
+      
+      if (error) throw error;
+      return res.status(200).json({ history: data });
     }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });

@@ -153,6 +153,22 @@
       "destination": "/api/content?type=posts"
     },
     {
+      "source": "/api/articles/:id",
+      "destination": "/api/content?type=articles&id=:id"
+    },
+    {
+      "source": "/api/articles",
+      "destination": "/api/content?type=articles"
+    },
+    {
+      "source": "/api/news/:id",
+      "destination": "/api/content?type=news&id=:id"
+    },
+    {
+      "source": "/api/news",
+      "destination": "/api/content?type=news"
+    },
+    {
       "source": "/api/events/:id",
       "destination": "/api/content?type=events&id=:id"
     },
@@ -167,6 +183,14 @@
     {
       "source": "/api/tags",
       "destination": "/api/public-data?type=tags"
+    },
+    {
+      "source": "/api/editorial-columns",
+      "destination": "/api/public-data?type=editorial-columns"
+    },
+    {
+      "source": "/api/news-tags",
+      "destination": "/api/public-data?type=news-tags"
     },
     {
       "source": "/api/event-categories",

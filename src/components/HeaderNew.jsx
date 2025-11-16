@@ -8,7 +8,7 @@ const Header = () => {
   const { currentUser, isAdmin, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
 
   const menuItems = [
     { id: 'home', label: 'Home', path: '/' },
@@ -16,7 +16,8 @@ const Header = () => {
     { id: 'liturgia', label: 'Liturgia', path: '/liturgia' },
     { id: 'biblia', label: 'Bíblia', path: '/biblia' },
     { id: 'cursos', label: 'Cursos', path: '/courses' },
-    { id: 'postagens', label: 'Postagens', path: '/posts' },
+    { id: 'artigos', label: 'Artigos', path: '/artigos' },
+    { id: 'noticias', label: 'Notícias', path: '/noticias' },
     { id: 'calendario', label: 'Calendário', path: '/calendar' },
     { id: 'central', label: 'Central', path: '/central' },
   ];

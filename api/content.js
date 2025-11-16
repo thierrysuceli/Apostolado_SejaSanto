@@ -6,11 +6,64 @@ import { sanitizeHTML, sanitizeText, generateSlug } from '../lib-api/sanitize.js
 export default async function handler(req, res) {
   const { type, id, resource } = req.query;
   
-  if (!type) return res.status(400).json({ error: 'Tipo é obrigatório (courses, posts ou events)' });
+  if (!type) return res.status(400).json({ error: 'Tipo é obrigatório (courses, posts, events, articles ou news)' });
+  
+  const tableMap = {
+    courses: 'courses',
+    posts: 'posts',
+    events: 'events',
+    articles: 'articles',
+    news: 'news'
+  };
+  
+  const singularMap = {
+    courses: 'course',
+    posts: 'post',
+    events: 'event',
+    articles: 'article',
+    news: 'news'
+  };
+  
+  const roleRelationMap = {
+    courses: 'course_tags',
+    posts: 'post_tags',
+    events: 'event_tags',
+    articles: 'article_tags',
+    news: 'news_visibility'
+  };
+  
+  const roleIdColumnMap = {
+    courses: 'course_id',
+    posts: 'post_id',
+    events: 'event_id',
+    articles: 'article_id',
+    news: 'news_id'
+  };
+  
+  const table = tableMap[type];
+  const singular = singularMap[type];
+  const relationKey = roleRelationMap[type];
+  const relationIdColumn = roleIdColumnMap[type];
+  const isUuid = typeof id === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+  const primaryKeyColumn = 'id';
+  
+  if (!table || !singular) return res.status(400).json({ error: 'Tipo inválido' });
   
   try {
-    const table = type === 'courses' ? 'courses' : type === 'posts' ? 'posts' : type === 'events' ? 'events' : null;
-    if (!table) return res.status(400).json({ error: 'Tipo inválido' });
+    let effectiveId = id;
+    if ((type === 'articles' || type === 'news') && effectiveId && !isUuid && req.method !== 'POST') {
+      const { data: slugRecord, error: slugError } = await supabaseAdmin
+        .from(table)
+        .select('id')
+        .eq('slug', effectiveId)
+        .maybeSingle();
+      if (slugError && slugError.code !== 'PGRST116') throw slugError;
+      if (!slugRecord) {
+        return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
+      }
+      effectiveId = slugRecord.id;
+    }
+
     
     // ==============================================================
     // 🔒 GET /:type - Listar itens COM CONTROLE DE ACESSO
@@ -42,6 +95,20 @@ export default async function handler(req, res) {
           users(id, name, email),
           event_tags(roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
+        `;
+      } else if (type === 'articles') {
+        baseSelect = `
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at, is_featured, views_count,
+          editorial_column:editorial_columns(id, name, slug, color, description),
+          users!author_id(id, name, avatar_url),
+          article_tags(role_id, roles(id, name, display_name, color))
+        `;
+      } else if (type === 'news') {
+        baseSelect = `
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at, is_featured, views_count,
+          users!author_id(id, name, avatar_url),
+          news_visibility(role_id, roles(id, name, display_name, color)),
+          news_tag_assignments(tag:news_tags(id, name, slug, color))
         `;
       }
       
@@ -79,8 +146,8 @@ export default async function handler(req, res) {
           }
           
           // 1️⃣ Buscar IDs dos itens acessíveis via tags
-          const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-          const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+          const tagTable = relationKey;
+          const idColumn = relationIdColumn;
           
           const { data: itemTags, error: tagError } = await supabaseAdmin
             .from(tagTable)
@@ -122,8 +189,8 @@ export default async function handler(req, res) {
         }
         
         // 1️⃣ Buscar IDs dos itens com role VISITANTE
-        const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-        const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+        const tagTable = relationKey;
+        const idColumn = relationIdColumn;
         
         const { data: itemTags, error: tagError } = await supabaseAdmin
           .from(tagTable)
@@ -155,7 +222,7 @@ export default async function handler(req, res) {
       
       // Formatar dados
       const formattedData = (data || []).map(item => {
-        if (type === 'posts' && item.users) {
+        if ((type === 'posts' || type === 'articles' || type === 'news') && item.users) {
           item.author = item.users;
           delete item.users;
         }
@@ -168,8 +235,11 @@ export default async function handler(req, res) {
           item.modules.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
         }
         // Extrair tags (roles) para facilitar acesso no frontend
-        if (item[`${type.slice(0, -1)}_tags`]) {
-          item.tags = item[`${type.slice(0, -1)}_tags`].map(t => t.roles).filter(Boolean);
+        if (relationKey && item[relationKey]) {
+          item.tags = item[relationKey].map(t => t.roles).filter(Boolean);
+        }
+        if (type === 'news' && item.news_tag_assignments) {
+          item.news_tags = item.news_tag_assignments.map(entry => entry.tag).filter(Boolean);
         }
         return item;
       });
@@ -213,6 +283,20 @@ export default async function handler(req, res) {
           event_tags(roles(id, name, display_name)),
           event_category_tags(category_id, event_categories(id, name, color, icon))
         `;
+      } else if (type === 'articles') {
+        baseSelect = `
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at, is_featured, views_count,
+          editorial_column:editorial_columns(id, name, slug, color, description),
+          users!author_id(id, name, avatar_url),
+          article_tags(role_id, roles(id, name, display_name, color))
+        `;
+      } else if (type === 'news') {
+        baseSelect = `
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at, is_featured, views_count,
+          users!author_id(id, name, avatar_url),
+          news_visibility(role_id, roles(id, name, display_name, color)),
+          news_tag_assignments(tag:news_tags(id, name, slug, color))
+        `;
       }
       
       let data = null;
@@ -226,7 +310,7 @@ export default async function handler(req, res) {
           const { data: item, error } = await supabaseAdmin
             .from(table)
             .select(baseSelect)
-            .eq('id', id)
+            .eq(primaryKeyColumn, effectiveId)
             .single();
           
           if (error && error.code !== 'PGRST116') throw error;
@@ -241,30 +325,30 @@ export default async function handler(req, res) {
           const roleIds = userRoles?.map(ur => ur.role_id) || [];
           
           if (roleIds.length === 0) {
-            return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+            return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
           }
           
           // 1️⃣ Verificar se usuário tem acesso via tags
-          const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-          const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+          const tagTable = relationKey;
+          const idColumn = relationIdColumn;
           
           const { data: itemTag } = await supabaseAdmin
             .from(tagTable)
             .select('role_id')
-            .eq(idColumn, id)
+            .eq(idColumn, effectiveId)
             .in('role_id', roleIds)
             .limit(1)
             .maybeSingle();
           
           if (!itemTag) {
-            return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+            return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
           }
           
           // 2️⃣ Buscar item completo (já sabemos que tem acesso)
           const { data: item, error } = await supabaseAdmin
             .from(table)
             .select(baseSelect)
-            .eq('id', id)
+            .eq(primaryKeyColumn, effectiveId)
             .eq('status', 'published')
             .single();
           
@@ -280,30 +364,30 @@ export default async function handler(req, res) {
           .single();
         
         if (!visitanteRole) {
-          return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+          return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
         }
         
         // 1️⃣ Verificar se item tem role VISITANTE
-        const tagTable = type === 'courses' ? 'course_tags' : type === 'posts' ? 'post_tags' : 'event_tags';
-        const idColumn = type === 'courses' ? 'course_id' : type === 'posts' ? 'post_id' : 'event_id';
+        const tagTable = relationKey;
+        const idColumn = relationIdColumn;
         
         const { data: itemTag } = await supabaseAdmin
           .from(tagTable)
           .select('role_id')
-          .eq(idColumn, id)
+          .eq(idColumn, effectiveId)
           .eq('role_id', visitanteRole.id)
           .limit(1)
           .maybeSingle();
         
         if (!itemTag) {
-          return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+          return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
         }
         
         // 2️⃣ Buscar item completo
         const { data: item, error } = await supabaseAdmin
           .from(table)
           .select(baseSelect)
-          .eq('id', id)
+          .eq(primaryKeyColumn, effectiveId)
           .eq('status', 'published')
           .single();
         
@@ -312,11 +396,11 @@ export default async function handler(req, res) {
       }
       
       if (!data) {
-        return res.status(404).json({ error: `${type.slice(0, -1)} não encontrado ou sem acesso` });
+        return res.status(404).json({ error: `${singular} não encontrado ou sem acesso` });
       }
       
       // Formatar dados
-      if (type === 'posts' && data.users) {
+      if ((type === 'posts' || type === 'articles' || type === 'news') && data.users) {
         data.author = data.users;
         delete data.users;
       }
@@ -336,9 +420,12 @@ export default async function handler(req, res) {
       }
       
       // Extrair tags (roles)
-      const tagField = `${type.slice(0, -1)}_tags`;
-      if (data[tagField]) {
+      const tagField = relationKey;
+      if (tagField && data[tagField]) {
         data.tags = data[tagField].map(t => t.roles).filter(Boolean);
+      }
+      if (type === 'news' && data.news_tag_assignments) {
+        data.news_tags = data.news_tag_assignments.map(entry => entry.tag).filter(Boolean);
       }
       
       // Formatar event_category_tags
@@ -351,7 +438,7 @@ export default async function handler(req, res) {
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       
-      return res.status(200).json({ [type.slice(0, -1)]: data });
+      return res.status(200).json({ [singular]: data });
     }
     
     // ==============================================================
@@ -401,7 +488,7 @@ export default async function handler(req, res) {
     
     // POST /:type - Criar item
     if (req.method === 'POST' && !id) {
-      const { tags, roles, categories, thematicTags, ...itemData } = req.body;
+      const { tags, roles, categories, thematicTags, newsTags, visibilityRoles, ...itemData } = req.body;
       
       console.log('=== POST CONTENT ===');
       console.log('Type:', type);
@@ -425,6 +512,24 @@ export default async function handler(req, res) {
       if (itemData.location) {
         itemData.location = sanitizeText(itemData.location);
       }
+      if (itemData.excerpt) {
+        itemData.excerpt = sanitizeText(itemData.excerpt);
+      }
+      if (itemData.content) {
+        itemData.content = sanitizeHTML(itemData.content);
+      }
+      
+      if ((type === 'articles' || type === 'news') && !itemData.content) {
+        return res.status(400).json({ error: 'Conteúdo é obrigatório' });
+      }
+      if (type === 'articles') {
+        if (!itemData.editorial_column_id) {
+          return res.status(400).json({ error: 'editorial_column_id é obrigatório para artigos' });
+        }
+        if (!itemData.cover_image_url) {
+          return res.status(400).json({ error: 'Artigos precisam de imagem de capa' });
+        }
+      }
       
       // Validações específicas para events
       if (type === 'events') {
@@ -439,8 +544,8 @@ export default async function handler(req, res) {
         itemData.status = itemData.status || 'published';
       }
       
-      // Garantir author_id para posts
-      if (type === 'posts') {
+      // Garantir author_id para conteúdos editoriais
+      if (type === 'posts' || type === 'articles' || type === 'news') {
         itemData.author_id = req.user.id;
       }
       
@@ -477,14 +582,19 @@ export default async function handler(req, res) {
       
       const itemId = insertResult.id;
       
-      // Associar tags (roles) para posts/events/courses
-      // Aceita tanto 'tags' quanto 'roles' para compatibilidade
-      const roleTags = tags || roles || [];
+      // Associar tags (roles) para conteúdo restrito
+      const roleTags = Array.isArray(visibilityRoles) && visibilityRoles.length > 0
+        ? visibilityRoles
+        : Array.isArray(roles) && roles.length > 0
+          ? roles
+          : Array.isArray(tags)
+            ? tags
+            : [];
       console.log(`[POST ${type}] Processing roleTags:`, roleTags);
       if (Array.isArray(roleTags) && roleTags.length > 0) {
-        const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
+        const tagTable = relationKey;
         const itemTags = roleTags.map(roleId => ({
-          [`${type.slice(0, -1)}_id`]: itemId,
+          [`${singular}_id`]: itemId,
           role_id: roleId
         }));
         
@@ -501,12 +611,29 @@ export default async function handler(req, res) {
       if (thematicTags && Array.isArray(thematicTags) && thematicTags.length > 0 && (type === 'courses' || type === 'posts')) {
         const contentTagTable = type === 'courses' ? 'course_content_tags' : 'post_content_tags';
         const contentTags = thematicTags.map(tagId => ({
-          [`${type.slice(0, -1)}_id`]: itemId,
+          [`${singular}_id`]: itemId,
           tag_id: tagId
         }));
         
         const { error: contentTagsError } = await supabaseAdmin.from(contentTagTable).insert(contentTags);
         if (contentTagsError) console.error(`Error inserting ${contentTagTable}:`, contentTagsError);
+      }
+      
+      if (type === 'news' && Array.isArray(newsTags)) {
+        await supabaseAdmin
+          .from('news_tag_assignments')
+          .delete()
+          .eq('news_id', itemId);
+        if (newsTags.length > 0) {
+          const newsAssignments = newsTags.map(tagId => ({
+            news_id: itemId,
+            tag_id: tagId
+          }));
+          const { error: newsTagsError } = await supabaseAdmin
+            .from('news_tag_assignments')
+            .insert(newsAssignments);
+          if (newsTagsError) console.error('Error inserting news_tag_assignments:', newsTagsError);
+        }
       }
       
       // Associar categorias para events
@@ -540,16 +667,16 @@ export default async function handler(req, res) {
       if (fetchError) {
         console.warn(`[POST ${type}] Fetch error (item created but fetch failed):`, fetchError);
         // Retornar pelo menos o ID se o fetch falhar
-        return res.status(201).json({ [type.slice(0, -1)]: insertResult });
+        return res.status(201).json({ [singular]: insertResult });
       }
       
       console.log(`[POST ${type}] Created successfully:`, itemId);
-      return res.status(201).json({ [type.slice(0, -1)]: fullItem });
+      return res.status(201).json({ [singular]: fullItem });
     }
     
     // PUT /:type/:id - Atualizar item
     if (req.method === 'PUT' && id && !resource) {
-      const { tags, roles, categories, thematicTags, ...itemData } = req.body;
+      const { tags, roles, categories, thematicTags, newsTags, ...itemData } = req.body;
       
       // 🧹 SANITIZAR DADOS
       if (itemData.title !== undefined) {
@@ -585,7 +712,7 @@ export default async function handler(req, res) {
       const { data, error } = await supabaseAdmin
         .from(table)
         .update(itemData)
-        .eq('id', id)
+        .eq(primaryKeyColumn, effectiveId)
         .select(selectColumns)
         .single();
       
@@ -598,8 +725,8 @@ export default async function handler(req, res) {
       // Aceita tanto 'tags' quanto 'roles' para compatibilidade
       const roleTags = tags || roles;
       if (roleTags && Array.isArray(roleTags)) {
-        const tagTable = type === 'posts' ? 'post_tags' : type === 'events' ? 'event_tags' : 'course_tags';
-        const idField = `${type.slice(0, -1)}_id`;
+        const tagTable = relationKey;
+        const idField = `${singular}_id`;
         
         // Remover tags antigas
         await supabaseAdmin.from(tagTable).delete().eq(idField, id);
@@ -619,7 +746,7 @@ export default async function handler(req, res) {
       // Atualizar thematic tags (content_tags) para courses e posts
       if (thematicTags && Array.isArray(thematicTags) && (type === 'courses' || type === 'posts')) {
         const contentTagTable = type === 'courses' ? 'course_content_tags' : 'post_content_tags';
-        const idField = `${type.slice(0, -1)}_id`;
+        const idField = `${singular}_id`;
         
         // Remover tags antigas
         await supabaseAdmin.from(contentTagTable).delete().eq(idField, id);
@@ -633,6 +760,23 @@ export default async function handler(req, res) {
           
           const { error: contentTagsError } = await supabaseAdmin.from(contentTagTable).insert(contentTags);
           if (contentTagsError) console.error(`Error updating ${contentTagTable}:`, contentTagsError);
+        }
+      }
+      
+      if (type === 'news' && Array.isArray(newsTags)) {
+        await supabaseAdmin
+          .from('news_tag_assignments')
+          .delete()
+          .eq('news_id', id);
+        if (newsTags.length > 0) {
+          const newsAssignments = newsTags.map(tagId => ({
+            news_id: id,
+            tag_id: tagId
+          }));
+          const { error: newsTagsError } = await supabaseAdmin
+            .from('news_tag_assignments')
+            .insert(newsAssignments);
+          if (newsTagsError) console.error('Error updating news_tag_assignments:', newsTagsError);
         }
       }
       
@@ -659,12 +803,12 @@ export default async function handler(req, res) {
       res.setHeader('Expires', '0');
       
       console.log(`[PUT ${type}] Updated successfully:`, id);
-      return res.status(200).json({ [type.slice(0, -1)]: data });
+      return res.status(200).json({ [singular]: data });
     }
     
     // DELETE /:type/:id - Deletar item
     if (req.method === 'DELETE' && id) {
-      const { error } = await supabaseAdmin.from(table).delete().eq('id', id);
+      const { error } = await supabaseAdmin.from(table).delete().eq(primaryKeyColumn, effectiveId);
       if (error) throw error;
       
       // 🚫 Cache busting para mutações
@@ -673,7 +817,7 @@ export default async function handler(req, res) {
       res.setHeader('Expires', '0');
       
       console.log(`[DELETE ${type}] Deleted successfully:`, id);
-      return res.status(200).json({ message: `${type.slice(0, -1)} deletado com sucesso` });
+      return res.status(200).json({ message: `${singular} deletado com sucesso` });
     }
     
     // Nota: Tags para courses/posts usam tabelas relacionais (course_tags/post_tags)
