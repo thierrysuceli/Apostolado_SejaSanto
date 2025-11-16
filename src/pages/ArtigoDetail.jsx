@@ -17,7 +17,7 @@ const ArtigoDetail = () => {
 
   const fetchArticle = async () => {
     try {
-      const data = await get(`/content?type=articles&id=${slug}`);
+      const data = await get(`/api/content?type=articles&id=${slug}`);
       
       if (data && data.article) {
         const article = data.article;
@@ -25,7 +25,7 @@ const ArtigoDetail = () => {
         
         // Save to history
         if (currentUser) {
-          await post('/public-data?type=article-history', {
+          await post('/api/public-data?type=article-history', {
             article_id: article.id,
             scroll_percentage: 0,
             reading_time_seconds: 0
@@ -34,7 +34,7 @@ const ArtigoDetail = () => {
         
         // Fetch related articles (mesma coluna editorial)
         if (article.editorial_column_id) {
-          const allArticles = await get('/content?type=articles');
+          const allArticles = await get('/api/content?type=articles');
           const related = (allArticles.articles || [])
             .filter(a => a.editorial_column_id === article.editorial_column_id && a.id !== article.id)
             .slice(0, 3);

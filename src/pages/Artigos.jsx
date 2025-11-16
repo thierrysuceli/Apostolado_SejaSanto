@@ -1,25 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Artigos = () => {
   const { isDark } = useTheme();
   const { get } = useApi();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [columns, setColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (user?.roles) {
+      const adminRole = user.roles.some(r => r.name === 'ADMIN');
+      setIsAdmin(adminRole);
+    }
     fetchData();
-  }, []);
+  }, [user]);
 
   const fetchData = async () => {
     try {
       const [articlesRes, columnsRes] = await Promise.all([
-        get('/content?type=articles'),
-        get('/public-data?type=editorial-columns')
+        get('/api/content?type=articles'),
+        get('/api/public-data?type=editorial-columns')
       ]);
       
       setArticles(articlesRes.articles || []);
@@ -55,12 +63,27 @@ const Artigos = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-secondary-700 dark:text-gray-200 mb-2">
-            Artigos
-          </h1>
-          <p className="text-secondary-600 dark:text-gray-400 text-lg">
-            Conteúdos aprofundados de formação católica
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-secondary-700 dark:text-gray-200 mb-2">
+                Artigos
+              </h1>
+              <p className="text-secondary-600 dark:text-gray-400 text-lg">
+                Conteúdos aprofundados de formação católica
+              </p>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin/articles/create')}
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Criar Artigo
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Column Filters */}

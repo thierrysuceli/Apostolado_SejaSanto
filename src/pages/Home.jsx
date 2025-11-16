@@ -135,8 +135,8 @@ const Home = () => {
         const [coursesData, postsData, articlesData, newsData] = await Promise.all([
           api.courses.getAll(),
           api.posts.getAll(),
-          api.get('/content?type=articles'),
-          api.get('/content?type=news')
+          api.get('/api/content?type=articles').catch(() => ({ articles: [] })),
+          api.get('/api/content?type=news').catch(() => ({ news: [] }))
         ]);
         
         // Últimos 5 para o HERO (misturar posts e cursos)

@@ -17,7 +17,7 @@ const NoticiaDetail = () => {
 
   const fetchNews = async () => {
     try {
-      const data = await get(`/content?type=news&id=${slug}`);
+      const data = await get(`/api/content?type=news&id=${slug}`);
       
       if (data && data.news) {
         const newsItem = data.news;
@@ -25,7 +25,7 @@ const NoticiaDetail = () => {
         
         // Save to history
         if (currentUser) {
-          await post('/public-data?type=news-history', {
+          await post('/api/public-data?type=news-history', {
             news_id: newsItem.id,
             scroll_percentage: 0,
             reading_time_seconds: 0
@@ -34,7 +34,7 @@ const NoticiaDetail = () => {
         
         // Fetch related news based on tags
         if (newsItem.news_tags && newsItem.news_tags.length > 0) {
-          const allNews = await get('/content?type=news');
+          const allNews = await get('/api/content?type=news');
           const tagIds = newsItem.news_tags.map(t => t.id);
           const related = (allNews.news || [])
             .filter(n => 
