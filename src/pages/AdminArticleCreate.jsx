@@ -32,7 +32,7 @@ const AdminArticleCreate = () => {
     const loadOptions = async () => {
       try {
         const [columnsRes, rolesData] = await Promise.all([
-          api.get('/editorial-columns'),
+          api.get('/api/public-data?type=editorial-columns'),
           api.admin.roles.getAll()
         ]);
         

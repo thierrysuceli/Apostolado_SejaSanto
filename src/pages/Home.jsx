@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import CourseCard from '../components/CourseCard';
-import PostCard from '../components/PostCard';
 import { PollCard, RegistrationCard, EventCard } from '../components/CentralCards';
 
 const Home = () => {
@@ -16,7 +15,6 @@ const Home = () => {
   const [recentItems, setRecentItems] = useState([]);
   const [currentRecentIndex, setCurrentRecentIndex] = useState(0);
   const [courses, setCourses] = useState([]);
-  const [posts, setPosts] = useState([]);
   const [articles, setArticles] = useState([]);
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,18 +130,14 @@ const Home = () => {
         const userIsAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
         setIsAdmin(userIsAdmin);
         
-        const [coursesData, postsData, articlesData, newsData] = await Promise.all([
+        const [coursesData, articlesData, newsData] = await Promise.all([
           api.courses.getAll(),
-          api.posts.getAll(),
           api.get('/api/content?type=articles').catch(() => ({ articles: [] })),
           api.get('/api/content?type=news').catch(() => ({ news: [] }))
         ]);
         
-        // Últimos 5 para o HERO (misturar posts e cursos)
-        const heroContent = [
-          ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
-          ...(postsData.posts || []).map(p => ({ ...p, type: 'post' }))
-        ];
+        // Últimos 5 para o HERO (apenas cursos)
+        const heroContent = (coursesData.courses || []).map(c => ({ ...c, type: 'course' }));
         
         // Ordenar por data mais recente
         heroContent.sort((a, b) => {
@@ -159,7 +153,6 @@ const Home = () => {
         
         // Show only first 4 of each for bottom sections
         setCourses(coursesData.courses?.slice(0, 4) || []);
-        setPosts(postsData.posts?.slice(0, 6) || []);
         setArticles(articlesData.articles?.slice(0, 3) || []);
         setNews(newsData.news?.slice(0, 4) || []);
       } catch (err) {
@@ -614,16 +607,16 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Latest Posts Section */}
+      {/* Latest News Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Postagens</h2>
-              <p className="text-gray-600 dark:text-gray-400">Reflexões e ensinamentos para sua vida espiritual</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Notícias</h2>
+              <p className="text-gray-600 dark:text-gray-400">Acompanhe as novidades da Igreja e do mundo católico</p>
             </div>
             <Link
-              to="/posts"
+              to="/noticias"
               className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Ver todas
@@ -633,24 +626,180 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.slice(0, 6).length > 0 ? (
-              posts.slice(0, 6).map(post => (
-                <PostCard key={post.id} post={post} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {news.length > 0 ? (
+              news.map(item => (
+                <Link key={item.id} to={`/noticias/${item.slug}`} className="group">
+                  <article className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all h-full flex flex-col">
+                    {item.cover_image_url && (
+                      <div className="h-40 overflow-hidden">
+                        <img
+                          src={item.cover_image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4 flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-amber-500 transition-colors">
+                        {item.title}
+                      </h3>
+                      {item.excerpt && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+                          {item.excerpt}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                </Link>
               ))
             ) : (
-              <p className="col-span-3 text-center text-gray-600 dark:text-gray-400">
-                Nenhuma postagem disponível no momento
+              <p className="col-span-4 text-center text-gray-600 dark:text-gray-400">
+                Nenhuma notícia disponível no momento
               </p>
             )}
           </div>
 
           <div className="mt-8 text-center sm:hidden">
             <Link
-              to="/posts"
+              to="/noticias"
               className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
-              Ver todas as postagens
+              Ver todas as notícias
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest News Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Notícias</h2>
+              <p className="text-gray-600 dark:text-gray-400">Acompanhe as novidades da Igreja e do mundo católico</p>
+            </div>
+            <Link
+              to="/noticias"
+              className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {news.length > 0 ? (
+              news.map(item => (
+                <Link key={item.id} to={`/noticias/${item.slug}`} className="group">
+                  <article className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all h-full flex flex-col">
+                    {item.cover_image_url && (
+                      <div className="h-40 overflow-hidden">
+                        <img
+                          src={item.cover_image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4 flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-amber-500 transition-colors">
+                        {item.title}
+                      </h3>
+                      {item.excerpt && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+                          {item.excerpt}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                </Link>
+              ))
+            ) : (
+              <p className="col-span-4 text-center text-gray-600 dark:text-gray-400">
+                Nenhuma notícia disponível no momento
+              </p>
+            )}
+          </div>
+
+          <div className="mt-8 text-center sm:hidden">
+            <Link
+              to="/noticias"
+              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas as notícias
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest News Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Notícias</h2>
+              <p className="text-gray-600 dark:text-gray-400">Acompanhe as novidades da Igreja e do mundo católico</p>
+            </div>
+            <Link
+              to="/noticias"
+              className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {news.length > 0 ? (
+              news.map(item => (
+                <Link key={item.id} to={`/noticias/${item.slug}`} className="group">
+                  <article className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all h-full flex flex-col">
+                    {item.cover_image_url && (
+                      <div className="h-40 overflow-hidden">
+                        <img
+                          src={item.cover_image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4 flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-amber-500 transition-colors">
+                        {item.title}
+                      </h3>
+                      {item.excerpt && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+                          {item.excerpt}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                </Link>
+              ))
+            ) : (
+              <p className="col-span-4 text-center text-gray-600 dark:text-gray-400">
+                Nenhuma notícia disponível no momento
+              </p>
+            )}
+          </div>
+
+          <div className="mt-8 text-center sm:hidden">
+            <Link
+              to="/noticias"
+              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas as notícias
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
@@ -726,73 +875,6 @@ const Home = () => {
               className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Ver todos os artigos
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Latest News Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Últimas Notícias</h2>
-              <p className="text-gray-600 dark:text-gray-400">Acompanhe as novidades da Igreja e do mundo católico</p>
-            </div>
-            <Link
-              to="/noticias"
-              className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
-            >
-              Ver todas
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {news.length > 0 ? (
-              news.map(item => (
-                <Link key={item.id} to={`/noticias/${item.slug}`} className="group">
-                  <article className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all h-full flex flex-col">
-                    {item.cover_image_url && (
-                      <div className="h-40 overflow-hidden">
-                        <img
-                          src={item.cover_image_url}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <div className="p-4 flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-amber-500 transition-colors">
-                        {item.title}
-                      </h3>
-                      {item.excerpt && (
-                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
-                          {item.excerpt}
-                        </p>
-                      )}
-                    </div>
-                  </article>
-                </Link>
-              ))
-            ) : (
-              <p className="col-span-4 text-center text-gray-600 dark:text-gray-400">
-                Nenhuma notícia disponível no momento
-              </p>
-            )}
-          </div>
-
-          <div className="mt-8 text-center sm:hidden">
-            <Link
-              to="/noticias"
-              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
-            >
-              Ver todas as notícias
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

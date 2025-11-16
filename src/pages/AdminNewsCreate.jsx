@@ -32,7 +32,7 @@ const AdminNewsCreate = () => {
     const loadOptions = async () => {
       try {
         const [tagsRes, rolesData] = await Promise.all([
-          api.get('/news-tags'),
+          api.get('/api/public-data?type=news-tags'),
           api.admin.roles.getAll()
         ]);
         

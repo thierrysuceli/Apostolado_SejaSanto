@@ -32,8 +32,8 @@ export default function Historico() {
       const [coursesData, postsData, articlesData, newsData, bibleData] = await Promise.all([
         api.progress.getCourseProgress(),
         api.progress.getPostProgress(),
-        api.get('/public-data?type=article-history').catch(() => ({ history: [] })),
-        api.get('/public-data?type=news-history').catch(() => ({ history: [] })),
+        api.get('/api/public-data?type=article-history').catch(() => ({ history: [] })),
+        api.get('/api/public-data?type=news-history').catch(() => ({ history: [] })),
         api.bibleProgress.get()
       ]);
 
