@@ -157,51 +157,85 @@ const Artigos = () => {
           </div>
         )}
 
-        {/* Articles Grid - Newspaper Style */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Articles Grid - Large Magazine Style */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {regularArticles.map(article => (
             <Link key={article.id} to={`/artigos/${article.slug}`}>
-              <article className="bg-white dark:bg-gray-900 rounded-xl shadow-md overflow-hidden border border-beige-200 dark:border-gray-800 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
+              <article className="group bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:shadow-2xl hover:border-amber-500 dark:hover:border-amber-500 transition-all duration-300 h-full flex flex-col">
+                {/* Large Cover Image */}
                 {article.cover_image_url && (
-                  <div className="h-48 overflow-hidden">
+                  <div className="relative h-80 overflow-hidden">
                     <img
                       src={article.cover_image_url}
                       alt={article.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    
+                    {/* Editorial Column Badge on Image */}
+                    {article.editorial_column && (
+                      <div className="absolute top-4 left-4">
+                        <span 
+                          className="inline-block px-4 py-2 text-sm font-bold rounded-lg shadow-lg text-white backdrop-blur-sm"
+                          style={{ backgroundColor: `${article.editorial_column.color}dd` }}
+                        >
+                          {article.editorial_column.name}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
-                <div className="p-6 flex-1 flex flex-col">
-                  {article.editorial_column && (
-                    <span 
-                      className="inline-block px-3 py-1 text-xs font-bold rounded-full mb-3 w-fit text-white"
-                      style={{ backgroundColor: article.editorial_column.color }}
-                    >
-                      {article.editorial_column.name}
-                    </span>
-                  )}
-                  <h3 className="text-xl font-bold text-secondary-700 dark:text-gray-200 mb-3 line-clamp-2 leading-tight">
+                
+                {/* Content */}
+                <div className="p-8 flex-1 flex flex-col">
+                  {/* Title */}
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                     {article.title}
                   </h3>
+                  
+                  {/* Subtitle/Excerpt */}
                   {article.excerpt && (
-                    <p className="text-secondary-600 dark:text-gray-400 text-sm mb-4 line-clamp-3 flex-1">
+                    <p className="text-gray-700 dark:text-gray-300 text-base mb-6 line-clamp-3 leading-relaxed flex-1">
                       {article.excerpt}
                     </p>
                   )}
-                  <div className="flex items-center justify-between text-xs text-secondary-500 dark:text-gray-500 mt-auto pt-4 border-t border-beige-200 dark:border-gray-700">
-                    <span className="flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  
+                  {/* Meta Info - Prominent */}
+                  <div className="flex flex-wrap items-center gap-4 pt-6 mt-auto border-t-2 border-gray-200 dark:border-gray-700">
+                    {/* Author */}
+                    {article.author && (
+                      <div className="flex items-center">
+                        {article.author.avatar_url ? (
+                          <img src={article.author.avatar_url} alt={article.author.name} className="w-8 h-8 rounded-full mr-2" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-sm mr-2">
+                            {article.author.name.charAt(0)}
+                          </div>
+                        )}
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{article.author.name}</span>
+                      </div>
+                    )}
+                    
+                    {/* Date */}
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
-                      {new Date(article.published_at).toLocaleDateString('pt-BR')}
-                    </span>
-                    <span className="flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      {new Date(article.published_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    
+                    {/* Views */}
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                         <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                       </svg>
-                      {article.views_count || 0}
-                    </span>
+                      {article.views_count || 0} visualizações
+                    </div>
                   </div>
                 </div>
               </article>

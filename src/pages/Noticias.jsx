@@ -172,37 +172,23 @@ const Noticias = () => {
           </div>
         )}
 
-        {/* Regular News - Compact List Style */}
-        <div className="space-y-4">
+        {/* Regular News - Horizontal List Style (BBC News Style) */}
+        <div className="space-y-6">
           {regularNews.map(item => (
             <Link key={item.id} to={`/noticias/${item.slug}`}>
-              <article className="group bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-md border border-beige-200 dark:border-gray-800 hover:shadow-xl hover:border-primary-600 dark:hover:border-primary-500 transition-all duration-300">
-                <div className="flex flex-col sm:flex-row">
-                  {/* Thumbnail */}
-                  {item.cover_image_url && (
-                    <div className="sm:w-48 h-40 sm:h-auto flex-shrink-0 overflow-hidden">
-                      <img
-                        src={item.cover_image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
+              <article className="group bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 dark:border-gray-800 hover:shadow-2xl hover:border-amber-500 dark:hover:border-amber-500 transition-all duration-300">
+                <div className="flex flex-col sm:flex-row gap-0">
+                  {/* Content - Always First (Left Side) */}
+                  <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between order-1">
                     <div>
                       {/* Tags */}
                       {item.news_tags && item.news_tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {item.news_tags.slice(0, 2).map(tag => (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {item.news_tags.slice(0, 3).map(tag => (
                             <span
                               key={tag.id}
-                              className="px-2 py-1 text-xs font-semibold rounded"
-                              style={{ 
-                                backgroundColor: `${tag.color}20`,
-                                color: tag.color 
-                              }}
+                              className="px-3 py-1 text-xs font-bold rounded-md text-white shadow-md"
+                              style={{ backgroundColor: tag.color }}
                             >
                               {tag.name}
                             </span>
@@ -210,34 +196,62 @@ const Noticias = () => {
                         </div>
                       )}
                       
-                      <h3 className="text-xl font-bold text-secondary-700 dark:text-gray-200 mb-2 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {/* Title */}
+                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                         {item.title}
                       </h3>
                       
+                      {/* Subtitle/Excerpt */}
                       {item.excerpt && (
-                        <p className="text-secondary-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
+                        <p className="text-gray-700 dark:text-gray-300 text-base line-clamp-2 mb-4 leading-relaxed">
                           {item.excerpt}
                         </p>
                       )}
                     </div>
                     
                     {/* Meta Info */}
-                    <div className="flex items-center justify-between text-xs text-secondary-500 dark:text-gray-500">
-                      <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex flex-wrap items-center gap-4 pt-4 mt-2 border-t-2 border-gray-200 dark:border-gray-700">
+                      {/* Date */}
+                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                         </svg>
-                        {new Date(item.published_at).toLocaleDateString('pt-BR')}
-                      </span>
-                      <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        {new Date(item.published_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </div>
+                      
+                      {/* Reading Time */}
+                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        {Math.ceil((item.content?.length || 1000) / 1000)} min
+                      </div>
+                      
+                      {/* Views */}
+                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                           <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                         </svg>
-                        {item.views_count || 0} visualizações
-                      </span>
+                        {item.views_count || 0}
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Thumbnail - Right Side (Only if exists) */}
+                  {item.cover_image_url && (
+                    <div className="sm:w-80 h-56 sm:h-auto flex-shrink-0 overflow-hidden order-2">
+                      <img
+                        src={item.cover_image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  )}
                 </div>
               </article>
             </Link>

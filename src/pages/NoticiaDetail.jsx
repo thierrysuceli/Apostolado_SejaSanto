@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const NoticiaDetail = () => {
   const { slug } = useParams();
-  const { get, post } = useApi();
-  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { get, post, del } = useApi();
+  const { currentUser, user } = useAuth();
   const [news, setNews] = useState(null);
   const [relatedNews, setRelatedNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const userIsAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
+      setIsAdmin(userIsAdmin);
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchNews();
@@ -52,6 +62,21 @@ const NoticiaDetail = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Tem certeza que deseja deletar esta notícia? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      await del(`/api/content?type=news&id=${news.id}`);
+      alert('Notícia deletada com sucesso!');
+      navigate('/noticias');
+    } catch (error) {
+      console.error('Erro ao deletar notícia:', error);
+      alert('Erro ao deletar notícia. Tente novamente.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12">
@@ -74,27 +99,49 @@ const NoticiaDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-100 dark:bg-black">
       {/* Breadcrumb */}
-      <div className="bg-white dark:bg-gray-900 border-b border-beige-200 dark:border-gray-800">
+      <div className="bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center text-sm text-secondary-600 dark:text-gray-400">
-            <Link to="/" className="hover:text-primary-600">Início</Link>
-            <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-            <Link to="/noticias" className="hover:text-primary-600">Notícias</Link>
-            <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="text-secondary-700 dark:text-gray-300 font-medium">Notícia</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <Link to="/" className="hover:text-amber-500">Início</Link>
+              <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              <Link to="/noticias" className="hover:text-amber-500">Notícias</Link>
+              <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-gray-900 dark:text-white font-medium">Notícia</span>
+            </div>
+            
+            {/* Botões Admin */}
+            {isAdmin && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate(`/admin/news/edit/${news.id}`)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition font-semibold"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                  Editar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                  Deletar
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <article className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-beige-200 dark:border-gray-800 overflow-hidden mb-12">
+        <article className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden mb-12">
           {/* Cover Image */}
           {news.cover_image_url && (
             <div className="relative h-96">
@@ -113,10 +160,9 @@ const NoticiaDetail = () => {
                 {news.news_tags.map(tag => (
                   <Link key={tag.id} to={`/noticias?tag=${tag.slug}`}>
                     <span 
-                      className="inline-block px-3 py-1 text-xs font-bold rounded-full text-white hover:opacity-80 transition-opacity"
-                      style={{ backgroundColor: tag.color }}
+                      className="inline-block px-4 py-2 text-xs font-bold rounded-lg bg-amber-500 text-black hover:bg-amber-600 transition shadow-lg"
                     >
-                      {tag.name}
+                      #{tag.name}
                     </span>
                   </Link>
                 ))}
@@ -124,33 +170,33 @@ const NoticiaDetail = () => {
             )}
 
             {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold text-secondary-700 dark:text-gray-200 mb-4 leading-tight">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
               {news.title}
             </h1>
 
             {/* Subtitle */}
             {news.subtitle && (
-              <p className="text-xl text-secondary-600 dark:text-gray-400 mb-6 italic">
+              <p className="text-xl text-gray-700 dark:text-gray-300 mb-6 italic font-medium">
                 {news.subtitle}
               </p>
             )}
 
             {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-4 pb-6 mb-8 border-b border-beige-200 dark:border-gray-700">
+            <div className="flex flex-wrap items-center gap-4 pb-6 mb-8 border-b-2 border-gray-200 dark:border-gray-700">
               {news.author && (
                 <div className="flex items-center">
                   {news.author.avatar_url ? (
                     <img src={news.author.avatar_url} alt={news.author.name} className="w-10 h-10 rounded-full mr-3" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold mr-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-black font-bold mr-3">
                       {news.author.name.charAt(0)}
                     </div>
                   )}
-                  <span className="font-semibold text-secondary-700 dark:text-gray-300">{news.author.name}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{news.author.name}</span>
                 </div>
               )}
-              <span className="text-secondary-500 dark:text-gray-500">•</span>
-              <span className="text-secondary-600 dark:text-gray-400">
+              <span className="text-gray-400 dark:text-gray-600">•</span>
+              <span className="text-gray-700 dark:text-gray-300">
                 {new Date(news.published_at).toLocaleDateString('pt-BR', { 
                   day: '2-digit', 
                   month: 'long', 
@@ -159,8 +205,8 @@ const NoticiaDetail = () => {
                   minute: '2-digit'
                 })}
               </span>
-              <span className="text-secondary-500 dark:text-gray-500">•</span>
-              <span className="text-secondary-600 dark:text-gray-400 flex items-center">
+              <span className="text-gray-400 dark:text-gray-600">•</span>
+              <span className="text-gray-700 dark:text-gray-300 flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
@@ -172,14 +218,16 @@ const NoticiaDetail = () => {
             {/* Content */}
             <div 
               className="prose prose-lg dark:prose-invert max-w-none
-                prose-headings:text-secondary-700 dark:prose-headings:text-gray-200
-                prose-p:text-secondary-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-                prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-secondary-700 dark:prose-strong:text-gray-200
-                prose-blockquote:border-l-4 prose-blockquote:border-primary-600 prose-blockquote:bg-primary-50 dark:prose-blockquote:bg-primary-900/10 prose-blockquote:py-1 prose-blockquote:px-4
-                prose-ul:text-secondary-700 dark:prose-ul:text-gray-300
-                prose-ol:text-secondary-700 dark:prose-ol:text-gray-300
-                prose-img:rounded-lg prose-img:shadow-lg"
+                prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
+                prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-p:leading-relaxed prose-p:mb-4
+                prose-a:text-amber-600 dark:prose-a:text-amber-400 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
+                prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
+                prose-em:text-gray-800 dark:prose-em:text-gray-200
+                prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6
+                prose-ul:text-gray-800 dark:prose-ul:text-gray-200
+                prose-ol:text-gray-800 dark:prose-ol:text-gray-200
+                prose-li:text-gray-800 dark:prose-li:text-gray-200 prose-li:mb-2
+                prose-img:rounded-lg prose-img:shadow-xl"
               dangerouslySetInnerHTML={{ __html: news.content }}
             />
 
