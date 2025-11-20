@@ -136,8 +136,11 @@ const Home = () => {
           api.get('/api/content?type=news').catch(() => ({ news: [] }))
         ]);
         
-        // Últimos 5 para o HERO (apenas cursos)
-        const heroContent = (coursesData.courses || []).map(c => ({ ...c, type: 'course' }));
+        // HERO: Combinar cursos E artigos (5 mais recentes no total)
+        const heroContent = [
+          ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
+          ...(articlesData.articles || []).map(a => ({ ...a, type: 'article' }))
+        ];
         
         // Ordenar por data mais recente
         heroContent.sort((a, b) => {
