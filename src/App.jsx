@@ -36,6 +36,8 @@ import AdminRoles from './pages/AdminRoles';
 import AdminBibleNotes from './pages/AdminBibleNotes';
 import AdminEditorialColumns from './pages/admin/AdminEditorialColumns';
 import AdminNewsTags from './pages/admin/AdminNewsTags';
+import AdminArticleEdit from './pages/admin/AdminArticleEdit';
+import AdminNewsEdit from './pages/admin/AdminNewsEdit';
 import Biblia from './pages/Biblia';
 import Liturgia from './pages/Liturgia';
 import Historico from './pages/Historico';
@@ -75,7 +77,9 @@ function App() {
                   <Route path="/admin/courses/create" element={<AdminCourseCreate />} />
                   <Route path="/admin/posts/create" element={<AdminPostCreate />} />
                   <Route path="/admin/articles/create" element={<AdminArticleCreate />} />
+                  <Route path="/admin/articles/:id/edit" element={<AdminArticleEdit />} />
                   <Route path="/admin/news/create" element={<AdminNewsCreate />} />
+                  <Route path="/admin/news/:id/edit" element={<AdminNewsEdit />} />
                   <Route path="/admin/events/create" element={<AdminEventCreate />} />
                   <Route path="/admin/courses/:id/edit" element={<AdminCourseEdit />} />
                   <Route path="/admin/courses/:id/modules" element={<AdminCourseModules />} />

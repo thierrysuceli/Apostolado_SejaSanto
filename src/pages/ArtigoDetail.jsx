@@ -164,7 +164,7 @@ const ArtigoDetail = () => {
                 </div>
               )}
               <span className="text-gray-400">•</span>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-gray-700 dark:text-gray-200">
                 {new Date(article.published_at).toLocaleDateString('pt-BR', { 
                   day: '2-digit', 
                   month: 'long', 
@@ -172,7 +172,7 @@ const ArtigoDetail = () => {
                 })}
               </span>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-700 dark:text-gray-300 flex items-center">
+              <span className="text-gray-700 dark:text-gray-200 flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
@@ -185,15 +185,15 @@ const ArtigoDetail = () => {
             <div 
               className="prose prose-lg dark:prose-invert max-w-none
                 prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
-                prose-p:text-gray-800 dark:prose-p:text-gray-100 prose-p:leading-relaxed prose-p:text-justify prose-p:mb-4
-                prose-a:text-amber-600 dark:prose-a:text-amber-400 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
+                prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:text-justify prose-p:mb-4
+                prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
                 prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
-                prose-em:text-gray-800 dark:prose-em:text-gray-100
-                prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-100
-                prose-ul:text-gray-800 dark:prose-ul:text-gray-100 prose-ul:list-disc
-                prose-ol:text-gray-800 dark:prose-ol:text-gray-100
-                prose-li:text-gray-800 dark:prose-li:text-gray-100 prose-li:mb-2
-                prose-code:text-amber-600 dark:prose-code:text-amber-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
+                prose-em:text-gray-800 dark:prose-em:text-gray-50
+                prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-50
+                prose-ul:text-gray-800 dark:prose-ul:text-white prose-ul:list-disc
+                prose-ol:text-gray-800 dark:prose-ol:text-white
+                prose-li:text-gray-800 dark:prose-li:text-white prose-li:mb-2
+                prose-code:text-amber-600 dark:prose-code:text-amber-300 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
           </div>
