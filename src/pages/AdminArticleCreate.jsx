@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
@@ -7,6 +7,8 @@ import ImageUploader from '../components/ImageUploader';
 const AdminArticleCreate = () => {
   const api = useApi();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('editId');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -39,18 +41,38 @@ const AdminArticleCreate = () => {
         setAvailableColumns(columnsRes.columns || []);
         setAvailableRoles(rolesData.roles || []);
         
-        // Pré-selecionar INSCRITO e ADMIN
-        const inscritoRole = rolesData.roles.find(r => r.name === 'INSCRITO');
-        const adminRole = rolesData.roles.find(r => r.name === 'ADMIN');
-        const preSelectedIds = [inscritoRole?.id, adminRole?.id].filter(Boolean);
-        setSelectedRoleIds(preSelectedIds);
+        // Se está editando, carregar dados do artigo
+        if (editId) {
+          const articleData = await api.get(`/api/content?type=articles&id=${editId}`);
+          if (articleData && articleData.article) {
+            const article = articleData.article;
+            setFormData({
+              title: article.title || '',
+              slug: article.slug || '',
+              excerpt: article.excerpt || '',
+              content: article.content || '',
+              cover_image_url: article.cover_image_url || '',
+              editorial_column_id: article.editorial_column_id || '',
+              status: article.status || 'draft',
+              published_at: article.published_at || null,
+              is_featured: article.is_featured || false
+            });
+            setSelectedRoleIds(article.allowed_role_ids || []);
+          }
+        } else {
+          // Pré-selecionar INSCRITO e ADMIN apenas para novos artigos
+          const inscritoRole = rolesData.roles.find(r => r.name === 'INSCRITO');
+          const adminRole = rolesData.roles.find(r => r.name === 'ADMIN');
+          const preSelectedIds = [inscritoRole?.id, adminRole?.id].filter(Boolean);
+          setSelectedRoleIds(preSelectedIds);
+        }
       } catch (err) {
         console.error('Error loading options:', err);
         setError('Erro ao carregar opções');
       }
     };
     loadOptions();
-  }, []);
+  }, [editId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -114,8 +136,16 @@ const AdminArticleCreate = () => {
         articleData.published_at = new Date().toISOString();
       }
 
-      // Create article
-      await api.post('/api/content?type=articles', articleData);
+      // Criar ou atualizar artigo
+      if (editId) {
+        await api.put(`/api/content?type=articles&id=${editId}`, articleData);
+        alert('Artigo atualizado com sucesso!');
+      } else {
+        await api.post('/api/content?type=articles', articleData);
+        alert('Artigo criado com sucesso!');
+      }
+      
+      navigate('/artigos');
 
       // Navigate to articles page
       navigate('/artigos');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
@@ -7,6 +7,8 @@ import ImageUploader from '../components/ImageUploader';
 const AdminNewsCreate = () => {
   const api = useApi();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('editId');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -39,10 +41,30 @@ const AdminNewsCreate = () => {
         setAvailableNewsTags(tagsRes.tags || []);
         setAvailableRoles(rolesData.roles || []);
         
-        // Pré-selecionar VISITANTE para notícias (público por padrão)
-        const visitanteRole = rolesData.roles.find(r => r.name === 'VISITANTE');
-        if (visitanteRole) {
-          setSelectedRoleIds([visitanteRole.id]);
+        // Se está editando, carregar dados da notícia
+        if (editId) {
+          const newsData = await api.get(`/api/content?type=news&id=${editId}`);
+          if (newsData && newsData.news) {
+            const news = newsData.news;
+            setFormData({
+              title: news.title || '',
+              slug: news.slug || '',
+              excerpt: news.excerpt || '',
+              content: news.content || '',
+              cover_image_url: news.cover_image_url || '',
+              status: news.status || 'draft',
+              published_at: news.published_at || null,
+              is_featured: news.is_featured || false
+            });
+            setSelectedNewsTagIds(news.news_tags?.map(t => t.id) || []);
+            setSelectedRoleIds(news.allowed_role_ids || []);
+          }
+        } else {
+          // Pré-selecionar VISITANTE para notícias novas (público por padrão)
+          const visitanteRole = rolesData.roles.find(r => r.name === 'VISITANTE');
+          if (visitanteRole) {
+            setSelectedRoleIds([visitanteRole.id]);
+          }
         }
       } catch (err) {
         console.error('Error loading options:', err);
@@ -50,7 +72,7 @@ const AdminNewsCreate = () => {
       }
     };
     loadOptions();
-  }, []);
+  }, [editId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -125,8 +147,14 @@ const AdminNewsCreate = () => {
         newsData.published_at = new Date().toISOString();
       }
 
-      // Create news
-      await api.post('/api/content?type=news', newsData);
+      // Criar ou atualizar notícia
+      if (editId) {
+        await api.put(`/api/content?type=news&id=${editId}`, newsData);
+        alert('Notícia atualizada com sucesso!');
+      } else {
+        await api.post('/api/content?type=news', newsData);
+        alert('Notícia criada com sucesso!');
+      }
 
       // Navigate to news page
       navigate('/noticias');

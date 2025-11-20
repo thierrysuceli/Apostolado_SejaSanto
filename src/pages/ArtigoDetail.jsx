@@ -185,7 +185,8 @@ const ArtigoDetail = () => {
             <div 
               className="prose prose-lg dark:prose-invert max-w-none
                 prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
-                prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:text-justify prose-p:mb-4
+                prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
+                [&_p]:dark:text-white [&_p]:text-gray-800
                 prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
                 prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
                 prose-em:text-gray-800 dark:prose-em:text-gray-50
