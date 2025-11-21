@@ -78,8 +78,10 @@ function App() {
                   <Route path="/admin/posts/create" element={<AdminPostCreate />} />
                   <Route path="/admin/articles/create" element={<AdminArticleCreate />} />
                   <Route path="/admin/articles/:id/edit" element={<AdminArticleEdit />} />
+                  <Route path="/admin/articles/edit/:id" element={<AdminArticleEdit />} />
                   <Route path="/admin/news/create" element={<AdminNewsCreate />} />
                   <Route path="/admin/news/:id/edit" element={<AdminNewsEdit />} />
+                  <Route path="/admin/news/edit/:id" element={<AdminNewsEdit />} />
                   <Route path="/admin/events/create" element={<AdminEventCreate />} />
                   <Route path="/admin/courses/:id/edit" element={<AdminCourseEdit />} />
                   <Route path="/admin/courses/:id/modules" element={<AdminCourseModules />} />
