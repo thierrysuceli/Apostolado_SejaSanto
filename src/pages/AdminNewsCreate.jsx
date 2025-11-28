@@ -4,6 +4,23 @@ import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
 
+// Helper para converter ISO datetime para formato datetime-local
+const formatDateTimeLocal = (isoString) => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    // Formato: YYYY-MM-DDTHH:mm
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch (e) {
+    return '';
+  }
+};
+
 const AdminNewsCreate = () => {
   const api = useApi();
   const navigate = useNavigate();
@@ -18,8 +35,8 @@ const AdminNewsCreate = () => {
     excerpt: '',
     content: '',
     cover_image_url: '',
-    status: 'draft',
-    published_at: null,
+    status: 'published',
+    published_at: formatDateTimeLocal(new Date().toISOString()),
     is_featured: false
   });
 
@@ -33,6 +50,7 @@ const AdminNewsCreate = () => {
     window.scrollTo(0, 0);
     const loadOptions = async () => {
       try {
+        setLoading(true);
         const [tagsRes, rolesData] = await Promise.all([
           api.get('/api/public-data?type=news-tags'),
           api.admin.roles.getAll()
@@ -43,21 +61,29 @@ const AdminNewsCreate = () => {
         
         // Se está editando, carregar dados da notícia
         if (editId) {
-          const newsData = await api.get(`/api/content?type=news&id=${editId}`);
-          if (newsData && newsData.news) {
-            const news = newsData.news;
-            setFormData({
-              title: news.title || '',
-              slug: news.slug || '',
-              excerpt: news.excerpt || '',
-              content: news.content || '',
-              cover_image_url: news.cover_image_url || '',
-              status: news.status || 'draft',
-              published_at: news.published_at || null,
-              is_featured: news.is_featured || false
-            });
-            setSelectedNewsTagIds(news.news_tags?.map(t => t.id) || []);
-            setSelectedRoleIds(news.allowed_role_ids || []);
+          try {
+            const newsData = await api.get(`/api/content?type=news&id=${editId}`);
+            if (newsData && newsData.news) {
+              const news = newsData.news;
+              setFormData({
+                title: news.title || '',
+                slug: news.slug || '',
+                excerpt: news.excerpt || '',
+                content: news.content || '',
+                cover_image_url: news.cover_image_url || '',
+                status: news.status || 'draft',
+                published_at: formatDateTimeLocal(news.published_at),
+                is_featured: news.is_featured || false
+              });
+              setSelectedNewsTagIds(news.news_tags?.map(t => t.id) || []);
+              setSelectedRoleIds(news.allowed_role_ids || []);
+            }
+          } catch (err) {
+            console.error('Error loading news:', err);
+            console.error('Error response:', err.response);
+            const errorMsg = err.response?.data?.message || err.message || 'Erro desconhecido';
+            const errorDetails = err.response?.data?.details;
+            setError('Erro ao carregar notícia: ' + errorMsg + (errorDetails ? ' - ' + errorDetails : ''));
           }
         } else {
           // Pré-selecionar VISITANTE para notícias novas (público por padrão)
@@ -65,10 +91,19 @@ const AdminNewsCreate = () => {
           if (visitanteRole) {
             setSelectedRoleIds([visitanteRole.id]);
           }
+          // Garantir valores padrão para nova notícia
+          setFormData(prev => ({
+            ...prev,
+            status: 'published',
+            published_at: formatDateTimeLocal(new Date().toISOString()),
+            is_featured: false
+          }));
         }
       } catch (err) {
         console.error('Error loading options:', err);
-        setError('Erro ao carregar opções');
+        setError('Erro ao carregar opções: ' + (err.message || 'Erro desconhecido'));
+      } finally {
+        setLoading(false);
       }
     };
     loadOptions();
@@ -181,10 +216,10 @@ const AdminNewsCreate = () => {
             Voltar para Notícias
           </button>
           <h1 className="text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">
-            Criar Nova Notícia
+            {editId ? 'Editar Notícia' : 'Criar Nova Notícia'}
           </h1>
           <p className="text-secondary-600 dark:text-gray-300">
-            Preencha as informações abaixo para criar uma nova notícia.
+            {editId ? 'Atualize as informações da notícia abaixo.' : 'Preencha as informações abaixo para criar uma nova notícia.'}
           </p>
         </div>
 
@@ -398,7 +433,7 @@ const AdminNewsCreate = () => {
               disabled={loading}
               className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Criando...' : 'Criar Notícia'}
+              {loading ? (editId ? 'Atualizando...' : 'Criando...') : (editId ? 'Atualizar Notícia' : 'Criar Notícia')}
             </button>
           </div>
         </form>

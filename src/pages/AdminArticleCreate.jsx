@@ -4,6 +4,23 @@ import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
 
+// Helper para converter ISO datetime para formato datetime-local
+const formatDateTimeLocal = (isoString) => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    // Formato: YYYY-MM-DDTHH:mm
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch (e) {
+    return '';
+  }
+};
+
 const AdminArticleCreate = () => {
   const api = useApi();
   const navigate = useNavigate();
@@ -19,8 +36,8 @@ const AdminArticleCreate = () => {
     content: '',
     cover_image_url: '',
     editorial_column_id: '',
-    status: 'draft',
-    published_at: null,
+    status: 'published',
+    published_at: formatDateTimeLocal(new Date().toISOString()),
     is_featured: false
   });
 
@@ -33,6 +50,7 @@ const AdminArticleCreate = () => {
     window.scrollTo(0, 0);
     const loadOptions = async () => {
       try {
+        setLoading(true);
         const [columnsRes, rolesData] = await Promise.all([
           api.get('/api/public-data?type=editorial-columns'),
           api.admin.roles.getAll()
@@ -43,21 +61,29 @@ const AdminArticleCreate = () => {
         
         // Se está editando, carregar dados do artigo
         if (editId) {
-          const articleData = await api.get(`/api/content?type=articles&id=${editId}`);
-          if (articleData && articleData.article) {
-            const article = articleData.article;
-            setFormData({
-              title: article.title || '',
-              slug: article.slug || '',
-              excerpt: article.excerpt || '',
-              content: article.content || '',
-              cover_image_url: article.cover_image_url || '',
-              editorial_column_id: article.editorial_column_id || '',
-              status: article.status || 'draft',
-              published_at: article.published_at || null,
-              is_featured: article.is_featured || false
-            });
-            setSelectedRoleIds(article.allowed_role_ids || []);
+          try {
+            const articleData = await api.get(`/api/content?type=articles&id=${editId}`);
+            if (articleData && articleData.article) {
+              const article = articleData.article;
+              setFormData({
+                title: article.title || '',
+                slug: article.slug || '',
+                excerpt: article.excerpt || '',
+                content: article.content || '',
+                cover_image_url: article.cover_image_url || '',
+                editorial_column_id: article.editorial_column_id || '',
+                status: article.status || 'draft',
+                published_at: formatDateTimeLocal(article.published_at),
+                is_featured: article.is_featured || false
+              });
+              setSelectedRoleIds(article.allowed_role_ids || []);
+            }
+          } catch (err) {
+            console.error('Error loading article:', err);
+            console.error('Error response:', err.response);
+            const errorMsg = err.response?.data?.message || err.message || 'Erro desconhecido';
+            const errorDetails = err.response?.data?.details;
+            setError('Erro ao carregar artigo: ' + errorMsg + (errorDetails ? ' - ' + errorDetails : ''));
           }
         } else {
           // Pré-selecionar INSCRITO e ADMIN apenas para novos artigos
@@ -65,10 +91,19 @@ const AdminArticleCreate = () => {
           const adminRole = rolesData.roles.find(r => r.name === 'ADMIN');
           const preSelectedIds = [inscritoRole?.id, adminRole?.id].filter(Boolean);
           setSelectedRoleIds(preSelectedIds);
+          // Garantir valores padrão para novo artigo
+          setFormData(prev => ({
+            ...prev,
+            status: 'published',
+            published_at: formatDateTimeLocal(new Date().toISOString()),
+            is_featured: false
+          }));
         }
       } catch (err) {
         console.error('Error loading options:', err);
-        setError('Erro ao carregar opções');
+        setError('Erro ao carregar opções: ' + (err.message || 'Erro desconhecido'));
+      } finally {
+        setLoading(false);
       }
     };
     loadOptions();
@@ -146,9 +181,6 @@ const AdminArticleCreate = () => {
       }
       
       navigate('/artigos');
-
-      // Navigate to articles page
-      navigate('/artigos');
     } catch (err) {
       console.error('Error creating article:', err);
       setError(err.message || 'Erro ao criar artigo');
@@ -172,10 +204,10 @@ const AdminArticleCreate = () => {
             Voltar para Artigos
           </button>
           <h1 className="text-4xl font-bold text-secondary-500 dark:text-gray-400 mb-2">
-            Criar Novo Artigo
+            {editId ? 'Editar Artigo' : 'Criar Novo Artigo'}
           </h1>
           <p className="text-secondary-600 dark:text-gray-300">
-            Preencha as informações abaixo para criar um novo artigo editorial.
+            {editId ? 'Atualize as informações do artigo abaixo.' : 'Preencha as informações abaixo para criar um novo artigo editorial.'}
           </p>
         </div>
 
@@ -377,7 +409,7 @@ const AdminArticleCreate = () => {
               disabled={loading}
               className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Criando...' : 'Criar Artigo'}
+              {loading ? (editId ? 'Atualizando...' : 'Criando...') : (editId ? 'Atualizar Artigo' : 'Criar Artigo')}
             </button>
           </div>
         </form>

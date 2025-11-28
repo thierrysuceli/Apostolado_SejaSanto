@@ -41,6 +41,9 @@ import AdminNewsEdit from './pages/admin/AdminNewsEdit';
 import Biblia from './pages/Biblia';
 import Liturgia from './pages/Liturgia';
 import Historico from './pages/Historico';
+import TermosDeUso from './pages/TermosDeUso';
+import PoliticaDePrivacidade from './pages/PoliticaDePrivacidade';
+import CookieConsent from './components/CookieConsent';
 
 function App() {
   return (
@@ -93,9 +96,12 @@ function App() {
                   <Route path="/admin/editorial-columns" element={<AdminEditorialColumns />} />
                   <Route path="/admin/news-tags" element={<AdminNewsTags />} />
                     <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
+                    <Route path="/termos-de-uso" element={<TermosDeUso />} />
+                    <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
                   </Routes>
                 </main>
                 <Footer />
+                <CookieConsent />
               </div>
             </div>
           </BrowserRouter>

@@ -38,8 +38,8 @@ const Footer = () => {
                   Contato (WhatsApp)
                 </a>
               </li>
-              <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Termos de Uso</a></li>
-              <li><a href="#" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Política de Privacidade</a></li>
+              <li><a href="/termos-de-uso" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Termos de Uso</a></li>
+              <li><a href="/politica-de-privacidade" className="text-secondary-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-500 text-sm transition-colors font-medium">Política de Privacidade</a></li>
             </ul>
           </div>
 

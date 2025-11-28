@@ -559,6 +559,8 @@ export default async function handler(req, res) {
       const columnsMap = {
         events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at,slug,status,color,all_day',
         posts: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at',
+        articles: 'id,title,slug,content,excerpt,cover_image_url,author_id,editorial_column_id,status,published_at,created_at,updated_at,is_featured,views_count',
+        news: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at,is_featured,views_count',
         courses: 'id,title,slug,description,cover_image_url,status,created_at,updated_at'
       };
       
@@ -704,6 +706,8 @@ export default async function handler(req, res) {
       const columnsMap = {
         events: 'id,title,description,start_date,end_date,location,meeting_link,created_by,created_at,updated_at,slug,status,color,all_day',
         posts: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at',
+        articles: 'id,title,slug,content,excerpt,cover_image_url,author_id,editorial_column_id,status,published_at,created_at,updated_at,is_featured,views_count',
+        news: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at,is_featured,views_count',
         courses: 'id,title,slug,description,cover_image_url,status,created_at,updated_at'
       };
       
@@ -729,12 +733,12 @@ export default async function handler(req, res) {
         const idField = `${singular}_id`;
         
         // Remover tags antigas
-        await supabaseAdmin.from(tagTable).delete().eq(idField, id);
+        await supabaseAdmin.from(tagTable).delete().eq(idField, effectiveId);
         
         // Adicionar novas tags
         if (roleTags.length > 0) {
           const itemTags = roleTags.map(roleId => ({
-            [idField]: id,
+            [idField]: effectiveId,
             role_id: roleId
           }));
           
@@ -749,12 +753,12 @@ export default async function handler(req, res) {
         const idField = `${singular}_id`;
         
         // Remover tags antigas
-        await supabaseAdmin.from(contentTagTable).delete().eq(idField, id);
+        await supabaseAdmin.from(contentTagTable).delete().eq(idField, effectiveId);
         
         // Adicionar novas tags
         if (thematicTags.length > 0) {
           const contentTags = thematicTags.map(tagId => ({
-            [idField]: id,
+            [idField]: effectiveId,
             tag_id: tagId
           }));
           
@@ -767,10 +771,10 @@ export default async function handler(req, res) {
         await supabaseAdmin
           .from('news_tag_assignments')
           .delete()
-          .eq('news_id', id);
+          .eq('news_id', effectiveId);
         if (newsTags.length > 0) {
           const newsAssignments = newsTags.map(tagId => ({
-            news_id: id,
+            news_id: effectiveId,
             tag_id: tagId
           }));
           const { error: newsTagsError } = await supabaseAdmin
@@ -783,12 +787,12 @@ export default async function handler(req, res) {
       // Atualizar categorias para events
       if (type === 'events' && categories && Array.isArray(categories)) {
         // Remover categorias antigas
-        await supabaseAdmin.from('event_category_tags').delete().eq('event_id', id);
+        await supabaseAdmin.from('event_category_tags').delete().eq('event_id', effectiveId);
         
         // Adicionar novas categorias
         if (categories.length > 0) {
           const eventCategories = categories.map(categoryId => ({
-            event_id: id,
+            event_id: effectiveId,
             category_id: categoryId
           }));
           
@@ -826,7 +830,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   } catch (error) {
     console.error('Content error:', error);
-    return res.status(500).json({ error: 'Erro ao processar requisição' });
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    return res.status(500).json({ 
+      error: 'Erro ao processar requisição',
+      message: error.message,
+      details: error.details || error.hint || undefined
+    });
   }
 }
 

@@ -1,0 +1,86 @@
+POLÍTICA DE PRIVACIDADE
+APOSTOLADO SEJA SANTO
+
+Data da Última Atualização: 21 de novembro de 2025
+
+1. INTRODUÇÃO
+Esta Política de Privacidade descreve como o Apostolado Seja Santo, uma iniciativa conduzida por Marcello Medeiros Dias, Coordenador Geral da Associação de Fiéis Leigos Católicos "Apostolado Seja Santo", com e-mail de contato sancti.missaocatolica@gmail.com, coleta, usa, armazena e protege os dados pessoais dos usuários ("Usuários") que acessam e utilizam nosso site.
+
+A proteção da sua privacidade e dos seus dados pessoais é de extrema importância para nós. Nosso compromisso é tratar seus dados de forma transparente, segura e em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).
+
+Ao acessar e utilizar o Apostolado Seja Santo, você concorda com os termos desta Política de Privacidade. Caso não concorde, por favor, não utilize nosso site.
+
+2. CONTROLADOR DOS DADOS
+Para os fins desta Política de Privacidade, o Controlador dos Dados Pessoais é Marcello Medeiros Dias, coordenador geral e responsável pelo Apostolado Seja Santo. Você pode entrar em contato conosco através do e-mail sancti.missaocatolica@gmail.com para quaisquer questões relacionadas à privacidade e proteção de dados.
+
+3. DADOS PESSOAIS COLETADOS
+Coletamos diferentes tipos de dados pessoais, dependendo da sua interação com nosso site:
+a) Dados Fornecidos Voluntariamente por Você:
+Dados de Contato: Nome e endereço de e-mail, quando você se cadastra para receber nossa newsletter, participa de um curso que exige cadastro, ou entra em contato conosco através de formulários ou e-mail.
+Dados de Cadastro (se houver): Se você criar uma conta para acessar conteúdos exclusivos, como cursos, podemos coletar nome de usuário, senha e outras informações que você optar por fornecer.
+Dados de Interação: Informações que você compartilha em comentários, fóruns de discussão ou outras áreas interativas do site.
+
+b) Dados Coletados Automaticamente:
+Dados de Navegação: Endereço IP, tipo de navegador, sistema operacional, páginas visitadas, tempo de permanência no site, data e hora do acesso, e outras estatísticas de uso. Esses dados são coletados através de cookies e tecnologias semelhantes.
+Dados de Dispositivo: Informações sobre o dispositivo que você usa para acessar nosso site, como modelo, sistema operacional e identificadores únicos.
+
+4. FINALIDADE DA COLETA E USO DOS DADOS
+Utilizamos seus dados pessoais para as seguintes finalidades:
+Para Fornecer Nossos Serviços: Oferecer acesso aos artigos, cursos e demais conteúdos gratuitos do Apostolado Seja Santo.
+Comunicação: Enviar newsletters, atualizações sobre novos conteúdos, eventos e informações relevantes sobre a fé católica, caso você tenha consentido em recebê-las. Responder às suas dúvidas e solicitações enviadas através dos nossos canais de contato.
+Melhoria do Site: Analisar o desempenho do site, entender como os Usuários interagem com o conteúdo e identificar áreas para melhoria, personalizando sua experiência.
+Segurança: Detectar e prevenir atividades fraudulentas, spam e outras atividades maliciosas, garantindo a segurança do site e dos Usuários.
+Cumprimento de Obrigações Legais: Cumprir com quaisquer obrigações legais ou regulatórias aplicáveis.
+
+5. BASE LEGAL PARA O TRATAMENTO DE DADOS
+O tratamento dos seus dados pessoais é realizado com base nas seguintes hipóteses legais da LGPD:
+Consentimento: Quando você nos fornece seu e-mail para receber a newsletter ou se cadastra para um curso, você nos dá seu consentimento para tratar seus dados para essa finalidade. Você pode revogar seu consentimento a qualquer momento.
+Legítimo Interesse: Para aprimorar nossos serviços, garantir a segurança do site e realizar análises estatísticas de uso, o Apostolado Seja Santo baseia-se no seu legítimo interesse, sempre buscando um equilíbrio entre nossos interesses e seus direitos e liberdades fundamentais, e realizando as avaliações de impacto necessárias para assegurar a proteção da sua privacidade.
+Execução de Contrato ou Procedimentos Preliminares: Se houver um serviço específico que exija o tratamento de dados para sua entrega (ex: cadastro em um curso gratuito que gere um certificado).
+Cumprimento de Obrigação Legal ou Regulatória: Quando somos legalmente obrigados a coletar ou compartilhar determinados dados.
+
+6. COMPARTILHAMENTO DE DADOS
+O Apostolado Seja Santo não vende, aluga ou comercializa seus dados pessoais com terceiros. No entanto, podemos compartilhar seus dados com:
+Provedores de Serviços: Empresas que nos auxiliam na operação do site, como serviços de hospedagem (ex: servidores), plataformas de e-mail marketing (para envio de newsletters, onde seu nome e e-mail podem ser compartilhados), e ferramentas de análise de tráfego (ex: Google Analytics, que pode receber dados anonimizados de navegação). Esses provedores são contratados mediante acordos de confidencialidade e só podem usar os dados para as finalidades especificadas por nós, garantindo que atuem em conformidade com a LGPD.
+Autoridades Legais: Caso seja exigido por lei ou por ordem judicial, podemos compartilhar dados com autoridades competentes.
+
+7. ARMAZENAMENTO E RETENÇÃO DOS DADOS
+Seus dados pessoais são armazenados em servidores seguros, podendo estar localizados no Brasil ou no exterior. Em caso de transferência internacional, o Apostolado Seja Santo garante que esta será realizada apenas para países que possuam um nível de proteção de dados compatível com a LGPD ou mediante a adoção de salvaguardas contratuais específicas, como cláusulas-padrão aprovadas pelas autoridades competentes, para assegurar a proteção dos seus dados.
+Retemos seus dados pessoais apenas pelo tempo necessário para cumprir as finalidades para as quais foram coletados, para cumprir obrigações legais ou regulatórias (como prazos prescricionais e decadenciais), ou para exercer nossos direitos em processos judiciais. Após o término do período de retenção, os dados serão eliminados de forma segura ou anonimizados. Para informações sobre períodos de retenção específicos para determinados dados, você pode entrar em contato conosco.
+
+8. DIREITOS DO TITULAR DOS DADOS (LGPD)
+Em conformidade com a LGPD, você possui os seguintes direitos em relação aos seus dados pessoais:
+Confirmação: Direito de confirmar se tratamos dados pessoais seus.
+Acesso: Direito de acessar os dados pessoais que mantemos sobre você.
+Retificação: Direito de solicitar a correção de dados incompletos, inexatos ou desatualizados.
+Anonimização, Bloqueio ou Eliminação: Direito de solicitar a anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade com a LGPD.
+Portabilidade: Direito de receber seus dados pessoais em um formato estruturado e de solicitar a transferência para outro fornecedor de serviço.
+Eliminação: Direito de solicitar a eliminação de dados pessoais tratados com o seu consentimento, salvo exceções legais.
+Informação: Direito de ser informado sobre as entidades públicas e privadas com as quais compartilhamos seus dados e sobre a possibilidade de não fornecer consentimento e as consequências dessa negativa.
+Revogação do Consentimento: Direito de revogar o consentimento a qualquer momento, de forma facilitada e gratuita.
+Revisão de Decisões Automatizadas: Direito de solicitar a revisão de decisões tomadas unicamente com base em tratamento automatizado de dados pessoais que afetem seus interesses.
+
+Para exercer qualquer um desses direitos, ou se tiver dúvidas sobre esta Política de Privacidade, entre em contato conosco através do e-mail: sancti.missaocatolica@gmail.com.
+
+9. SEGURANÇA DOS DADOS
+Adotamos medidas técnicas e organizacionais adequadas para proteger seus dados pessoais contra acesso não autorizado, alteração, divulgação ou destruição indevida. Apesar dos nossos esforços, a segurança da internet não pode ser garantida 100%.
+
+10. USO DE COOKIES E TECNOLOGIAS SEMELHANTES
+Nosso site utiliza cookies e outras tecnologias de rastreamento para melhorar sua experiência de navegação, analisar o tráfego do site e personalizar conteúdo.
+Cookies Essenciais: São necessários para o funcionamento básico do site e não podem ser desativados.
+Cookies de Desempenho: Coletam informações anônimas sobre como os visitantes usam o site, para otimizar sua performance.
+Cookies de Funcionalidade: Lembram suas preferências para oferecer uma experiência mais personalizada.
+
+O controle sobre os cookies não essenciais é importante para sua privacidade. Você pode gerenciar suas preferências de cookies através das configurações do seu navegador e, para uma experiência ainda mais clara, nosso site apresenta uma ferramenta de consentimento de cookies (banner) permitindo a escolha granular das categorias que deseja aceitar ou recusar (exceto os estritamente necessários). A desativação de certos cookies pode, contudo, afetar a funcionalidade do site.
+
+11. LINKS PARA SITES DE TERCEIROS
+Nosso site pode conter links para sites, produtos ou serviços de terceiros. Esta Política de Privacidade se aplica apenas ao Apostolado Seja Santo. Não nos responsabilizamos pelas práticas de privacidade ou conteúdo de sites de terceiros. Recomendamos que você leia as políticas de privacidade de qualquer site que visitar.
+
+12. ALTERAÇÕES NESTA POLÍTICA DE PRIVACIDADE
+Esta Política de Privacidade pode ser atualizada periodicamente para refletir mudanças em nossas práticas de coleta e uso de dados ou na legislação aplicável. A data da última atualização estará sempre indicada no início do documento. Quando ocorrerem alterações significativas, o Usuário será notificado com antecedência razoável, por meio de aviso no site, e-mail ou outro meio de comunicação disponível, para que possa tomar ciência das mudanças. O uso continuado do site após a publicação de alterações e o término do prazo de notificação significa sua aceitação dos novos termos. Recomendamos que você revise esta política regularmente.
+
+13. CONTATO
+Para quaisquer dúvidas sobre esta Política de Privacidade, para exercer seus direitos como titular de dados ou para fazer uma reclamação, por favor, entre em contato conosco pelo e-mail: sancti.missaocatolica@gmail.com.
+
+14. LEI APLICÁVEL E FORO
+Esta Política de Privacidade será regida e interpretada de acordo com as leis da República Federativa do Brasil. As partes elegem o foro da Comarca de Vila Velha/ES para dirimir quaisquer questões ou litígios decorrentes desta Política de Privacidade, renunciando a qualquer outro, por mais privilegiado que seja.
