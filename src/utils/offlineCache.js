@@ -95,9 +95,12 @@ class OfflineCacheManager {
       // Limpar cache antigo
       await tx.store.clear();
       
+      // Garantir que items seja array
+      const itemsArray = Array.isArray(items) ? items : [items];
+      
       // Salvar novos items
       await Promise.all(
-        items.map(item => tx.store.put({ ...item, _cacheKey: cacheKey }))
+        itemsArray.map(item => tx.store.put({ ...item, _cacheKey: cacheKey }))
       );
 
       await tx.done;

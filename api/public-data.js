@@ -1423,6 +1423,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'news_id é obrigatório' });
       }
       
+      // Verificar se notícia existe antes de salvar histórico
+      const { data: newsExists } = await supabaseAdmin
+        .from('news')
+        .select('id')
+        .eq('id', news_id)
+        .single();
+      
+      if (!newsExists) {
+        return res.status(404).json({ error: 'Notícia não encontrada' });
+      }
+      
       const { data, error } = await supabaseAdmin
         .from('user_news_history')
         .upsert(
@@ -1437,10 +1448,7 @@ export default async function handler(req, res) {
             onConflict: 'user_id, news_id'
           }
         )
-        .select(`
-          *,
-          news!inner(id, title, slug, cover_image_url, excerpt)
-        `)
+        .select()
         .single();
       
       if (error) throw error;

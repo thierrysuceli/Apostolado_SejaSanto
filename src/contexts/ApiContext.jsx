@@ -92,7 +92,11 @@ export const ApiProvider = ({ children }) => {
       if (url.includes('/api/content?type=articles')) {
         if (data.articles) await cacheHelpers.saveArticles(data.articles);
       } else if (url.includes('/api/content?type=news')) {
-        if (data.news) await cacheHelpers.saveNews(data.news);
+        // Aceitar tanto array quanto objeto único
+        if (data.news) {
+          const newsArray = Array.isArray(data.news) ? data.news : [data.news];
+          await cacheHelpers.saveNews(newsArray);
+        }
       } else if (url.includes('/api/courses')) {
         if (data.courses) await cacheHelpers.saveCourses(data.courses);
       } else if (url.includes('/api/posts')) {
