@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ApiProvider } from './contexts/ApiContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { OfflineProvider } from './contexts/OfflineContext';
 import HeaderNew from './components/HeaderNew';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -48,11 +49,12 @@ import CookieConsent from './components/CookieConsent';
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <ApiProvider>
-          <BrowserRouter>
-            <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
-              <HeaderNew />
+      <OfflineProvider>
+        <AuthProvider>
+          <ApiProvider>
+            <BrowserRouter>
+              <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
+                <HeaderNew />
               <div className="flex-1 flex flex-col">
                 <main className="flex-1">
                   <Routes>
@@ -107,6 +109,7 @@ function App() {
           </BrowserRouter>
         </ApiProvider>
       </AuthProvider>
+      </OfflineProvider>
     </ThemeProvider>
   );
 }

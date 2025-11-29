@@ -3,6 +3,7 @@
 // =====================================================
 
 import { createContext, useContext } from 'react';
+import { cacheHelpers } from '../utils/offlineCache';
 
 // Detecta automaticamente o ambiente
 // Em produção (Vercel), usa paths relativos
@@ -52,17 +53,98 @@ export const ApiProvider = ({ children }) => {
   };
 
   const get = async (url, requireAuth = true) => {
-    // 🔄 Add cache busting timestamp to force fresh data
-    const separator = url.includes('?') ? '&' : '?';
-    const cacheBustedUrl = `${url}${separator}_t=${Date.now()}`;
-    
-    const response = await fetch(`${API_URL}${cacheBustedUrl}`, {
-      method: 'GET',
-      headers: getHeaders(requireAuth),
-      cache: 'no-store'  // Prevent browser caching
-    });
+    try {
+      // 🔄 Add cache busting timestamp to force fresh data
+      const separator = url.includes('?') ? '&' : '?';
+      const cacheBustedUrl = `${url}${separator}_t=${Date.now()}`;
+      
+      const response = await fetch(`${API_URL}${cacheBustedUrl}`, {
+        method: 'GET',
+        headers: getHeaders(requireAuth),
+        cache: 'no-store'  // Prevent browser caching
+      });
 
-    return handleResponse(response);
+      const data = await handleResponse(response);
+
+      // 💾 Salvar no cache offline para reduzir custos do servidor
+      if (response.ok) {
+        await saveToCacheIfApplicable(url, data);
+      }
+
+      return data;
+    } catch (error) {
+      // 📡 Tentar carregar do cache offline se houver erro de rede
+      if (!navigator.onLine || error.message.includes('Failed to fetch')) {
+        console.warn('🔌 Offline: tentando cache local');
+        const cachedData = await loadFromCacheIfApplicable(url);
+        if (cachedData) {
+          console.log('✅ Dados carregados do cache offline');
+          return cachedData;
+        }
+      }
+      throw error;
+    }
+  };
+
+  // Helper para salvar no cache
+  const saveToCacheIfApplicable = async (url, data) => {
+    try {
+      if (url.includes('/api/content?type=articles')) {
+        if (data.articles) await cacheHelpers.saveArticles(data.articles);
+      } else if (url.includes('/api/content?type=news')) {
+        if (data.news) await cacheHelpers.saveNews(data.news);
+      } else if (url.includes('/api/courses')) {
+        if (data.courses) await cacheHelpers.saveCourses(data.courses);
+      } else if (url.includes('/api/posts')) {
+        if (data.posts) await cacheHelpers.savePosts(data.posts);
+      } else if (url.includes('/api/events')) {
+        if (data.events) await cacheHelpers.saveEvents(data.events);
+      } else if (url.includes('/api/public-data?type=bible-verses')) {
+        // Extrair parâmetros da URL
+        const params = new URLSearchParams(url.split('?')[1]);
+        const bookAbbrev = params.get('book_abbrev');
+        const chapterNum = params.get('chapter_number');
+        if (bookAbbrev && chapterNum && data.verses) {
+          await cacheHelpers.saveBibleChapter(bookAbbrev, chapterNum, data.verses);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao salvar cache:', err);
+    }
+  };
+
+  // Helper para carregar do cache
+  const loadFromCacheIfApplicable = async (url) => {
+    try {
+      if (url.includes('/api/content?type=articles')) {
+        const articles = await cacheHelpers.getArticles();
+        return articles ? { articles } : null;
+      } else if (url.includes('/api/content?type=news')) {
+        const news = await cacheHelpers.getNews();
+        return news ? { news } : null;
+      } else if (url.includes('/api/courses')) {
+        const courses = await cacheHelpers.getCourses();
+        return courses ? { courses } : null;
+      } else if (url.includes('/api/posts')) {
+        const posts = await cacheHelpers.getPosts();
+        return posts ? { posts } : null;
+      } else if (url.includes('/api/events')) {
+        const events = await cacheHelpers.getEvents();
+        return events ? { events } : null;
+      } else if (url.includes('/api/public-data?type=bible-verses')) {
+        const params = new URLSearchParams(url.split('?')[1]);
+        const bookAbbrev = params.get('book_abbrev');
+        const chapterNum = params.get('chapter_number');
+        if (bookAbbrev && chapterNum) {
+          const chapter = await cacheHelpers.getBibleChapter(bookAbbrev, chapterNum);
+          return chapter ? { verses: chapter.verses } : null;
+        }
+      }
+      return null;
+    } catch (err) {
+      console.error('Erro ao carregar cache:', err);
+      return null;
+    }
   };
 
   const post = async (url, body, requireAuth = true) => {
