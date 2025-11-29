@@ -1352,6 +1352,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'article_id é obrigatório' });
       }
       
+      // Verificar se artigo existe antes de salvar histórico
+      const { data: articleExists } = await supabaseAdmin
+        .from('articles')
+        .select('id')
+        .eq('id', article_id)
+        .single();
+      
+      if (!articleExists) {
+        return res.status(404).json({ error: 'Artigo não encontrado' });
+      }
+
       const { data, error } = await supabaseAdmin
         .from('user_article_history')
         .upsert(
@@ -1366,10 +1377,7 @@ export default async function handler(req, res) {
             onConflict: 'user_id, article_id'
           }
         )
-        .select(`
-          *,
-          articles!inner(id, title, slug, cover_image_url, excerpt)
-        `)
+        .select()
         .single();
       
       if (error) throw error;

@@ -153,8 +153,8 @@ const AdminArticleCreate = () => {
 
     try {
       // Validate required fields
-      if (!formData.title || !formData.slug || !formData.content || !formData.cover_image_url || !formData.editorial_column_id) {
-        throw new Error('Preencha todos os campos obrigatórios (título, conteúdo, imagem de capa e coluna editorial)');
+      if (!formData.title || !formData.slug || !formData.content || !formData.cover_image_url) {
+        throw new Error('Preencha todos os campos obrigatórios (título, conteúdo e imagem de capa)');
       }
 
       if (selectedRoleIds.length === 0) {
@@ -164,6 +164,8 @@ const AdminArticleCreate = () => {
       // Set published_at if status is published and not already set
       const articleData = { 
         ...formData,
+        // Converter string vazia para null
+        editorial_column_id: formData.editorial_column_id || null,
         visibilityRoles: selectedRoleIds
       };
       
