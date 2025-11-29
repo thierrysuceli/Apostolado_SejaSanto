@@ -678,7 +678,7 @@ export default async function handler(req, res) {
     
     // PUT /:type/:id - Atualizar item
     if (req.method === 'PUT' && id && !resource) {
-      const { tags, roles, categories, thematicTags, newsTags, ...itemData } = req.body;
+      const { tags, roles, categories, thematicTags, newsTags, visibilityRoles, ...itemData } = req.body;
       
       // 🧹 SANITIZAR DADOS
       if (itemData.title !== undefined) {
@@ -726,8 +726,8 @@ export default async function handler(req, res) {
       }
       
       // Atualizar tags (roles) se fornecidas
-      // Aceita tanto 'tags' quanto 'roles' para compatibilidade
-      const roleTags = tags || roles;
+      // Aceita tanto 'tags' quanto 'roles' quanto 'visibilityRoles' para compatibilidade
+      const roleTags = tags || roles || visibilityRoles;
       if (roleTags && Array.isArray(roleTags)) {
         const tagTable = relationKey;
         const idField = `${singular}_id`;

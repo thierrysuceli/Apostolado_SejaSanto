@@ -1353,11 +1353,16 @@ export default async function handler(req, res) {
       }
       
       // Verificar se artigo existe antes de salvar histórico
-      const { data: articleExists } = await supabaseAdmin
+      const { data: articleExists, error: checkError } = await supabaseAdmin
         .from('articles')
         .select('id')
         .eq('id', article_id)
-        .single();
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking article existence:', checkError);
+        return res.status(500).json({ error: 'Erro ao verificar artigo' });
+      }
       
       if (!articleExists) {
         return res.status(404).json({ error: 'Artigo não encontrado' });
@@ -1424,11 +1429,16 @@ export default async function handler(req, res) {
       }
       
       // Verificar se notícia existe antes de salvar histórico
-      const { data: newsExists } = await supabaseAdmin
+      const { data: newsExists, error: checkError } = await supabaseAdmin
         .from('news')
         .select('id')
         .eq('id', news_id)
-        .single();
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking news existence:', checkError);
+        return res.status(500).json({ error: 'Erro ao verificar notícia' });
+      }
       
       if (!newsExists) {
         return res.status(404).json({ error: 'Notícia não encontrada' });

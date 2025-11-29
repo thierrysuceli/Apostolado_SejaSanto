@@ -221,7 +221,7 @@
       "destination": "/api/public-data?type=comments"
     },
     {
-      "source": "/((?!api|_next|static|favicon.ico|manifest.json).*)",
+      "source": "/((?!api|_next|static|favicon.ico|manifest.json|manifest.webmanifest|registerSW.js).*)",
       "destination": "/index.html"
     }
   ],
@@ -244,6 +244,19 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.(json|webmanifest)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
         }
       ]
     },
