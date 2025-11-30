@@ -419,6 +419,13 @@ const Biblia = () => {
             {/* Versículos - Estilo Medieval com Drop Cap */}
             {!loading && !error && versiculos.length > 0 && (
               <div className="space-y-0 max-w-6xl mx-auto">
+                {/* Crédito da Tradução */}
+                <div className="text-center py-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 italic font-medium">
+                    Tradução de Pe. Matos Soares (1956)
+                  </p>
+                </div>
+
                 {versiculos.map((versiculo, index) => {
                   const firstLetter = versiculo.text.charAt(0);
                   const restOfText = versiculo.text.slice(1);

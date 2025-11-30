@@ -178,8 +178,19 @@ const Noticias = () => {
             <Link key={item.id} to={`/noticias/${item.slug}`}>
               <article className="group bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 dark:border-gray-800 hover:shadow-2xl hover:border-amber-500 dark:hover:border-amber-500 transition-all duration-300">
                 <div className="flex flex-col sm:flex-row gap-0">
-                  {/* Content - Always First (Left Side) */}
-                  <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between order-1">
+                  {/* Thumbnail - Right Side (Mobile: Top) */}
+                  {item.cover_image_url && (
+                    <div className="w-full sm:w-80 h-56 sm:h-auto flex-shrink-0 overflow-hidden order-1 sm:order-2">
+                      <img
+                        src={item.cover_image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  )}
+
+                  {/* Content - Left Side (Mobile: Bottom) */}
+                  <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between order-2 sm:order-1">
                     <div>
                       {/* Tags */}
                       {item.news_tags && item.news_tags.length > 0 && (
@@ -241,17 +252,6 @@ const Noticias = () => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Thumbnail - Right Side (Only if exists) */}
-                  {item.cover_image_url && (
-                    <div className="sm:w-80 h-56 sm:h-auto flex-shrink-0 overflow-hidden order-2">
-                      <img
-                        src={item.cover_image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  )}
                 </div>
               </article>
             </Link>
