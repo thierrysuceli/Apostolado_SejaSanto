@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
+      "destination": "/api/public-data?type=sitemap"
     },
     {
       "source": "/api/central/groups/create",
@@ -225,7 +225,7 @@
       "destination": "/api/public-data?type=comments"
     },
     {
-      "source": "/((?!api|_next|static|favicon.ico|manifest.json|manifest.webmanifest|registerSW.js|robots.txt|sitemap.xml).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

@@ -1464,6 +1464,76 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ history: data });
     }
+
+    // SITEMAP.XML - Geração dinâmica
+    if (type === 'sitemap' && req.method === 'GET') {
+      const baseUrl = 'https://www.apostoladosejasanto.com.br';
+      
+      // Páginas estáticas
+      const staticPages = [
+        { url: '', priority: 1.0, changefreq: 'daily' },
+        { url: '/artigos', priority: 0.9, changefreq: 'daily' },
+        { url: '/noticias', priority: 0.9, changefreq: 'daily' },
+        { url: '/cursos', priority: 0.8, changefreq: 'weekly' },
+        { url: '/eventos', priority: 0.8, changefreq: 'daily' },
+        { url: '/biblia', priority: 0.7, changefreq: 'monthly' },
+        { url: '/liturgia', priority: 0.7, changefreq: 'daily' }
+      ];
+
+      // Buscar conteúdo publicado
+      const [articlesRes, newsRes, coursesRes, eventsRes] = await Promise.all([
+        supabaseAdmin.from('articles').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
+        supabaseAdmin.from('news').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
+        supabaseAdmin.from('courses').select('slug, updated_at, created_at').eq('status', 'active').order('created_at', { ascending: false }),
+        supabaseAdmin.from('events').select('slug, updated_at, start_date').eq('status', 'active').gte('end_date', new Date().toISOString()).order('start_date', { ascending: true })
+      ]);
+
+      // Gerar XML
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+      // Páginas estáticas
+      staticPages.forEach(page => {
+        xml += `  <url>\n    <loc>${baseUrl}${page.url}</loc>\n    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+      });
+
+      // Artigos
+      if (articlesRes.data) {
+        articlesRes.data.forEach(article => {
+          const lastmod = article.updated_at || article.published_at;
+          xml += `  <url>\n    <loc>${baseUrl}/artigos/${article.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+        });
+      }
+
+      // Notícias
+      if (newsRes.data) {
+        newsRes.data.forEach(news => {
+          const lastmod = news.updated_at || news.published_at;
+          xml += `  <url>\n    <loc>${baseUrl}/noticias/${news.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        });
+      }
+
+      // Cursos
+      if (coursesRes.data) {
+        coursesRes.data.forEach(course => {
+          const lastmod = course.updated_at || course.created_at;
+          xml += `  <url>\n    <loc>${baseUrl}/cursos/${course.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+        });
+      }
+
+      // Eventos
+      if (eventsRes.data) {
+        eventsRes.data.forEach(event => {
+          const lastmod = event.updated_at || event.start_date;
+          xml += `  <url>\n    <loc>${baseUrl}/eventos/${event.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        });
+      }
+
+      xml += '</urlset>';
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+      return res.status(200).send(xml);
+    }
     
     return res.status(404).json({ error: 'Tipo inválido ou rota não encontrada' });
   } catch (error) {

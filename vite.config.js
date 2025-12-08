@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['Apostolado_PNG.png', 'favicon.ico'],
+      includeAssets: ['Apostolado_PNG.png', 'favicon.ico', 'robots.txt'],
       manifest: {
         name: 'Apostolado Seja Santo',
         short_name: 'Seja Santo',
