@@ -1,37 +1,33 @@
 # robots.txt para Apostolado Seja Santo
-# Instruções para motores de busca
+# Atualizado conforme diretrizes Google 2025
 
 User-agent: *
+# Permite tudo por padrão (JS, CSS, JSON necessários para renderização)
 Allow: /
 
-# Páginas públicas permitidas
-Allow: /artigos
-Allow: /noticias
-Allow: /cursos
-Allow: /eventos
-Allow: /biblia
-Allow: /liturgia
-Allow: /termos-de-uso
-Allow: /politica-de-privacidade
-
-# Bloquear área administrativa
+# === ÁREAS PRIVADAS (bloquear) ===
 Disallow: /admin
-Disallow: /admin/*
-
-# Bloquear área de perfil (privada)
 Disallow: /perfil
-Disallow: /perfil/*
-
-# Bloquear área de histórico (privada)
 Disallow: /historico
 
-# Bloquear APIs
-Disallow: /api/*
+# === APIs PÚBLICAS (permitir para renderização) ===
+# Google precisa acessar APIs que carregam conteúdo dinâmico
+Allow: /api/public-data*
+Allow: /api/content*
+Allow: /api/liturgia*
 
-# Bloquear recursos de build
-Disallow: /*.js$
-Disallow: /*.css$
-Disallow: /*.json$
+# APIs de autenticação/privadas (bloquear)
+Disallow: /api/auth*
+Disallow: /api/admin*
+Disallow: /api/central*
 
-# Sitemap
+# === NOTA IMPORTANTE ===
+# JS, CSS e JSON NÃO devem ser bloqueados
+# Google precisa deles para:
+# - Renderizar React/SPA corretamente
+# - Medir Core Web Vitals (LCP, CLS, FID)
+# - Avaliar Mobile-First Indexing
+# - Processar structured data
+
+# Sitemap dinâmico (atualiza automaticamente)
 Sitemap: https://www.apostoladosejasanto.com.br/sitemap.xml
