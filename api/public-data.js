@@ -1484,8 +1484,8 @@ export default async function handler(req, res) {
       const [articlesRes, newsRes, coursesRes, eventsRes] = await Promise.all([
         supabaseAdmin.from('articles').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
         supabaseAdmin.from('news').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
-        supabaseAdmin.from('courses').select('slug, updated_at, created_at').eq('status', 'active').order('created_at', { ascending: false }),
-        supabaseAdmin.from('events').select('slug, updated_at, start_date').eq('status', 'active').gte('end_date', new Date().toISOString()).order('start_date', { ascending: true })
+        supabaseAdmin.from('courses').select('slug, updated_at, created_at').eq('status', 'published').order('created_at', { ascending: false }),
+        supabaseAdmin.from('events').select('slug, updated_at, start_date').eq('status', 'published').gte('end_date', new Date().toISOString()).order('start_date', { ascending: true })
       ]);
 
       // Debug log
