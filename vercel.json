@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
       "source": "/api/central/groups/create",
       "destination": "/api/central/groups-consolidated?action=create"
     },

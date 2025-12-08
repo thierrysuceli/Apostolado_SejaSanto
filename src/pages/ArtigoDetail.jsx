@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import SEO from '../components/SEO';
 
 const ArtigoDetail = () => {
   const { slug } = useParams();
@@ -96,6 +97,22 @@ const ArtigoDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-black">
+      {/* SEO Meta Tags */}
+      <SEO
+        title={article.title}
+        description={article.excerpt || article.title}
+        image={article.cover_image_url}
+        url={`/artigos/${article.slug}`}
+        type="article"
+        article={{
+          publishedTime: article.published_at,
+          modifiedTime: article.updated_at,
+          author: article.author?.name || 'Apostolado Seja Santo',
+          section: article.editorial_column?.name || 'Artigos',
+          tags: article.tags?.map(t => t.name) || []
+        }}
+      />
+
       {/* Header Image */}
       {article.cover_image_url && (
         <div className="relative h-96 bg-gray-900">

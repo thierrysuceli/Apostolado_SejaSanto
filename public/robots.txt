@@ -1,0 +1,37 @@
+# robots.txt para Apostolado Seja Santo
+# Instruções para motores de busca
+
+User-agent: *
+Allow: /
+
+# Páginas públicas permitidas
+Allow: /artigos
+Allow: /noticias
+Allow: /cursos
+Allow: /eventos
+Allow: /biblia
+Allow: /liturgia
+Allow: /termos-de-uso
+Allow: /politica-de-privacidade
+
+# Bloquear área administrativa
+Disallow: /admin
+Disallow: /admin/*
+
+# Bloquear área de perfil (privada)
+Disallow: /perfil
+Disallow: /perfil/*
+
+# Bloquear área de histórico (privada)
+Disallow: /historico
+
+# Bloquear APIs
+Disallow: /api/*
+
+# Bloquear recursos de build
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.json$
+
+# Sitemap
+Sitemap: https://www.apostoladosejasanto.com.br/sitemap.xml

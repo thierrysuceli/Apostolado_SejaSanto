@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 import { ApiProvider } from './contexts/ApiContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -48,11 +49,12 @@ import CookieConsent from './components/CookieConsent';
 
 function App() {
   return (
-    <ThemeProvider>
-      <OfflineProvider>
-        <AuthProvider>
-          <ApiProvider>
-            <BrowserRouter>
+    <HelmetProvider>
+      <ThemeProvider>
+        <OfflineProvider>
+          <AuthProvider>
+            <ApiProvider>
+              <BrowserRouter>
               <div className="min-h-screen bg-beige-50 dark:bg-gray-950 transition-colors duration-300">
                 <HeaderNew />
               <div className="flex-1 flex flex-col">
@@ -111,6 +113,7 @@ function App() {
       </AuthProvider>
       </OfflineProvider>
     </ThemeProvider>
+    </HelmetProvider>
   );
 }
 
