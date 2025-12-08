@@ -1488,6 +1488,17 @@ export default async function handler(req, res) {
         supabaseAdmin.from('events').select('slug, updated_at, start_date').eq('status', 'active').gte('end_date', new Date().toISOString()).order('start_date', { ascending: true })
       ]);
 
+      // Debug log
+      console.log('[SITEMAP] Content count:', {
+        articles: articlesRes.data?.length || 0,
+        news: newsRes.data?.length || 0,
+        courses: coursesRes.data?.length || 0,
+        events: eventsRes.data?.length || 0
+      });
+      
+      if (coursesRes.error) console.error('[SITEMAP] Courses error:', coursesRes.error);
+      if (eventsRes.error) console.error('[SITEMAP] Events error:', eventsRes.error);
+
       // Gerar XML
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
