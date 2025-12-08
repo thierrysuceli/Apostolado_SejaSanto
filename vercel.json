@@ -225,7 +225,7 @@
       "destination": "/api/public-data?type=comments"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ],
