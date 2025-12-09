@@ -95,13 +95,16 @@ export default function OfflineIndicator() {
     }
   };
 
-  if (!showIndicator && isOnline) {
+  // Sempre mostrar se: está offline OU tem botão de download OU Bíblia baixada
+  const shouldShow = !isOnline || (isOnline && !bibleDownloaded) || bibleDownloaded;
+
+  if (!shouldShow && !showIndicator) {
     return null;
   }
 
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2">
-      {/* Indicador de conexão */}
+      {/* Indicador de conexão - só mostra quando muda status */}
       {showIndicator && (
         <div
           className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${

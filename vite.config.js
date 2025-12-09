@@ -46,9 +46,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             // API de conteúdo (artigos, notícias, cursos) - NetworkFirst agressivo
-            urlPattern: ({ url }) => {
-              return url.pathname.includes('/api/content');
-            },
+            urlPattern: /\/api\/content/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-content',
@@ -59,25 +57,12 @@ export default defineConfig({
               networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
-              },
-              // Garantir que respostas sejam cacheadas
-              plugins: [
-                {
-                  cacheWillUpdate: async ({ response }) => {
-                    if (response && response.status === 200) {
-                      return response;
-                    }
-                    return null;
-                  }
-                }
-              ]
+              }
             }
           },
           {
             // Liturgia diária - NetworkFirst com fallback
-            urlPattern: ({ url }) => {
-              return url.pathname.includes('/api/liturgia');
-            },
+            urlPattern: /\/api\/liturgia/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'liturgia-daily',
@@ -93,9 +78,7 @@ export default defineConfig({
           },
           {
             // Bíblia (raramente muda) - Cache agressivo
-            urlPattern: ({ url }) => {
-              return url.pathname.includes('/api/public-data') && url.search.includes('type=bible');
-            },
+            urlPattern: /\/api\/public-data.*type=bible/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'bible-content',
@@ -105,26 +88,12 @@ export default defineConfig({
               },
               cacheableResponse: {
                 statuses: [0, 200]
-              },
-              // Plugin para garantir que funcione offline
-              plugins: [
-                {
-                  cacheWillUpdate: async ({ response }) => {
-                    if (response && response.status === 200) {
-                      return response;
-                    }
-                    return null;
-                  }
-                }
-              ]
+              }
             }
           },
           {
             // Imagens locais e externas (Supabase)
-            urlPattern: ({ url }) => {
-              return url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i) || 
-                     url.hostname.includes('supabase.co');
-            },
+            urlPattern: /\.(jpg|jpeg|png|gif|webp|svg|ico)$|supabase\.co/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'images-cache',
@@ -139,9 +108,7 @@ export default defineConfig({
           },
           {
             // Dados públicos (tags, roles, colunas editoriais)
-            urlPattern: ({ url }) => {
-              return url.pathname.includes('/api/public-data') && !url.search.includes('type=bible');
-            },
+            urlPattern: /\/api\/public-data/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'public-data',
