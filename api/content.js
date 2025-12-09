@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   
   try {
     let effectiveId = id;
-    if ((type === 'articles' || type === 'news') && effectiveId && !isUuid && req.method !== 'POST') {
+    if ((type === 'articles' || type === 'news' || type === 'courses') && effectiveId && !isUuid && req.method !== 'POST') {
       const { data: slugRecord, error: slugError } = await supabaseAdmin
         .from(table)
         .select('id')
