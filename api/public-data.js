@@ -1465,6 +1465,50 @@ export default async function handler(req, res) {
       return res.status(200).json({ history: data });
     }
 
+    // INCREMENT ARTICLE VIEWS
+    if (type === 'article-view' && req.method === 'POST') {
+      const { article_id } = req.body;
+      
+      if (!article_id) {
+        return res.status(400).json({ error: 'article_id é obrigatório' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('articles')
+        .update({ 
+          views_count: supabaseAdmin.rpc('increment')
+        })
+        .eq('id', article_id)
+        .select('views_count')
+        .single();
+      
+      if (error) {
+        console.error('[ARTICLE VIEW] Error:', error);
+        // Fallback: incrementar manualmente
+        const { data: article } = await supabaseAdmin
+          .from('articles')
+          .select('views_count')
+          .eq('id', article_id)
+          .single();
+        
+        if (article) {
+          const { data: updated, error: updateError } = await supabaseAdmin
+            .from('articles')
+            .update({ views_count: (article.views_count || 0) + 1 })
+            .eq('id', article_id)
+            .select('views_count')
+            .single();
+          
+          if (updateError) throw updateError;
+          return res.status(200).json({ views_count: updated.views_count });
+        }
+        
+        throw error;
+      }
+      
+      return res.status(200).json({ views_count: data.views_count });
+    }
+
     // SITEMAP.XML - Geração dinâmica
     if (type === 'sitemap' && req.method === 'GET') {
       const baseUrl = 'https://www.apostoladosejasanto.com.br';

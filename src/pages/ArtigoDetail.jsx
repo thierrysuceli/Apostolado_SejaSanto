@@ -34,6 +34,11 @@ const ArtigoDetail = () => {
         const article = data.article;
         setArticle(article);
         
+        // Increment views (sempre, não precisa estar logado)
+        await post('/api/public-data?type=article-view', {
+          article_id: article.id
+        }).catch(err => console.log('View count skipped:', err));
+        
         // Save to history
         if (currentUser) {
           await post('/api/public-data?type=article-history', {

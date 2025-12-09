@@ -12,6 +12,7 @@ const Artigos = () => {
   const [articles, setArticles] = useState([]);
   const [columns, setColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -20,8 +21,11 @@ const Artigos = () => {
       const adminRole = user.roles.some(r => r.name === 'ADMIN');
       setIsAdmin(adminRole);
     }
-    fetchData();
   }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -86,35 +90,61 @@ const Artigos = () => {
           </div>
         </div>
 
-        {/* Column Filters */}
-        <div className="mb-8 flex flex-wrap gap-3">
-          <button
-            onClick={() => setSelectedColumn(null)}
-            className={`px-5 py-2.5 rounded-full font-semibold transition-all ${
-              !selectedColumn
-                ? 'bg-primary-600 text-white shadow-lg scale-105'
-                : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-300 border border-beige-200 dark:border-gray-700 hover:border-primary-600 dark:hover:border-primary-500'
-            }`}
-          >
-            Todas as Colunas
-          </button>
-          {columns.map(column => (
-            <button
-              key={column.id}
-              onClick={() => setSelectedColumn(column.id)}
-              className={`px-5 py-2.5 rounded-full font-semibold transition-all ${
-                selectedColumn === column.id
-                  ? 'text-white shadow-lg scale-105'
-                  : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-300 border border-beige-200 dark:border-gray-700 hover:scale-105'
-              }`}
-              style={{
-                backgroundColor: selectedColumn === column.id ? column.color : undefined,
-                borderColor: selectedColumn === column.id ? column.color : undefined
-              }}
-            >
-              {column.name}
-            </button>
-          ))}
+        {/* Column Filters with Search */}
+        <div className="mb-8">
+          {/* Search Bar */}
+          {columns.length > 5 && (
+            <div className="mb-4 relative max-w-md">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar coluna..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-beige-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          )}
+          
+          {/* Horizontal Carousel */}
+          <div className="relative">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-3 pb-2" style={{ minWidth: 'min-content' }}>
+                <button
+                  onClick={() => setSelectedColumn(null)}
+                  className={`px-5 py-2.5 rounded-full font-semibold transition-all whitespace-nowrap ${
+                    !selectedColumn
+                      ? 'bg-primary-600 text-white shadow-lg scale-105'
+                      : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-300 border border-beige-200 dark:border-gray-700 hover:border-primary-600 dark:hover:border-primary-500'
+                  }`}
+                >
+                  Todas as Colunas
+                </button>
+                {columns
+                  .filter(col => !searchQuery || col.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map(column => (
+                    <button
+                      key={column.id}
+                      onClick={() => setSelectedColumn(column.id)}
+                      className={`px-5 py-2.5 rounded-full font-semibold transition-all whitespace-nowrap ${
+                        selectedColumn === column.id
+                          ? 'text-white shadow-lg scale-105'
+                          : 'bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-300 border border-beige-200 dark:border-gray-700 hover:scale-105'
+                      }`}
+                      style={{
+                        backgroundColor: selectedColumn === column.id ? column.color : undefined,
+                        borderColor: selectedColumn === column.id ? column.color : undefined
+                      }}
+                    >
+                      {column.name}
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Featured Article */}
