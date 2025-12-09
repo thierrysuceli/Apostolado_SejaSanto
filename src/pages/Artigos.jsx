@@ -44,7 +44,7 @@ const Artigos = () => {
   };
 
   const filteredArticles = selectedColumn
-    ? articles.filter(a => a.editorial_column_id && a.editorial_column_id === selectedColumn)
+    ? articles.filter(a => a.editorial_column?.id === selectedColumn)
     : articles;
 
   const featuredArticle = filteredArticles.find(a => a.is_featured);
