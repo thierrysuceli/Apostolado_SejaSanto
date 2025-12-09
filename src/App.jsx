@@ -46,6 +46,7 @@ import Historico from './pages/Historico';
 import TermosDeUso from './pages/TermosDeUso';
 import PoliticaDePrivacidade from './pages/PoliticaDePrivacidade';
 import CookieConsent from './components/CookieConsent';
+import OfflineIndicator from './components/OfflineIndicator';
 
 function App() {
   return (
@@ -106,6 +107,7 @@ function App() {
                 </main>
                 <Footer />
                 <CookieConsent />
+                <OfflineIndicator />
               </div>
             </div>
           </BrowserRouter>

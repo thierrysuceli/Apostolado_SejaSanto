@@ -8,7 +8,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['Apostolado_PNG.png', 'favicon.ico', 'robots.txt'],
+      devOptions: {
+        enabled: false // Desabilitar em dev para evitar conflitos
+      },
+      includeAssets: ['Apostolado_PNG.png', 'favicon.ico', 'robots.txt', 'bibliaAveMaria.json'],
       manifest: {
         name: 'Apostolado Seja Santo',
         short_name: 'Seja Santo',
@@ -16,91 +19,157 @@ export default defineConfig({
         theme_color: '#d97706',
         background_color: '#000000',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/Apostolado_PNG.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: '/Apostolado_PNG.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
-        // Estratégias de cache para reduzir custos no servidor
+        // PRECACHE: Arquivos críticos que devem estar sempre disponíveis offline
+        globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,json,woff,woff2}'],
+        // Arquivos grandes para precache (Bíblia)
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
+        
+        // Runtime caching: estratégias para diferentes tipos de conteúdo
         runtimeCaching: [
           {
-            // API de conteúdo (artigos, notícias, cursos)
-            urlPattern: /^https:\/\/.*\/api\/content.*/i,
+            // API de conteúdo (artigos, notícias, cursos) - NetworkFirst agressivo
+            urlPattern: ({ url }) => {
+              return url.pathname.includes('/api/content');
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-content',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 24 * 60 * 60 // 24 horas
+                maxEntries: 200, // Mais cursos/artigos/notícias
+                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 dias
               },
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 5,
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              // Garantir que respostas sejam cacheadas
+              plugins: [
+                {
+                  cacheWillUpdate: async ({ response }) => {
+                    if (response && response.status === 200) {
+                      return response;
+                    }
+                    return null;
+                  }
+                }
+              ]
+            }
+          },
+          {
+            // Liturgia diária - NetworkFirst com fallback
+            urlPattern: ({ url }) => {
+              return url.pathname.includes('/api/liturgia');
+            },
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'liturgia-daily',
+              expiration: {
+                maxEntries: 30, // Último mês
+                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 dias
+              },
+              networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           },
           {
-            // Liturgia diária
-            urlPattern: /^https:\/\/.*\/api\/liturgia.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'liturgia',
-              expiration: {
-                maxEntries: 7,
-                maxAgeSeconds: 24 * 60 * 60 // 24 horas
-              },
-              networkTimeoutSeconds: 10
-            }
-          },
-          {
-            // Bíblia (raramente muda)
-            urlPattern: /^https:\/\/.*\/api\/public-data\?type=bible.*/i,
+            // Bíblia (raramente muda) - Cache agressivo
+            urlPattern: ({ url }) => {
+              return url.pathname.includes('/api/public-data') && url.search.includes('type=bible');
+            },
             handler: 'CacheFirst',
             options: {
               cacheName: 'bible-content',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 dias
-              }
+                maxEntries: 500, // Todos os capítulos
+                maxAgeSeconds: 365 * 24 * 60 * 60 // 1 ano
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              // Plugin para garantir que funcione offline
+              plugins: [
+                {
+                  cacheWillUpdate: async ({ response }) => {
+                    if (response && response.status === 200) {
+                      return response;
+                    }
+                    return null;
+                  }
+                }
+              ]
             }
           },
           {
-            // Imagens
-            urlPattern: /\.(jpg|jpeg|png|gif|webp|svg)$/i,
+            // Imagens locais e externas (Supabase)
+            urlPattern: ({ url }) => {
+              return url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i) || 
+                     url.hostname.includes('supabase.co');
+            },
             handler: 'CacheFirst',
             options: {
-              cacheName: 'images',
+              cacheName: 'images-cache',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 dias
+                maxEntries: 300, // Mais imagens
+                maxAgeSeconds: 90 * 24 * 60 * 60 // 90 dias
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
               }
             }
           },
           {
-            // Dados públicos (tags, roles, etc)
-            urlPattern: /^https:\/\/.*\/api\/public-data.*/i,
+            // Dados públicos (tags, roles, colunas editoriais)
+            urlPattern: ({ url }) => {
+              return url.pathname.includes('/api/public-data') && !url.search.includes('type=bible');
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'public-data',
               expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 dias
+                maxEntries: 100,
+                maxAgeSeconds: 14 * 24 * 60 * 60 // 14 dias
               },
-              networkTimeoutSeconds: 10
+              networkTimeoutSeconds: 5,
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
             }
           }
         ],
-        // Não cachear rotas de autenticação
-        navigateFallbackDenylist: [/^\/api\/auth/]
+        
+        // Navegação offline: fallback para index.html (SPA)
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [
+          /^\/api\/auth/, // Não cachear autenticação
+          /^\/admin/ // Admin sempre online
+        ],
+        
+        // Cleanup: remover caches antigos
+        cleanupOutdatedCaches: true,
+        
+        // Skip waiting: ativar novo SW imediatamente
+        skipWaiting: true,
+        clientsClaim: true
       }
     })
   ],
