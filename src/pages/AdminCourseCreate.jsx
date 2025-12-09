@@ -347,7 +347,7 @@ const AdminCourseCreate = () => {
           <div className="flex gap-4 pt-6">
             <button
               type="button"
-              onClick={() => navigate('/courses')}
+              onClick={() => navigate('/cursos')}
               className="flex-1 bg-gray-200 dark:bg-gray-700 text-secondary-700 dark:text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
               disabled={loading}
             >

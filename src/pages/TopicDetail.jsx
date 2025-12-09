@@ -340,7 +340,7 @@ function TopicDetail() {
           <span className="text-gray-400">/</span>
           {course && (
             <>
-              <Link to={`/courses/${course.id}`} className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+              <Link to={`/cursos/${course.id}`} className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
                 {course.title}
               </Link>
               <span className="text-gray-400">/</span>

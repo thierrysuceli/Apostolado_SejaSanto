@@ -393,7 +393,7 @@ const Home = () => {
 
               {/* CTA Button */}
               <button
-                onClick={() => navigate(currentHero?.type === 'course' ? `/courses/${currentHero?.id}` : `/posts/${currentHero?.id}`)}
+                onClick={() => navigate(currentHero?.type === 'course' ? `/cursos/${currentHero?.id}` : `/posts/${currentHero?.id}`)}
                 className="bg-gradient-to-r from-amber-500 to-amber-600 text-black px-8 py-4 rounded-xl font-bold text-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-amber-500/50 inline-flex items-center gap-3"
               >
                 <span>{currentHero?.type === 'course' ? 'Assistir Agora' : 'Ler Artigo'}</span>

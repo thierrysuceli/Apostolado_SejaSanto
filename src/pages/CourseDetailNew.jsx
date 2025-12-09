@@ -57,7 +57,7 @@ function CourseDetail() {
     try {
       await api.courses.delete(id);
       alert('Curso deletado com sucesso!');
-      navigate('/courses');
+      navigate('/cursos');
     } catch (err) {
       console.error('Error deleting course:', err);
       alert('Erro ao deletar curso: ' + (err.response?.data?.error || err.message));
@@ -270,7 +270,7 @@ function CourseDetail() {
                     {module.topics.map((topic, topicIndex) => (
                       <Link
                         key={topic.id}
-                        to={`/courses/${id}/topics/${topic.id}`}
+                        to={`/cursos/${id}/topics/${topic.id}`}
                         className="group block bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                       >
                         <div className="flex items-center gap-4 p-4">

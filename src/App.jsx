@@ -64,10 +64,10 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/liturgia" element={<Liturgia />} />
                   <Route path="/biblia" element={<Biblia />} />
-                  <Route path="/courses" element={<Courses />} />
-                  <Route path="/courses/:id" element={<CourseDetailNew />} />
-                  <Route path="/courses/:courseId/topics/:topicId" element={<TopicDetail />} />
-                  <Route path="/courses/:courseId/modules/:moduleId/topics/:topicId" element={<TopicDetail />} />
+                  <Route path="/cursos" element={<Courses />} />
+                  <Route path="/cursos/:id" element={<CourseDetailNew />} />
+                  <Route path="/cursos/:courseId/topics/:topicId" element={<TopicDetail />} />
+                  <Route path="/cursos/:courseId/modules/:moduleId/topics/:topicId" element={<TopicDetail />} />
                   <Route path="/artigos" element={<Artigos />} />
                   <Route path="/artigos/:slug" element={<ArtigoDetail />} />
                   <Route path="/noticias" element={<Noticias />} />

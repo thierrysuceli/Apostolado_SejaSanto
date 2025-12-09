@@ -170,7 +170,7 @@ const AdminCourseEdit = () => {
       });
 
       // Navigate to course detail
-      navigate(`/courses/${id}`);
+      navigate(`/cursos/${id}`);
     } catch (err) {
       console.error('Error updating course:', err);
       setError(err.message || 'Erro ao atualizar curso');
@@ -196,7 +196,7 @@ const AdminCourseEdit = () => {
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <button
-            onClick={() => navigate('/courses')}
+            onClick={() => navigate('/cursos')}
             className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
           >
             Voltar para Cursos
@@ -433,7 +433,7 @@ const AdminCourseEdit = () => {
           <div className="flex gap-4 pt-6">
             <button
               type="button"
-              onClick={() => navigate(`/courses/${id}`)}
+              onClick={() => navigate(`/cursos/${id}`)}
               className="flex-1 bg-gray-200 dark:bg-gray-700 text-secondary-700 dark:text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
               disabled={saving}
             >

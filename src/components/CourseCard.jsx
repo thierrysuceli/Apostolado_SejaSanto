@@ -117,7 +117,7 @@ const CourseCard = ({ course }) => {
 
   // Se não está bloqueado, envolve em Link para navegação ao clicar no card
   return (
-    <Link to={`/courses/${course.id}`} className="block">
+    <Link to={`/cursos/${course.id}`} className="block">
       {cardContent}
     </Link>
   );
