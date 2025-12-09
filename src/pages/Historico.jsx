@@ -213,7 +213,7 @@ export default function Historico() {
               Comece a assistir cursos ou ler artigos para construir seu histórico
             </p>
             <Link
-              to="/courses"
+              to="/cursos"
               className="inline-block px-6 py-3 bg-amber-500 text-black font-medium rounded-lg hover:bg-amber-600 transition"
             >
               Explorar Cursos

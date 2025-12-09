@@ -82,7 +82,7 @@ function CourseDetail() {
           <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">
             {error || 'Curso não encontrado'}
           </div>
-          <Link to="/courses" className="inline-block mt-4 text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+          <Link to="/cursos" className="inline-block mt-4 text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             ← Voltar para Cursos
           </Link>
         </div>
@@ -162,7 +162,7 @@ function CourseDetail() {
       <div className="container mx-auto px-4 py-12 max-w-5xl">
         {/* Breadcrumb */}
         <div className="mb-8 flex items-center gap-2 text-sm">
-          <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+          <Link to="/cursos" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             Cursos
           </Link>
           <span className="text-gray-400">/</span>

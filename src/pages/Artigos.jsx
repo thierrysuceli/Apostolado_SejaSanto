@@ -34,12 +34,6 @@ const Artigos = () => {
         get('/api/public-data?type=editorial-columns')
       ]);
       
-      console.log('[ARTIGOS] Loaded:', {
-        articles: articlesRes.articles?.length,
-        columns: columnsRes.columns?.length,
-        sample: articlesRes.articles?.[0]
-      });
-      
       setArticles(articlesRes.articles || []);
       setColumns(columnsRes.columns || []);
     } catch (error) {
@@ -50,15 +44,7 @@ const Artigos = () => {
   };
 
   const filteredArticles = selectedColumn
-    ? articles.filter(a => {
-        console.log('[FILTER]', { 
-          title: a.title, 
-          column_id: a.editorial_column_id, 
-          selected: selectedColumn,
-          match: a.editorial_column_id === selectedColumn 
-        });
-        return a.editorial_column_id === selectedColumn;
-      })
+    ? articles.filter(a => a.editorial_column_id && a.editorial_column_id === selectedColumn)
     : articles;
 
   const featuredArticle = filteredArticles.find(a => a.is_featured);

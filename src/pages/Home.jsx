@@ -574,7 +574,7 @@ const Home = () => {
               <p className="text-gray-600 dark:text-gray-400">Conteúdos de formação católica de qualidade</p>
             </div>
             <Link
-              to="/courses"
+              to="/cursos"
               className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Ver todos
@@ -598,7 +598,7 @@ const Home = () => {
 
           <div className="mt-8 text-center sm:hidden">
             <Link
-              to="/courses"
+              to="/cursos"
               className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Ver todos os cursos

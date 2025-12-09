@@ -15,7 +15,7 @@ const Header = () => {
     { id: 'about', label: 'Sobre Nós', path: '/about' },
     { id: 'liturgia', label: 'Liturgia', path: '/liturgia' },
     { id: 'biblia', label: 'Bíblia', path: '/biblia' },
-    { id: 'cursos', label: 'Cursos', path: '/courses' },
+    { id: 'cursos', label: 'Cursos', path: '/cursos' },
     { id: 'artigos', label: 'Artigos', path: '/artigos' },
     { id: 'noticias', label: 'Notícias', path: '/noticias' },
     { id: 'calendario', label: 'Calendário', path: '/calendar' },

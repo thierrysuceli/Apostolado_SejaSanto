@@ -321,7 +321,7 @@ function TopicDetail() {
       <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-red-500 mb-4">{error || 'Tópico não encontrado'}</p>
-          <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+          <Link to="/cursos" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             ← Voltar para Cursos
           </Link>
         </div>
@@ -334,7 +334,7 @@ function TopicDetail() {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm flex-wrap">
-          <Link to="/courses" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
+          <Link to="/cursos" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
             Cursos
           </Link>
           <span className="text-gray-400">/</span>

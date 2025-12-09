@@ -120,7 +120,7 @@ const About = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="/courses"
+                href="/cursos"
                 className="inline-flex items-center justify-center gap-2 bg-white text-amber-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-amber-50 transition-all shadow-lg"
               >
                 <span>Ver Cursos</span>
