@@ -518,7 +518,7 @@ const Admin = () => {
                       </p>
                     </div>
                     <button
-                      onClick={() => navigate(`/cursos/${course.id}`)}
+                      onClick={() => navigate(`/cursos/${course.slug || course.id}`)}
                       className="text-primary-600 hover:text-primary-700 text-sm font-semibold"
                     >
                       Ver
