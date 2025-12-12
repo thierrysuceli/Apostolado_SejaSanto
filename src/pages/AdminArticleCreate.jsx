@@ -65,6 +65,10 @@ const AdminArticleCreate = () => {
             const articleData = await api.get(`/api/content?type=articles&id=${editId}`);
             if (articleData && articleData.article) {
               const article = articleData.article;
+              console.log('📝 [EDIT] Article loaded:', article);
+              console.log('📝 [EDIT] editorial_column_id:', article.editorial_column_id);
+              console.log('📝 [EDIT] allowed_role_ids:', article.allowed_role_ids);
+              
               setFormData({
                 title: article.title || '',
                 slug: article.slug || '',
@@ -76,7 +80,11 @@ const AdminArticleCreate = () => {
                 published_at: formatDateTimeLocal(article.published_at),
                 is_featured: article.is_featured || false
               });
-              setSelectedRoleIds(article.allowed_role_ids || []);
+              
+              // Garantir que roles são carregadas corretamente
+              const roleIds = article.allowed_role_ids || [];
+              console.log('📝 [EDIT] Setting selectedRoleIds:', roleIds);
+              setSelectedRoleIds(roleIds);
             }
           } catch (err) {
             console.error('Error loading article:', err);

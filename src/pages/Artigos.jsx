@@ -20,6 +20,10 @@ const Artigos = () => {
     if (user?.roles) {
       const adminRole = user.roles.some(r => r.name === 'ADMIN');
       setIsAdmin(adminRole);
+      console.log('🔍 [Artigos] User roles updated:', {
+        isAdmin: adminRole,
+        roles: user.roles.map(r => r.name)
+      });
     }
   }, [user]);
 

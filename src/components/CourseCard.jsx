@@ -8,6 +8,17 @@ const CourseCard = ({ course }) => {
   // Com a API, todos os cursos já vêm filtrados por permissão
   const isLocked = false;
   const isDraft = course.status === 'draft';
+  
+  // Debug logs
+  if (isDraft) {
+    console.log('🔍 [CourseCard] Draft course detected:', {
+      title: course.title,
+      status: course.status,
+      isDraft,
+      isAdmin,
+      userRoles: user?.roles?.map(r => r.name)
+    });
+  }
 
   const cardContent = (
     <div className="relative bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-500 border border-gray-200 dark:border-gray-700 hover:border-amber-500/50 flex h-[320px]">

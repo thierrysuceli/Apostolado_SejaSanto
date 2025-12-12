@@ -423,9 +423,16 @@ export default async function handler(req, res) {
       const tagField = relationKey;
       if (tagField && data[tagField]) {
         data.tags = data[tagField].map(t => t.roles).filter(Boolean);
+        // Extrair array de role IDs para edição
+        data.allowed_role_ids = data[tagField].map(t => t.role_id).filter(Boolean);
       }
       if (type === 'news' && data.news_tag_assignments) {
         data.news_tags = data.news_tag_assignments.map(entry => entry.tag).filter(Boolean);
+      }
+      
+      // Extrair editorial_column_id flat para articles (facilita edição)
+      if (type === 'articles' && data.editorial_column) {
+        data.editorial_column_id = data.editorial_column.id;
       }
       
       // Formatar event_category_tags
