@@ -1,9 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const CourseCard = ({ course }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.some(r => r.name === 'ADMIN');
   // Com a API, todos os cursos já vêm filtrados por permissão
   const isLocked = false;
+  const isDraft = course.status === 'draft';
 
   const cardContent = (
     <div className="relative bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-500 border border-gray-200 dark:border-gray-700 hover:border-amber-500/50 flex h-[320px]">
@@ -32,14 +36,22 @@ const CourseCard = ({ course }) => {
       <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
         {/* Header */}
         <div>
-          {/* Category Badge */}
-          {course.category && (
-            <div className="mb-3">
+          {/* Category Badge and Draft Badge */}
+          <div className="mb-3 flex flex-wrap gap-2">
+            {course.category && (
               <span className="inline-block text-amber-500 text-xs font-bold uppercase tracking-widest bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30">
                 {course.category}
               </span>
-            </div>
-          )}
+            )}
+            {isDraft && isAdmin && (
+              <span className="inline-flex items-center gap-1.5 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-widest bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-500/30">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Rascunho
+              </span>
+            )}
+          </div>
           
           {/* Title */}
           <h3 className="text-gray-900 dark:text-white font-bold text-2xl mb-3 line-clamp-2 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors">

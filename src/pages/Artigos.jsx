@@ -202,17 +202,25 @@ const Artigos = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     
-                    {/* Editorial Column Badge on Image */}
-                    {article.editorial_column && (
-                      <div className="absolute top-4 left-4">
+                    {/* Editorial Column Badge and Draft Badge on Image */}
+                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                      {article.editorial_column && (
                         <span 
                           className="inline-block px-4 py-2 text-sm font-bold rounded-lg shadow-lg text-white backdrop-blur-sm"
                           style={{ backgroundColor: `${article.editorial_column.color}dd` }}
                         >
                           {article.editorial_column.name}
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {article.status === 'draft' && isAdmin && (
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-lg shadow-lg text-white bg-orange-600/90 backdrop-blur-sm">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Rascunho
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 

@@ -206,6 +206,21 @@ function CourseDetail() {
 
       {/* Conteúdo principal */}
       <div className="container mx-auto px-4 py-12 max-w-5xl">
+        {/* Draft Banner - Apenas para Admins */}
+        {course.status === 'draft' && isAdmin() && (
+          <div className="mb-8 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-500 rounded-xl p-6">
+            <div className="flex items-center gap-4">
+              <svg className="w-8 h-8 text-orange-600 dark:text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <div>
+                <p className="text-orange-800 dark:text-orange-300 font-bold text-xl">Rascunho</p>
+                <p className="text-orange-700 dark:text-orange-400 text-base">Este curso está visível apenas para administradores. Publique-o para torná-lo acessível aos usuários.</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Breadcrumb */}
         <div className="mb-8 flex items-center gap-2 text-sm">
           <Link to="/cursos" className="text-amber-600 dark:text-amber-500 hover:underline font-semibold">
