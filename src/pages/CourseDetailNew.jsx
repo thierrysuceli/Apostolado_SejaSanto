@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -15,7 +16,6 @@ function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedModules, setExpandedModules] = useState({});
-  const [showDescription, setShowDescription] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -92,6 +92,52 @@ function CourseDetail() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
+      {/* SEO Meta Tags + Structured Data */}
+      <Helmet>
+        <title>{course.title} | Curso de Formação Católica | Apostolado Seja Santo</title>
+        <meta name="description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 160) || `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={`${course.title} | Curso Católico`} />
+        <meta property="og:description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 200)} />
+        <meta property="og:image" content={course.cover_image_url || course.image} />
+        <meta property="og:type" content="website.course" />
+        <meta property="og:url" content={`https://www.apostoladosejasanto.com.br/cursos/${course.slug || id}`} />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${course.title} | Curso Católico`} />
+        <meta name="twitter:description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 200)} />
+        <meta name="twitter:image" content={course.cover_image_url || course.image} />
+        
+        {/* Structured Data (JSON-LD) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Course",
+            "name": course.title,
+            "description": course.description?.replace(/<[^>]*>/g, '').substring(0, 500),
+            "provider": {
+              "@type": "Organization",
+              "name": "Apostolado Seja Santo",
+              "sameAs": "https://www.apostoladosejasanto.com.br"
+            },
+            "image": course.cover_image_url || course.image,
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "courseWorkload": `PT${(course.modules?.length || 0) * 2}H`
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "BRL",
+              "availability": "https://schema.org/InStock"
+            }
+          })}
+        </script>
+      </Helmet>
+      
       {/* Hero Section com imagem de fundo */}
       <div className="relative h-[60vh] min-h-[400px]">
         {/* Imagem de fundo escurecida */}
@@ -169,36 +215,43 @@ function CourseDetail() {
           <span className="text-gray-700 dark:text-gray-300">{course.title}</span>
         </div>
 
-        {/* Descrição expansível "Venha trilhar esta jornada..." */}
+        {/* Seção Sobre o Curso - VISÍVEL PARA SEO */}
         {(course.description || course.detailed_description) && (
-          <div className="mb-8">
-            <button
-              onClick={() => setShowDescription(!showDescription)}
-              className="w-full text-left bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  Venha trilhar esta jornada para entender...
-                </h2>
-                <svg 
-                  className={`w-6 h-6 text-gray-700 dark:text-gray-300 transition-transform duration-300 ${showDescription ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+          <div className="mb-12">
+            {/* Título "Sobre este Curso" */}
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-l-4 border-amber-500 pl-4">
+              Sobre este Curso
+            </h2>
+            
+            {/* Descrição COMPLETA e visível (NÃO em accordion) */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg">
+              <div 
+                className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: course.detailed_description || course.description }}
+              />
               
-              {showDescription && (
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-                  <div 
-                    className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
-                    dangerouslySetInnerHTML={{ __html: course.detailed_description || course.description }}
-                  />
-                </div>
-              )}
-            </button>
+              {/* Tags/Badges do curso */}
+              <div className="mt-8 pt-6 border-t border-gray-300 dark:border-gray-600 flex flex-wrap gap-3">
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded-full text-sm font-semibold">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  {course.modules?.length || 0} Módulos
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-sm font-semibold">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Curso Gratuito
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-full text-sm font-semibold">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Online • No seu ritmo
+                </span>
+              </div>
+            </div>
           </div>
         )}
 
