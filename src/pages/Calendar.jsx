@@ -326,11 +326,11 @@ const Calendar = () => {
       } else {
         // CREATE - verificar se é repetição em múltiplas datas
         if (formData.repeat_on_multiple_dates && formData.selected_dates?.length > 0 && formData.event_start_time) {
-          // CRIAR MÚLTIPLOS EVENTOS (um para cada data selecionada)
+          // CRIAR MÚLTIPLOS EVENTOS - simplesmente chama a API para cada data
           console.log(`Criando ${formData.selected_dates.length} eventos em datas selecionadas...`);
           
           for (const dateStr of formData.selected_dates) {
-            // Criar datetime combinando data + horário SEM CONVERSÃO UTC
+            // Combina data + horário
             const startDateTime = `${dateStr}T${formData.event_start_time}:00`;
             const endDateTime = formData.event_end_time 
               ? `${dateStr}T${formData.event_end_time}:00`
@@ -338,17 +338,12 @@ const Calendar = () => {
             
             console.log('Creating event for date:', dateStr, 'Start:', startDateTime, 'End:', endDateTime);
             
-            // Criar eventData completo com as datas específicas
+            // Usa basicEventData e sobrescreve apenas as datas
             const eventData = {
-              title: formData.title,
-              description: formData.description || '',
-              location: formData.location || null,
-              meeting_link: formData.meeting_link || null,
-              color: formData.color || null,
-              all_day: false, // Eventos com horário específico não são all_day
+              ...basicEventData,
               start_date: startDateTime,
               end_date: endDateTime,
-              status: 'published',
+              all_day: false,
               categories: formData.categories || [],
               roles: formData.roles || []
             };
@@ -358,7 +353,7 @@ const Calendar = () => {
           
           alert(`${formData.selected_dates.length} eventos criados com sucesso!`);
         } else {
-          // CRIAR EVENTO ÚNICO - enviar no formato local sem conversão
+          // CRIAR EVENTO ÚNICO
           console.log('Creating single event - start_date:', formData.start_date, 'end_date:', formData.end_date);
           const eventData = {
             ...basicEventData,
