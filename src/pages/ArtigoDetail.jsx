@@ -119,9 +119,6 @@ const ArtigoDetail = () => {
         }}
       />
 
-      {/* Table of Contents - Mobile (botão flutuante) */}
-      <TableOfContents content={article.content} />
-
       {/* Header Image */}
       {article.cover_image_url && (
         <div className="relative h-96 bg-gray-900">
@@ -155,14 +152,14 @@ const ArtigoDetail = () => {
       )}
 
       {/* Layout principal com TOC Desktop na lateral */}
-      <div className="lg:flex lg:justify-center lg:gap-8 lg:px-8 xl:px-12">
+      <div className="lg:flex lg:justify-center lg:gap-6 lg:px-4 xl:px-8 lg:max-w-[1600px] lg:mx-auto">
         {/* Table of Contents - Desktop (espaço à esquerda) */}
-        <div className="hidden lg:block lg:w-72 xl:w-80 lg:flex-shrink-0 lg:pt-32">
+        <div className="hidden lg:block lg:w-64 xl:w-72 lg:flex-shrink-0 lg:pt-32">
           <TableOfContents content={article.content} />
         </div>
 
         {/* Content Container */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0 lg:flex-shrink-0">
+        <div className="w-full lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-0 lg:flex-shrink-0">
           <article className={`bg-white dark:bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 ${article.cover_image_url ? '-mt-32 relative z-10' : 'mt-12'} mb-12`}>
             <div className="p-8 md:p-12">
             {/* Draft Banner - Apenas para Admins */}

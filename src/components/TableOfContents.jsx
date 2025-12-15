@@ -141,17 +141,17 @@ export default function TableOfContents({ content }) {
       )}
 
       {/* Desktop: Sidebar fixo ao lado do conteúdo */}
-      <nav className="hidden lg:block sticky top-20 p-5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <h3 className="font-semibold text-amber-500 mb-4 text-lg">Índice</h3>
+      <nav className="hidden lg:block sticky top-24 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm max-h-[calc(100vh-8rem)] overflow-y-auto w-full">
+        <h3 className="font-semibold text-amber-500 mb-3 text-base">Índice</h3>
         <ul className="space-y-1">
           {headings.map((heading) => (
             <li
               key={heading.id}
-              style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}
+              style={{ paddingLeft: `${(heading.level - 1) * 10}px` }}
             >
               <button
                 onClick={() => handleClick(heading.id)}
-                className={`text-left w-full py-2 px-3 text-sm transition-colors rounded ${
+                className={`text-left w-full py-1.5 px-2 text-xs transition-colors rounded ${
                   activeId === heading.id
                     ? 'text-amber-500 font-semibold bg-amber-500/10'
                     : 'text-gray-700 dark:text-gray-300 hover:text-amber-500 hover:bg-gray-100 dark:hover:bg-gray-800'
