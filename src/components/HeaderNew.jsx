@@ -256,12 +256,12 @@ const Header = () => {
           {renderMenuLinks()}
         </div>
 
-        <div className="px-4 py-6 border-t border-beige-200 dark:border-gray-800 space-y-4">
+        <div className="px-4 py-3 border-t border-beige-200 dark:border-gray-800 space-y-3">
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-beige-200 dark:bg-gray-800 hover:bg-beige-300 dark:hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-beige-200 dark:bg-gray-800 hover:bg-beige-300 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="text-sm font-semibold text-secondary-700 dark:text-gray-300">Alternar tema</span>
+            <span className="text-xs font-semibold text-secondary-700 dark:text-gray-300">Alternar tema</span>
             {isDark ? (
               <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
@@ -274,26 +274,26 @@ const Header = () => {
           </button>
 
           {currentUser ? (
-            <div className="rounded-xl bg-beige-100 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="rounded-lg bg-beige-100 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 p-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {currentUser.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-secondary-700 dark:text-gray-200">{currentUser.name}</p>
-                  <p className="text-xs text-secondary-500 dark:text-gray-400">{currentUser.email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-secondary-700 dark:text-gray-200 truncate">{currentUser.name}</p>
+                  <p className="text-xs text-secondary-500 dark:text-gray-400 truncate">{currentUser.email}</p>
                 </div>
               </div>
-              <div className="mt-4 space-y-2">
+              <div className="mt-2 space-y-1.5">
                 <Link
                   to="/profile"
-                  className="block w-full text-center px-4 py-2 rounded-lg bg-white dark:bg-gray-900 text-sm font-semibold text-secondary-700 dark:text-gray-200 border border-beige-200 dark:border-gray-700 hover:bg-beige-50 dark:hover:bg-gray-800 transition-colors"
+                  className="block w-full text-center px-3 py-1.5 rounded-lg bg-white dark:bg-gray-900 text-xs font-semibold text-secondary-700 dark:text-gray-200 border border-beige-200 dark:border-gray-700 hover:bg-beige-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Meu Perfil
                 </Link>
                 <button
                   onClick={logout}
-                  className="w-full px-4 py-2 rounded-lg bg-red-100/80 text-red-600 dark:bg-red-900/20 dark:text-red-300 text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  className="w-full px-3 py-1.5 rounded-lg bg-red-100/80 text-red-600 dark:bg-red-900/20 dark:text-red-300 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                 >
                   Sair
                 </button>
@@ -302,7 +302,7 @@ const Header = () => {
           ) : (
             <Link
               to="/login"
-              className="block w-full text-center px-4 py-3 rounded-lg bg-primary-600 text-white font-bold shadow-md hover:bg-primary-700 transition-colors"
+              className="block w-full text-center px-4 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-bold shadow-md hover:bg-primary-700 transition-colors"
             >
               Login
             </Link>
