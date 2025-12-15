@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
 import { useApi } from '../contexts/ApiContext';
-import { createEvent } from 'ics';
 
 const EventModal = ({ 
   show,
@@ -41,60 +40,47 @@ const EventModal = ({
     onSave(eventForm);
   };
 
-  // Exportar evento para calendário nativo (.ics)
+  // Exportar evento para Google Calendar
   const handleExportToCalendar = () => {
     try {
-      // Parse das datas
       const start = new Date(eventForm.start_date);
       const end = new Date(eventForm.end_date || eventForm.start_date);
       
-      // Formato para ics: [year, month, day, hour, minute]
-      const startArray = [
-        start.getFullYear(),
-        start.getMonth() + 1,
-        start.getDate(),
-        start.getHours(),
-        start.getMinutes()
-      ];
-      
-      const endArray = [
-        end.getFullYear(),
-        end.getMonth() + 1,
-        end.getDate(),
-        end.getHours(),
-        end.getMinutes()
-      ];
-      
-      const event = {
-        start: startArray,
-        end: endArray,
-        title: eventForm.title,
-        description: eventForm.description?.replace(/<[^>]*>/g, '') || '', // Remove HTML tags
-        location: eventForm.location || '',
-        url: eventForm.meeting_link || '',
-        status: 'CONFIRMED',
-        busyStatus: 'BUSY'
+      // Formatar datas para Google Calendar (YYYYMMDDTHHmmss)
+      const formatDateForGoogle = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = '00';
+        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
       };
       
-      createEvent(event, (error, value) => {
-        if (error) {
-          console.error('Error creating calendar event:', error);
-          alert('Erro ao criar arquivo de calendário');
-          return;
-        }
-        
-        // Criar blob e fazer download
-        const blob = new Blob([value], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${eventForm.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      const startFormatted = formatDateForGoogle(start);
+      const endFormatted = formatDateForGoogle(end);
+      
+      // Criar URL do Google Calendar
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: eventForm.title,
+        dates: `${startFormatted}/${endFormatted}`,
+        details: eventForm.description?.replace(/<[^>]*>/g, '') || '',
+        location: eventForm.location || '',
       });
+      
+      // Adicionar link da reunião na descrição se existir
+      if (eventForm.meeting_link) {
+        params.set('details', `${params.get('details')}\n\nLink: ${eventForm.meeting_link}`);
+      }
+      
+      const googleCalendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
+      
+      // Abrir em nova aba
+      window.open(googleCalendarUrl, '_blank');
     } catch (err) {
       console.error('Error exporting to calendar:', err);
-      alert('Erro ao exportar para calendário');
+      alert('Erro ao abrir calendário');
     }
   };
 
