@@ -40,14 +40,14 @@ const EventModal = ({
     onSave(eventForm);
   };
 
-  // Exportar evento para Google Calendar
+  // Exportar evento para calendário (.ics universal)
   const handleExportToCalendar = () => {
     try {
       const start = new Date(eventForm.start_date);
       const end = new Date(eventForm.end_date || eventForm.start_date);
       
-      // Formatar datas para Google Calendar (YYYYMMDDTHHmmss)
-      const formatDateForGoogle = (date) => {
+      // Formatar data para ICS (YYYYMMDDTHHmmss)
+      const formatDateForICS = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -57,30 +57,47 @@ const EventModal = ({
         return `${year}${month}${day}T${hours}${minutes}${seconds}`;
       };
       
-      const startFormatted = formatDateForGoogle(start);
-      const endFormatted = formatDateForGoogle(end);
+      const startFormatted = formatDateForICS(start);
+      const endFormatted = formatDateForICS(end);
       
-      // Criar URL do Google Calendar
-      const params = new URLSearchParams({
-        action: 'TEMPLATE',
-        text: eventForm.title,
-        dates: `${startFormatted}/${endFormatted}`,
-        details: eventForm.description?.replace(/<[^>]*>/g, '') || '',
-        location: eventForm.location || '',
-      });
+      // Limpar descrição
+      const description = eventForm.description?.replace(/<[^>]*>/g, '').replace(/\n/g, '\\n') || '';
+      const location = eventForm.location || '';
+      const url = eventForm.meeting_link || '';
       
-      // Adicionar link da reunião na descrição se existir
-      if (eventForm.meeting_link) {
-        params.set('details', `${params.get('details')}\n\nLink: ${eventForm.meeting_link}`);
-      }
+      // Criar arquivo ICS manualmente (formato padrão iCalendar)
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Apostolado Seja Santo//PT',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `DTSTART:${startFormatted}`,
+        `DTEND:${endFormatted}`,
+        `DTSTAMP:${formatDateForICS(new Date())}`,
+        `SUMMARY:${eventForm.title}`,
+        `DESCRIPTION:${description}${url ? '\\n\\nLink: ' + url : ''}`,
+        location ? `LOCATION:${location}` : '',
+        url ? `URL:${url}` : '',
+        'STATUS:CONFIRMED',
+        'SEQUENCE:0',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].filter(line => line).join('\r\n');
       
-      const googleCalendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
-      
-      // Abrir em nova aba
-      window.open(googleCalendarUrl, '_blank');
+      // Criar blob e download
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${eventForm.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error('Error exporting to calendar:', err);
-      alert('Erro ao abrir calendário');
+      alert('Erro ao exportar para calendário');
     }
   };
 
