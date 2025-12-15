@@ -37,6 +37,9 @@ const Calendar = () => {
     start_date: '',
     end_date: '',
     all_day: false,
+    repeat_on_weekdays: false,
+    selected_weekdays: [],
+    repeat_time: '',
     location: '',
     meeting_link: '',
     color: '',
@@ -170,6 +173,9 @@ const Calendar = () => {
         start_date: arg.dateStr,
         end_date: arg.dateStr,
         all_day: arg.allDay,
+        repeat_on_weekdays: false,
+        selected_weekdays: [],
+        repeat_time: '',
         location: '',
         meeting_link: '',
         color: '',
@@ -286,13 +292,54 @@ const Calendar = () => {
         };
         await api.events.update(selectedEvent.id, eventData);
       } else {
-        // CREATE envia SÓ dados básicos (igual AdminEventCreate que funciona)
-        const eventData = {
-          ...basicEventData,
-          categories: formData.categories || [],
-          roles: formData.roles || []
-        };
-        await api.events.create(eventData);
+        // CREATE - verificar se é repetição em dias específicos
+        if (formData.repeat_on_weekdays && formData.selected_weekdays?.length > 0 && formData.repeat_time) {
+          // CRIAR MÚLTIPLOS EVENTOS (um para cada dia selecionado)
+          const startDate = new Date(formData.start_date);
+          const endDate = new Date(formData.end_date || formData.start_date);
+          const [hours, minutes] = formData.repeat_time.split(':');
+          
+          const eventsToCreate = [];
+          let currentDate = new Date(startDate);
+          
+          // Percorrer todos os dias entre start_date e end_date
+          while (currentDate <= endDate) {
+            const dayOfWeek = currentDate.getDay();
+            
+            // Se o dia da semana está nos dias selecionados
+            if (formData.selected_weekdays.includes(dayOfWeek)) {
+              const eventDate = new Date(currentDate);
+              eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+              
+              eventsToCreate.push({
+                ...basicEventData,
+                start_date: eventDate.toISOString(),
+                end_date: new Date(eventDate.getTime() + 3600000).toISOString(), // +1 hora por padrão
+                categories: formData.categories || [],
+                roles: formData.roles || []
+              });
+            }
+            
+            // Próximo dia
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+          
+          // Criar todos os eventos
+          console.log(`Criando ${eventsToCreate.length} eventos repetidos...`);
+          for (const eventData of eventsToCreate) {
+            await api.events.create(eventData);
+          }
+          
+          alert(`${eventsToCreate.length} eventos criados com sucesso!`);
+        } else {
+          // CRIAR EVENTO ÚNICO
+          const eventData = {
+            ...basicEventData,
+            categories: formData.categories || [],
+            roles: formData.roles || []
+          };
+          await api.events.create(eventData);
+        }
       }
 
       setShowCreateEditModal(false);

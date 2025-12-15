@@ -40,16 +40,19 @@ const EventModal = ({
     onSave(eventForm);
   };
 
-  // Helper to format date for datetime-local input
+  // Helper to format date for datetime-local input (CORRIGIDO - usa horário local, não UTC)
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
+    // Se já está no formato correto (YYYY-MM-DDTHH:MM), retorna direto
+    if (typeof dateString === 'string' && dateString.includes('T') && dateString.length === 16) {
+      return dateString;
+    }
+    // Parse da string respeitando timezone local (não UTC!)
     const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Usa offset local para evitar conversão UTC
+    const offset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - offset);
+    return localDate.toISOString().slice(0, 16);
   };
 
   const toggleCategory = (categoryId) => {
@@ -181,13 +184,90 @@ const EventModal = ({
                 type="checkbox"
                 id="all_day"
                 checked={eventForm.all_day}
-                onChange={(e) => setEventForm({ ...eventForm, all_day: e.target.checked })}
+                onChange={(e) => setEventForm({ ...eventForm, all_day: e.target.checked, repeat_on_weekdays: false })}
                 className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
               />
               <label htmlFor="all_day" className="ml-2 text-secondary-700 dark:text-gray-200">
                 Evento de dia inteiro
               </label>
             </div>
+
+            {/* Repeat on specific weekdays */}
+            {!eventForm.all_day && (
+              <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="repeat_on_weekdays"
+                    checked={eventForm.repeat_on_weekdays}
+                    onChange={(e) => setEventForm({ ...eventForm, repeat_on_weekdays: e.target.checked, selected_weekdays: [], repeat_time: '' })}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <label htmlFor="repeat_on_weekdays" className="ml-2 text-secondary-700 dark:text-gray-200 font-semibold">
+                    Repetir em dias específicos da semana (mesmo horário)
+                  </label>
+                </div>
+                
+                {eventForm.repeat_on_weekdays && (
+                  <div className="space-y-3 ml-6">
+                    <div>
+                      <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
+                        Selecione os dias da semana:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 0, label: 'Dom' },
+                          { value: 1, label: 'Seg' },
+                          { value: 2, label: 'Ter' },
+                          { value: 3, label: 'Qua' },
+                          { value: 4, label: 'Qui' },
+                          { value: 5, label: 'Sex' },
+                          { value: 6, label: 'Sáb' }
+                        ].map(day => (
+                          <button
+                            key={day.value}
+                            type="button"
+                            onClick={() => {
+                              const days = eventForm.selected_weekdays || [];
+                              setEventForm({
+                                ...eventForm,
+                                selected_weekdays: days.includes(day.value)
+                                  ? days.filter(d => d !== day.value)
+                                  : [...days, day.value]
+                              });
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                              (eventForm.selected_weekdays || []).includes(day.value)
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                            }`}
+                          >
+                            {day.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
+                        Horário do evento:
+                      </label>
+                      <input
+                        type="time"
+                        value={eventForm.repeat_time}
+                        onChange={(e) => setEventForm({ ...eventForm, repeat_time: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-secondary-700 dark:text-gray-200"
+                        required={eventForm.repeat_on_weekdays}
+                      />
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      💡 O evento será criado em todos os dias selecionados da semana, no horário especificado, dentro do período de Data Início até Data Fim.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Location */}
             <div>
