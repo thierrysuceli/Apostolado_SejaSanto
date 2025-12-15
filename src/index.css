@@ -204,3 +204,110 @@ body {
 .ql-color-green { color: #008a00; }
 .ql-color-blue { color: #06c; }
 .ql-color-purple { color: #93f; }
+
+/* Estilos de blockquote (citações) */
+blockquote {
+  border-left: 4px solid #e6a400;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin: 16px 0;
+  color: #6b4f3a;
+  font-style: italic;
+  background-color: rgba(230, 164, 0, 0.05);
+  border-radius: 4px;
+}
+
+.dark blockquote {
+  border-left-color: #fdb913;
+  color: #d1d5db;
+  background-color: rgba(253, 185, 19, 0.05);
+}
+
+/* Garantir que blockquotes dentro de prose mantenham estilos Quill */
+.prose blockquote,
+.prose-lg blockquote,
+.prose-xl blockquote {
+  border-left: 4px solid #e6a400 !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  color: #6b4f3a !important;
+  font-style: italic !important;
+  background-color: rgba(230, 164, 0, 0.05) !important;
+  border-radius: 4px !important;
+}
+
+.dark .prose blockquote,
+.dark .prose-lg blockquote,
+.dark .prose-xl blockquote {
+  border-left-color: #fdb913 !important;
+  color: #d1d5db !important;
+  background-color: rgba(253, 185, 19, 0.05) !important;
+}
+
+/* Estilos de código inline */
+code:not(pre code) {
+  background: #f0e8df;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #6b4f3a;
+  font-size: 0.9em;
+  font-family: Monaco, Courier New, monospace;
+}
+
+.dark code:not(pre code) {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.prose code:not(pre code),
+.prose-lg code:not(pre code),
+.prose-xl code:not(pre code) {
+  background: #f0e8df !important;
+  color: #6b4f3a !important;
+}
+
+.dark .prose code:not(pre code),
+.dark .prose-lg code:not(pre code),
+.dark .prose-xl code:not(pre code) {
+  background: #374151 !important;
+  color: #d1d5db !important;
+}
+
+/* Estilos de blocos de código */
+pre {
+  background: #f0e8df;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.dark pre {
+  background: #374151;
+}
+
+pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+/* Estilos de imagens */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.prose img,
+.prose-lg img,
+.prose-xl img {
+  border-radius: 8px !important;
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+}
