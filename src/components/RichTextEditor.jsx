@@ -7,6 +7,14 @@ import ImageResize from 'quill-image-resize-module-react';
 // Register the Image Resize module
 Quill.register('modules/imageResize', ImageResize);
 
+// Register custom lineheight attribute
+const Parchment = Quill.import('parchment');
+const LineHeightStyle = new Parchment.Attributor.Style('lineheight', 'line-height', {
+  scope: Parchment.Scope.INLINE,
+  whitelist: ['1', '1.5', '2', '2.5', '3']
+});
+Quill.register(LineHeightStyle, true);
+
 const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', readOnly = false, minHeight = '200px', isAdmin = false }) => {
   const quillRef = useRef(null);
 
@@ -104,6 +112,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Escreva aqui...', read
             [{ 'script': 'sub' }, { 'script': 'super' }],
             [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
             [{ 'align': [] }],
+            [{ 'lineheight': ['1', '1.5', '2', '2.5', '3'] }],
             ['blockquote', 'code-block'],
             ['link', 'image', 'video'],
             ['clean']

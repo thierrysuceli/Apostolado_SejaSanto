@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -204,6 +208,30 @@ body {
 .ql-color-green { color: #008a00; }
 .ql-color-blue { color: #06c; }
 .ql-color-purple { color: #93f; }
+
+/* Estilos de line-height */
+.ql-lineheight-1,
+[style*="line-height: 1"] {
+  line-height: 1 !important;
+}
+.ql-lineheight-1\.5,
+.ql-lineheight-1-5,
+[style*="line-height: 1.5"] {
+  line-height: 1.5 !important;
+}
+.ql-lineheight-2,
+[style*="line-height: 2"] {
+  line-height: 2 !important;
+}
+.ql-lineheight-2\.5,
+.ql-lineheight-2-5,
+[style*="line-height: 2.5"] {
+  line-height: 2.5 !important;
+}
+.ql-lineheight-3,
+[style*="line-height: 3"] {
+  line-height: 3 !important;
+}
 
 /* Estilos de blockquote (citações) */
 blockquote {

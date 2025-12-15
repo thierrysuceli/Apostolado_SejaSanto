@@ -4,6 +4,7 @@ import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import SEO from '../components/SEO';
+import TableOfContents from '../components/TableOfContents';
 
 const ArtigoDetail = () => {
   const { slug } = useParams();
@@ -218,22 +219,31 @@ const ArtigoDetail = () => {
               </span>
             </div>
 
-            {/* Content */}
-            <div 
-              className="prose prose-lg dark:prose-invert max-w-none
-                prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
-                prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
-                [&_p]:dark:text-white [&_p]:text-gray-800
-                prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
-                prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
-                prose-em:text-gray-800 dark:prose-em:text-gray-50
-                prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-50
-                prose-ul:text-gray-800 dark:prose-ul:text-white prose-ul:list-disc
-                prose-ol:text-gray-800 dark:prose-ol:text-white
-                prose-li:text-gray-800 dark:prose-li:text-white prose-li:mb-2
-                prose-code:text-amber-600 dark:prose-code:text-amber-300 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
-              dangerouslySetInnerHTML={{ __html: article.content }}
-            />
+            {/* TableOfContents - Mobile (aparece antes do conteúdo) */}
+            <TableOfContents content={article.content} />
+
+            {/* Layout com conteúdo e TOC Desktop */}
+            <div className="lg:flex lg:gap-8">
+              {/* Content */}
+              <div 
+                className="article-content flex-1 prose prose-lg dark:prose-invert max-w-none
+                  prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-headings:scroll-mt-20
+                  prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
+                  [&_p]:dark:text-white [&_p]:text-gray-800
+                  prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
+                  prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
+                  prose-em:text-gray-800 dark:prose-em:text-gray-50
+                  prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-50
+                  prose-ul:text-gray-800 dark:prose-ul:text-white prose-ul:list-disc
+                  prose-ol:text-gray-800 dark:prose-ol:text-white
+                  prose-li:text-gray-800 dark:prose-li:text-white prose-li:mb-2
+                  prose-code:text-amber-600 dark:prose-code:text-amber-300 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+              />
+
+              {/* TableOfContents - Desktop (sidebar fixo) */}
+              <TableOfContents content={article.content} />
+            </div>
           </div>
         </article>
 
