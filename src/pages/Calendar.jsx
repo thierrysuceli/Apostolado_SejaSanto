@@ -239,11 +239,26 @@ const Calendar = () => {
 
   const handleEditEvent = () => {
     console.log('Editing event:', selectedEvent); // Debug
+    
+    // Helper para converter Date do FullCalendar para formato datetime-local
+    const formatDateForEdit = (date) => {
+      if (!date) return '';
+      if (typeof date === 'string') return date.substring(0, 16); // Já é string
+      // É Date object do FullCalendar
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
     setEventForm({
       title: selectedEvent.title,
       description: selectedEvent.description || '',
-      start_date: selectedEvent.start,
-      end_date: selectedEvent.end || selectedEvent.start,
+      start_date: formatDateForEdit(selectedEvent.start),
+      end_date: formatDateForEdit(selectedEvent.end || selectedEvent.start),
       all_day: selectedEvent.allDay || false,
       repeat_on_multiple_dates: false,
       selected_dates: [],
@@ -312,7 +327,7 @@ const Calendar = () => {
         // CREATE - verificar se é repetição em múltiplas datas
         if (formData.repeat_on_multiple_dates && formData.selected_dates?.length > 0 && formData.event_start_time) {
           // CRIAR MÚLTIPLOS EVENTOS (um para cada data selecionada)
-          const eventsToCreate = [];
+          console.log(`Criando ${formData.selected_dates.length} eventos em datas selecionadas...`);
           
           for (const dateStr of formData.selected_dates) {
             // Criar datetime combinando data + horário SEM CONVERSÃO UTC
@@ -323,22 +338,25 @@ const Calendar = () => {
             
             console.log('Creating event for date:', dateStr, 'Start:', startDateTime, 'End:', endDateTime);
             
-            eventsToCreate.push({
-              ...basicEventData,
-              start_date: startDateTime, // Formato YYYY-MM-DDTHH:MM:SS (sem timezone!)
+            // Criar eventData completo com as datas específicas
+            const eventData = {
+              title: formData.title,
+              description: formData.description || '',
+              location: formData.location || null,
+              meeting_link: formData.meeting_link || null,
+              color: formData.color || null,
+              all_day: false, // Eventos com horário específico não são all_day
+              start_date: startDateTime,
               end_date: endDateTime,
+              status: 'published',
               categories: formData.categories || [],
               roles: formData.roles || []
-            });
-          }
-          
-          // Criar todos os eventos
-          console.log(`Criando ${eventsToCreate.length} eventos em datas selecionadas...`);
-          for (const eventData of eventsToCreate) {
+            };
+            
             await api.events.create(eventData);
           }
           
-          alert(`${eventsToCreate.length} eventos criados com sucesso!`);
+          alert(`${formData.selected_dates.length} eventos criados com sucesso!`);
         } else {
           // CRIAR EVENTO ÚNICO - enviar no formato local sem conversão
           console.log('Creating single event - start_date:', formData.start_date, 'end_date:', formData.end_date);
