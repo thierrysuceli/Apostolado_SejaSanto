@@ -326,8 +326,19 @@ const Calendar = () => {
       } else {
         // CREATE - verificar se é repetição em múltiplas datas
         if (formData.repeat_on_multiple_dates && formData.selected_dates?.length > 0 && formData.event_start_time) {
-          // CRIAR MÚLTIPLOS EVENTOS - simplesmente chama a API para cada data
+          // CRIAR MÚLTIPLOS EVENTOS - um por vez para cada data
           console.log(`Criando ${formData.selected_dates.length} eventos em datas selecionadas...`);
+          
+          // Criar basicEventData SEM as datas (vão ser adicionadas no loop)
+          const baseData = {
+            title: formData.title,
+            description: formData.description || '',
+            location: formData.location || null,
+            meeting_link: formData.meeting_link || null,
+            color: formData.color || null,
+            all_day: false,
+            status: 'published'
+          };
           
           for (const dateStr of formData.selected_dates) {
             // Combina data + horário
@@ -338,12 +349,11 @@ const Calendar = () => {
             
             console.log('Creating event for date:', dateStr, 'Start:', startDateTime, 'End:', endDateTime);
             
-            // Usa basicEventData e sobrescreve apenas as datas
+            // Cada evento tem suas próprias datas
             const eventData = {
-              ...basicEventData,
+              ...baseData,
               start_date: startDateTime,
               end_date: endDateTime,
-              all_day: false,
               categories: formData.categories || [],
               roles: formData.roles || []
             };
