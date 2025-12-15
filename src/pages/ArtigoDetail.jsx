@@ -119,6 +119,9 @@ const ArtigoDetail = () => {
         }}
       />
 
+      {/* Table of Contents - Mobile (botão flutuante) */}
+      <TableOfContents content={article.content} />
+
       {/* Header Image */}
       {article.cover_image_url && (
         <div className="relative h-96 bg-gray-900">
@@ -151,10 +154,17 @@ const ArtigoDetail = () => {
         </div>
       )}
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <article className={`bg-white dark:bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 ${article.cover_image_url ? '-mt-32 relative z-10' : 'mt-12'} mb-12`}>
-          <div className="p-8 md:p-12">
+      {/* Layout principal com TOC Desktop na lateral */}
+      <div className="lg:flex lg:justify-center lg:gap-8 lg:px-8 xl:px-12">
+        {/* Table of Contents - Desktop (espaço à esquerda) */}
+        <div className="hidden lg:block lg:w-72 xl:w-80 lg:flex-shrink-0 lg:pt-32">
+          <TableOfContents content={article.content} />
+        </div>
+
+        {/* Content Container */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0 lg:flex-shrink-0">
+          <article className={`bg-white dark:bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 ${article.cover_image_url ? '-mt-32 relative z-10' : 'mt-12'} mb-12`}>
+            <div className="p-8 md:p-12">
             {/* Draft Banner - Apenas para Admins */}
             {article.status === 'draft' && isAdmin && (
               <div className="mb-6 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-500 rounded-xl p-4">
@@ -219,67 +229,65 @@ const ArtigoDetail = () => {
               </span>
             </div>
 
-            {/* Layout com conteúdo e TOC - flex para desktop, stack para mobile */}
-            <div className="lg:flex lg:gap-6 lg:items-start">
-              {/* Content */}
-              <div 
-                className="article-content flex-1 min-w-0 prose prose-lg dark:prose-invert max-w-none
-                  prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-headings:scroll-mt-20
-                  prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
-                  [&_p]:dark:text-white [&_p]:text-gray-800
-                  prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
-                  prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
-                  prose-em:text-gray-800 dark:prose-em:text-gray-50
-                  prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-50
-                  prose-ul:text-gray-800 dark:prose-ul:text-white prose-ul:list-disc
-                  prose-ol:text-gray-800 dark:prose-ol:text-white
-                  prose-li:text-gray-800 dark:prose-li:text-white prose-li:mb-2
-                  prose-code:text-amber-600 dark:prose-code:text-amber-300 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
-                dangerouslySetInnerHTML={{ __html: article.content }}
-              />
-
-              {/* TableOfContents - Renderiza mobile (botão flutuante) e desktop (sidebar) */}
-              <TableOfContents content={article.content} />
+            {/* Content - Artigo principal */}
+            <div 
+              className="article-content prose prose-lg dark:prose-invert max-w-none
+                prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-headings:scroll-mt-20
+                prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
+                [&_p]:dark:text-white [&_p]:text-gray-800
+                prose-a:text-amber-600 dark:prose-a:text-amber-300 prose-a:no-underline hover:prose-a:underline prose-a:font-semibold
+                prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
+                prose-em:text-gray-800 dark:prose-em:text-gray-50
+                prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-900/20 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:italic prose-blockquote:text-gray-800 dark:prose-blockquote:text-gray-50
+                prose-ul:text-gray-800 dark:prose-ul:text-white prose-ul:list-disc
+                prose-ol:text-gray-800 dark:prose-ol:text-white
+                prose-li:text-gray-800 dark:prose-li:text-white prose-li:mb-2
+                prose-code:text-amber-600 dark:prose-code:text-amber-300 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
             </div>
-          </div>
-        </article>
+          </article>
 
-        {/* Related Articles */}
-        {relatedArticles.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-secondary-700 dark:text-gray-200 mb-6">
-              Mais em {article.editorial_column?.name}
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {relatedArticles.map(related => (
-                <Link key={related.id} to={`/artigos/${related.slug}`}>
-                  <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-beige-200 dark:border-gray-800 overflow-hidden hover:shadow-xl transition-all">
-                    {related.cover_image_url && (
-                      <img src={related.cover_image_url} alt={related.title} className="w-full h-40 object-cover" />
-                    )}
-                    <div className="p-4">
-                      <h3 className="font-bold text-secondary-700 dark:text-gray-200 line-clamp-2 mb-2">{related.title}</h3>
-                      <p className="text-sm text-secondary-600 dark:text-gray-400 line-clamp-2">{related.excerpt}</p>
+          {/* Related Articles */}
+          {relatedArticles.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-secondary-700 dark:text-gray-200 mb-6">
+                Mais em {article.editorial_column?.name}
+              </h2>
+              <div className="grid md:grid-cols-3 gap-6">
+                {relatedArticles.map(related => (
+                  <Link key={related.id} to={`/artigos/${related.slug}`}>
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-beige-200 dark:border-gray-800 overflow-hidden hover:shadow-xl transition-all">
+                      {related.cover_image_url && (
+                        <img src={related.cover_image_url} alt={related.title} className="w-full h-40 object-cover" />
+                      )}
+                      <div className="p-4">
+                        <h3 className="font-bold text-secondary-700 dark:text-gray-200 line-clamp-2 mb-2">{related.title}</h3>
+                        <p className="text-sm text-secondary-600 dark:text-gray-400 line-clamp-2">{related.excerpt}</p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Back Link */}
-        <div className="mb-12">
-          <Link 
-            to="/artigos"
-            className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Voltar para artigos
-          </Link>
+          {/* Back Link */}
+          <div className="mb-12">
+            <Link 
+              to="/artigos"
+              className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Voltar para artigos
+            </Link>
+          </div>
         </div>
+
+        {/* Espaçador direito (balanceia o layout) */}
+        <div className="hidden lg:block lg:w-72 xl:w-80 lg:flex-shrink-0"></div>
       </div>
     </div>
   );
