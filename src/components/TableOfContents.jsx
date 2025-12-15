@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function TableOfContents({ content }) {
   const [headings, setHeadings] = useState([]);
@@ -60,9 +60,9 @@ export default function TableOfContents({ content }) {
   const handleClick = (id) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 80; // Altura do header
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      const offset = 100; // Altura do header + margem extra
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - offset;
 
       window.scrollTo({
         top: offsetPosition,
@@ -82,50 +82,69 @@ export default function TableOfContents({ content }) {
 
   return (
     <>
-      {/* Mobile: Botão colapsável */}
-      <div className="lg:hidden mb-6">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <span className="font-semibold text-amber-500">Índice do Artigo</span>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-amber-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-amber-500" />
-          )}
-        </button>
-        
-        {isOpen && (
-          <nav className="mt-2 p-4 bg-gray-900 border border-gray-800 rounded-lg">
-            <ul className="space-y-2">
-              {headings.map((heading) => (
-                <li
-                  key={heading.id}
-                  style={{ paddingLeft: `${(heading.level - 1) * 16}px` }}
-                >
-                  <button
-                    onClick={() => handleClick(heading.id)}
-                    className={`text-left w-full py-1 text-sm transition-colors ${
-                      activeId === heading.id
-                        ? 'text-amber-500 font-semibold'
-                        : 'text-gray-400 hover:text-amber-400'
-                    }`}
-                  >
-                    {heading.text}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
-      </div>
+      {/* Mobile: Botão fixo flutuante */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-40 p-4 bg-amber-500 text-white rounded-full shadow-lg hover:bg-amber-600 transition-colors"
+        aria-label="Abrir índice"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
 
-      {/* Desktop: Sidebar fixo */}
-      <aside className="hidden lg:block lg:w-64 lg:flex-shrink-0">
-        <nav className="sticky top-20 p-4 bg-gray-900 border border-gray-800 rounded-lg max-h-[calc(100vh-6rem)] overflow-y-auto">
+      {/* Mobile: Menu lateral deslizante */}
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Sidebar */}
+          <aside className="lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+              <h3 className="font-semibold text-amber-500 text-lg">Índice</h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                aria-label="Fechar índice"
+              >
+                <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              </button>
+            </div>
+            
+            {/* Conteúdo com scroll próprio */}
+            <nav className="flex-1 overflow-y-auto p-4">
+              <ul className="space-y-2">
+                {headings.map((heading) => (
+                  <li
+                    key={heading.id}
+                    style={{ paddingLeft: `${(heading.level - 1) * 16}px` }}
+                  >
+                    <button
+                      onClick={() => handleClick(heading.id)}
+                      className={`text-left w-full py-2 px-3 text-sm transition-colors rounded ${
+                        activeId === heading.id
+                          ? 'text-amber-500 font-semibold bg-amber-500/10'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-amber-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {heading.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        </>
+      )}
+
+      {/* Desktop: Sidebar fixo ao lado do conteúdo */}
+      <aside className="hidden lg:block lg:w-72 lg:flex-shrink-0">
+        <nav className="sticky top-20 p-5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm max-h-[calc(100vh-6rem)] overflow-y-auto">
           <h3 className="font-semibold text-amber-500 mb-4 text-lg">Índice</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {headings.map((heading) => (
               <li
                 key={heading.id}
@@ -133,10 +152,10 @@ export default function TableOfContents({ content }) {
               >
                 <button
                   onClick={() => handleClick(heading.id)}
-                  className={`text-left w-full py-1.5 text-sm transition-colors rounded px-2 ${
+                  className={`text-left w-full py-2 px-3 text-sm transition-colors rounded ${
                     activeId === heading.id
                       ? 'text-amber-500 font-semibold bg-amber-500/10'
-                      : 'text-gray-400 hover:text-amber-400 hover:bg-gray-800'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-amber-500 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
                   {heading.text}

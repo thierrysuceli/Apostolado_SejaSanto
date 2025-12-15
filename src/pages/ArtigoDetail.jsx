@@ -219,14 +219,11 @@ const ArtigoDetail = () => {
               </span>
             </div>
 
-            {/* TableOfContents - Mobile (aparece antes do conteúdo) */}
-            <TableOfContents content={article.content} />
-
-            {/* Layout com conteúdo e TOC Desktop */}
-            <div className="lg:flex lg:gap-8">
+            {/* Layout com conteúdo e TOC - flex para desktop, stack para mobile */}
+            <div className="lg:flex lg:gap-6 lg:items-start">
               {/* Content */}
               <div 
-                className="article-content flex-1 prose prose-lg dark:prose-invert max-w-none
+                className="article-content flex-1 min-w-0 prose prose-lg dark:prose-invert max-w-none
                   prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-headings:scroll-mt-20
                   prose-p:text-gray-800 dark:prose-p:text-white prose-p:leading-relaxed prose-p:mb-4
                   [&_p]:dark:text-white [&_p]:text-gray-800
@@ -241,7 +238,7 @@ const ArtigoDetail = () => {
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
 
-              {/* TableOfContents - Desktop (sidebar fixo) */}
+              {/* TableOfContents - Renderiza mobile (botão flutuante) e desktop (sidebar) */}
               <TableOfContents content={article.content} />
             </div>
           </div>
