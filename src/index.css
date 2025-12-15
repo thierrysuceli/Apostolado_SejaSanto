@@ -35,3 +35,172 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ========================================
+   QUILL EDITOR CONTENT STYLES (GLOBAL)
+   Para conteúdo renderizado de artigos/posts
+   ======================================== */
+
+/* Alinhamento de texto */
+.ql-align-center {
+  text-align: center;
+}
+
+.ql-align-right {
+  text-align: right;
+}
+
+.ql-align-justify {
+  text-align: justify;
+}
+
+/* Indentação */
+.ql-indent-1 {
+  padding-left: 3em;
+}
+
+.ql-indent-2 {
+  padding-left: 6em;
+}
+
+.ql-indent-3 {
+  padding-left: 9em;
+}
+
+.ql-indent-4 {
+  padding-left: 12em;
+}
+
+.ql-indent-5 {
+  padding-left: 15em;
+}
+
+.ql-indent-6 {
+  padding-left: 18em;
+}
+
+.ql-indent-7 {
+  padding-left: 21em;
+}
+
+.ql-indent-8 {
+  padding-left: 24em;
+}
+
+/* Tamanhos de fonte */
+.ql-size-small {
+  font-size: 0.75em;
+}
+
+.ql-size-large {
+  font-size: 1.5em;
+}
+
+.ql-size-huge {
+  font-size: 2.5em;
+}
+
+/* Famílias de fonte */
+.ql-font-serif {
+  font-family: Georgia, Times New Roman, serif;
+}
+
+.ql-font-monospace {
+  font-family: Monaco, Courier New, monospace;
+}
+
+/* Direção de texto */
+.ql-direction-rtl {
+  direction: rtl;
+  text-align: inherit;
+}
+
+/* Listas */
+.ql-indent-1.ql-list {
+  padding-left: 4.5em;
+}
+
+.ql-indent-2.ql-list {
+  padding-left: 7.5em;
+}
+
+.ql-indent-3.ql-list {
+  padding-left: 10.5em;
+}
+
+.ql-indent-4.ql-list {
+  padding-left: 13.5em;
+}
+
+.ql-indent-5.ql-list {
+  padding-left: 16.5em;
+}
+
+.ql-indent-6.ql-list {
+  padding-left: 19.5em;
+}
+
+.ql-indent-7.ql-list {
+  padding-left: 22.5em;
+}
+
+.ql-indent-8.ql-list {
+  padding-left: 25.5em;
+}
+
+/* Vídeos responsivos */
+.ql-video {
+  display: block;
+  max-width: 100%;
+}
+
+/* Espaçamento entre parágrafos no conteúdo Quill */
+.prose p,
+.prose-lg p,
+.prose-xl p {
+  margin-bottom: 1em;
+}
+
+.prose blockquote,
+.prose-lg blockquote,
+.prose-xl blockquote {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+/* Garantir que listas mantenham espaçamento */
+.prose ul,
+.prose ol,
+.prose-lg ul,
+.prose-lg ol,
+.prose-xl ul,
+.prose-xl ol {
+  padding-left: 1.625em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose li,
+.prose-lg li,
+.prose-xl li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Cores de fundo do Quill */
+.ql-bg-black { background-color: #000; }
+.ql-bg-red { background-color: #e60000; }
+.ql-bg-orange { background-color: #f90; }
+.ql-bg-yellow { background-color: #ff0; }
+.ql-bg-green { background-color: #008a00; }
+.ql-bg-blue { background-color: #06c; }
+.ql-bg-purple { background-color: #93f; }
+
+/* Cores de texto do Quill */
+.ql-color-white { color: #fff; }
+.ql-color-red { color: #e60000; }
+.ql-color-orange { color: #f90; }
+.ql-color-yellow { color: #ff0; }
+.ql-color-green { color: #008a00; }
+.ql-color-blue { color: #06c; }
+.ql-color-purple { color: #93f; }
