@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
 import { useApi } from '../contexts/ApiContext';
+import { createEvent } from 'ics';
 
 const EventModal = ({ 
   show,
@@ -38,6 +39,63 @@ const EventModal = ({
     console.log('Categories selected:', eventForm.categories);
     console.log('Roles selected:', eventForm.roles);
     onSave(eventForm);
+  };
+
+  // Exportar evento para calendário nativo (.ics)
+  const handleExportToCalendar = () => {
+    try {
+      // Parse das datas
+      const start = new Date(eventForm.start_date);
+      const end = new Date(eventForm.end_date || eventForm.start_date);
+      
+      // Formato para ics: [year, month, day, hour, minute]
+      const startArray = [
+        start.getFullYear(),
+        start.getMonth() + 1,
+        start.getDate(),
+        start.getHours(),
+        start.getMinutes()
+      ];
+      
+      const endArray = [
+        end.getFullYear(),
+        end.getMonth() + 1,
+        end.getDate(),
+        end.getHours(),
+        end.getMinutes()
+      ];
+      
+      const event = {
+        start: startArray,
+        end: endArray,
+        title: eventForm.title,
+        description: eventForm.description?.replace(/<[^>]*>/g, '') || '', // Remove HTML tags
+        location: eventForm.location || '',
+        url: eventForm.meeting_link || '',
+        status: 'CONFIRMED',
+        busyStatus: 'BUSY'
+      };
+      
+      createEvent(event, (error, value) => {
+        if (error) {
+          console.error('Error creating calendar event:', error);
+          alert('Erro ao criar arquivo de calendário');
+          return;
+        }
+        
+        // Criar blob e fazer download
+        const blob = new Blob([value], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${eventForm.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    } catch (err) {
+      console.error('Error exporting to calendar:', err);
+      alert('Erro ao exportar para calendário');
+    }
   };
 
   // Helper to format date for datetime-local input (SEM conversão de timezone!)
@@ -504,20 +562,36 @@ const EventModal = ({
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold text-sm sm:text-base"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-primary-600 text-white px-4 py-2.5 sm:py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold shadow-md text-sm sm:text-base"
-            >
-              {isEditMode ? 'Atualizar Evento' : 'Criar Evento'}
-            </button>
+          <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800">
+            {/* Botão de Exportar para Calendário */}
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleExportToCalendar}
+                className="w-full bg-amber-500 text-white px-4 py-2.5 rounded-lg hover:bg-amber-600 transition-colors font-semibold shadow-md text-sm sm:text-base flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Adicionar ao Meu Calendário
+              </button>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold text-sm sm:text-base"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-primary-600 text-white px-4 py-2.5 sm:py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold shadow-md text-sm sm:text-base"
+              >
+                {isEditMode ? 'Atualizar Evento' : 'Criar Evento'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

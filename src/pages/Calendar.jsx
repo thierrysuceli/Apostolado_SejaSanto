@@ -8,6 +8,7 @@ import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import EventModal from '../components/EventModal';
+import { createEvent } from 'ics';
 import '../styles/fullcalendar-custom.css';
 
 const Calendar = () => {
@@ -289,6 +290,62 @@ const Calendar = () => {
     } catch (err) {
       console.error('Error deleting event:', err);
       alert('Erro ao deletar evento');
+    }
+  };
+
+  const handleExportToCalendar = () => {
+    try {
+      // Parse das datas
+      const start = new Date(selectedEvent.start);
+      const end = new Date(selectedEvent.end || selectedEvent.start);
+      
+      // Formato para ics: [year, month, day, hour, minute]
+      const startArray = [
+        start.getFullYear(),
+        start.getMonth() + 1,
+        start.getDate(),
+        start.getHours(),
+        start.getMinutes()
+      ];
+      
+      const endArray = [
+        end.getFullYear(),
+        end.getMonth() + 1,
+        end.getDate(),
+        end.getHours(),
+        end.getMinutes()
+      ];
+      
+      const event = {
+        start: startArray,
+        end: endArray,
+        title: selectedEvent.title,
+        description: selectedEvent.description?.replace(/<[^>]*>/g, '') || '', // Remove HTML tags
+        location: selectedEvent.location || '',
+        url: selectedEvent.meeting_link || '',
+        status: 'CONFIRMED',
+        busyStatus: 'BUSY'
+      };
+      
+      createEvent(event, (error, value) => {
+        if (error) {
+          console.error('Error creating calendar event:', error);
+          alert('Erro ao criar arquivo de calendário');
+          return;
+        }
+        
+        // Criar blob e fazer download
+        const blob = new Blob([value], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${selectedEvent.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    } catch (err) {
+      console.error('Error exporting to calendar:', err);
+      alert('Erro ao exportar para calendário');
     }
   };
 
@@ -621,22 +678,36 @@ const Calendar = () => {
                 </div>
 
                 {/* Actions */}
-                {(isAdmin() || hasPermission('manage_events')) && (
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                      onClick={handleEditEvent}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm sm:text-base"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={handleDeleteEvent}
-                      className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm sm:text-base"
-                    >
-                      Deletar
-                    </button>
-                  </div>
-                )}
+                <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  {/* Botão de Exportar (visível para todos) */}
+                  <button
+                    onClick={handleExportToCalendar}
+                    className="w-full bg-amber-500 text-white px-4 py-2.5 rounded-lg hover:bg-amber-600 transition-colors font-semibold shadow-md text-sm sm:text-base flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Adicionar ao Meu Calendário
+                  </button>
+                  
+                  {/* Botões de Editar/Deletar (apenas para admin) */}
+                  {(isAdmin() || hasPermission('manage_events')) && (
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <button
+                        onClick={handleEditEvent}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm sm:text-base"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={handleDeleteEvent}
+                        className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm sm:text-base"
+                      >
+                        Deletar
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
