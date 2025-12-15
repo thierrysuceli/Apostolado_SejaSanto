@@ -37,9 +37,10 @@ const Calendar = () => {
     start_date: '',
     end_date: '',
     all_day: false,
-    repeat_on_weekdays: false,
-    selected_weekdays: [],
-    repeat_time: '',
+    repeat_on_multiple_dates: false,
+    selected_dates: [], // Array de datas específicas ["2025-12-20", "2025-12-25", ...]
+    event_start_time: '',
+    event_end_time: '',
     location: '',
     meeting_link: '',
     color: '',
@@ -110,12 +111,20 @@ const Calendar = () => {
       
       // Transform events for FullCalendar
       const transformedEvents = loadedEvents.map(event => {
-        console.log('Event data:', event); // Debug
+        // 🔥 FIX TIMEZONE: Tratar datas como strings locais, não converter para Date
+        // Se o Supabase retornar "2025-01-20T14:00:00+00:00" (UTC), 
+        // precisamos ignorar o timezone e usar o horário literal
+        const parseLocalDateTime = (dateStr) => {
+          if (!dateStr) return null;
+          // Remove qualquer timezone (Z, +00:00, etc) e usa horário literal
+          return dateStr.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
+        };
+        
         return {
           id: event.id,
           title: event.title,
-          start: event.start_date,
-          end: event.end_date || event.start_date,
+          start: parseLocalDateTime(event.start_date),
+          end: parseLocalDateTime(event.end_date) || parseLocalDateTime(event.start_date),
           allDay: event.all_day || false,
           backgroundColor: event.color || getEventColor(event),
           borderColor: event.color || getEventColor(event),
@@ -175,10 +184,11 @@ const Calendar = () => {
         description: '',
         start_date: startDate,
         end_date: startDate,
-        all_day: false, // Sempre começa desmarcado
-        repeat_on_weekdays: false,
-        selected_weekdays: [],
-        repeat_time: '',
+        all_day: false,
+        repeat_on_multiple_dates: false,
+        selected_dates: [arg.dateStr], // Começa com a data clicada
+        event_start_time: '09:00',
+        event_end_time: '10:00',
         location: '',
         meeting_link: '',
         color: '',
@@ -235,9 +245,10 @@ const Calendar = () => {
       start_date: selectedEvent.start,
       end_date: selectedEvent.end || selectedEvent.start,
       all_day: selectedEvent.allDay || false,
-      repeat_on_weekdays: false, // Não edita repetições (são eventos individuais)
-      selected_weekdays: [],
-      repeat_time: '',
+      repeat_on_multiple_dates: false,
+      selected_dates: [],
+      event_start_time: '',
+      event_end_time: '',
       location: selectedEvent.location || '',
       meeting_link: selectedEvent.meeting_link || '',
       color: selectedEvent.color || '',
@@ -298,47 +309,39 @@ const Calendar = () => {
         };
         await api.events.update(selectedEvent.id, eventData);
       } else {
-        // CREATE - verificar se é repetição em dias específicos
-        if (formData.repeat_on_weekdays && formData.selected_weekdays?.length > 0 && formData.repeat_time) {
-          // CRIAR MÚLTIPLOS EVENTOS (um para cada dia selecionado)
-          const startDate = new Date(formData.start_date);
-          const endDate = new Date(formData.end_date || formData.start_date);
-          const [hours, minutes] = formData.repeat_time.split(':');
-          
+        // CREATE - verificar se é repetição em múltiplas datas
+        if (formData.repeat_on_multiple_dates && formData.selected_dates?.length > 0 && formData.event_start_time) {
+          // CRIAR MÚLTIPLOS EVENTOS (um para cada data selecionada)
           const eventsToCreate = [];
-          let currentDate = new Date(startDate);
           
-          // Percorrer todos os dias entre start_date e end_date
-          while (currentDate <= endDate) {
-            const dayOfWeek = currentDate.getDay();
+          for (const dateStr of formData.selected_dates) {
+            // Criar datetime combinando data + horário SEM CONVERSÃO UTC
+            const startDateTime = `${dateStr}T${formData.event_start_time}:00`;
+            const endDateTime = formData.event_end_time 
+              ? `${dateStr}T${formData.event_end_time}:00`
+              : `${dateStr}T${formData.event_start_time}:00`;
             
-            // Se o dia da semana está nos dias selecionados
-            if (formData.selected_weekdays.includes(dayOfWeek)) {
-              const eventDate = new Date(currentDate);
-              eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-              
-              eventsToCreate.push({
-                ...basicEventData,
-                start_date: eventDate.toISOString(),
-                end_date: new Date(eventDate.getTime() + 3600000).toISOString(), // +1 hora por padrão
-                categories: formData.categories || [],
-                roles: formData.roles || []
-              });
-            }
+            console.log('Creating event for date:', dateStr, 'Start:', startDateTime, 'End:', endDateTime);
             
-            // Próximo dia
-            currentDate.setDate(currentDate.getDate() + 1);
+            eventsToCreate.push({
+              ...basicEventData,
+              start_date: startDateTime, // Formato YYYY-MM-DDTHH:MM:SS (sem timezone!)
+              end_date: endDateTime,
+              categories: formData.categories || [],
+              roles: formData.roles || []
+            });
           }
           
           // Criar todos os eventos
-          console.log(`Criando ${eventsToCreate.length} eventos repetidos...`);
+          console.log(`Criando ${eventsToCreate.length} eventos em datas selecionadas...`);
           for (const eventData of eventsToCreate) {
             await api.events.create(eventData);
           }
           
           alert(`${eventsToCreate.length} eventos criados com sucesso!`);
         } else {
-          // CRIAR EVENTO ÚNICO
+          // CRIAR EVENTO ÚNICO - enviar no formato local sem conversão
+          console.log('Creating single event - start_date:', formData.start_date, 'end_date:', formData.end_date);
           const eventData = {
             ...basicEventData,
             categories: formData.categories || [],

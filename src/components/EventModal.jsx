@@ -40,13 +40,13 @@ const EventModal = ({
     onSave(eventForm);
   };
 
-  // Helper to format date for datetime-local input (CORRIGIDO - usa horário local, não UTC)
+  // Helper to format date for datetime-local input (SEM conversão de timezone!)
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     
     // Se já está no formato correto (YYYY-MM-DDTHH:MM), retorna direto
-    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateString)) {
-      return dateString;
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateString)) {
+      return dateString.substring(0, 16); // Pega só YYYY-MM-DDTHH:MM
     }
     
     // Se é só data (YYYY-MM-DD), adiciona horário padrão
@@ -54,18 +54,8 @@ const EventModal = ({
       return `${dateString}T00:00`;
     }
     
-    // Parse da string respeitando timezone local (não UTC!)
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return ''; // Data inválida
-    
-    // Formata manualmente para evitar problemas de timezone
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Fallback: tenta extrair substring do ISO
+    return String(dateString).substring(0, 16);
   };
 
   const toggleCategory = (categoryId) => {
@@ -205,77 +195,111 @@ const EventModal = ({
               </label>
             </div>
 
-            {/* Repeat on specific weekdays */}
+            {/* Repeat on multiple specific dates */}
             {!eventForm.all_day && (
               <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
                 <div className="flex items-center mb-3">
                   <input
                     type="checkbox"
-                    id="repeat_on_weekdays"
-                    checked={eventForm.repeat_on_weekdays}
-                    onChange={(e) => setEventForm({ ...eventForm, repeat_on_weekdays: e.target.checked, selected_weekdays: [], repeat_time: '' })}
+                    id="repeat_on_multiple_dates"
+                    checked={eventForm.repeat_on_multiple_dates}
+                    onChange={(e) => setEventForm({ 
+                      ...eventForm, 
+                      repeat_on_multiple_dates: e.target.checked, 
+                      selected_dates: e.target.checked ? [eventForm.start_date.split('T')[0]] : [],
+                      event_start_time: '09:00',
+                      event_end_time: '10:00'
+                    })}
                     className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
-                  <label htmlFor="repeat_on_weekdays" className="ml-2 text-secondary-700 dark:text-gray-200 font-semibold">
-                    Repetir em dias específicos da semana (mesmo horário)
+                  <label htmlFor="repeat_on_multiple_dates" className="ml-2 text-secondary-700 dark:text-gray-200 font-semibold">
+                    Criar evento em múltiplas datas específicas
                   </label>
                 </div>
                 
-                {eventForm.repeat_on_weekdays && (
+                {eventForm.repeat_on_multiple_dates && (
                   <div className="space-y-3 ml-6">
                     <div>
                       <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
-                        Selecione os dias da semana:
+                        Selecione as datas (uma por linha):
                       </label>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { value: 0, label: 'Dom' },
-                          { value: 1, label: 'Seg' },
-                          { value: 2, label: 'Ter' },
-                          { value: 3, label: 'Qua' },
-                          { value: 4, label: 'Qui' },
-                          { value: 5, label: 'Sex' },
-                          { value: 6, label: 'Sáb' }
-                        ].map(day => (
-                          <button
-                            key={day.value}
-                            type="button"
-                            onClick={() => {
-                              const days = eventForm.selected_weekdays || [];
-                              setEventForm({
-                                ...eventForm,
-                                selected_weekdays: days.includes(day.value)
-                                  ? days.filter(d => d !== day.value)
-                                  : [...days, day.value]
-                              });
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                              (eventForm.selected_weekdays || []).includes(day.value)
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
-                            }`}
-                          >
-                            {day.label}
-                          </button>
+                      <div className="space-y-2">
+                        {(eventForm.selected_dates || []).map((date, index) => (
+                          <div key={index} className="flex gap-2 items-center">
+                            <input
+                              type="date"
+                              value={date}
+                              onChange={(e) => {
+                                const newDates = [...(eventForm.selected_dates || [])];
+                                newDates[index] = e.target.value;
+                                setEventForm({ ...eventForm, selected_dates: newDates });
+                              }}
+                              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-secondary-700 dark:text-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDates = (eventForm.selected_dates || []).filter((_, i) => i !== index);
+                                setEventForm({ ...eventForm, selected_dates: newDates });
+                              }}
+                              className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                              title="Remover data"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const lastDate = (eventForm.selected_dates || [])[eventForm.selected_dates?.length - 1];
+                            const newDate = lastDate || new Date().toISOString().split('T')[0];
+                            setEventForm({ 
+                              ...eventForm, 
+                              selected_dates: [...(eventForm.selected_dates || []), newDate] 
+                            });
+                          }}
+                          className="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-semibold"
+                        >
+                          ➕ Adicionar outra data
+                        </button>
                       </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
-                        Horário do evento:
-                      </label>
-                      <input
-                        type="time"
-                        value={eventForm.repeat_time}
-                        onChange={(e) => setEventForm({ ...eventForm, repeat_time: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-secondary-700 dark:text-gray-200"
-                        required={eventForm.repeat_on_weekdays}
-                      />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
+                          Horário de início:
+                        </label>
+                        <input
+                          type="time"
+                          value={eventForm.event_start_time}
+                          onChange={(e) => setEventForm({ ...eventForm, event_start_time: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-secondary-700 dark:text-gray-200"
+                          required={eventForm.repeat_on_multiple_dates}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-secondary-700 dark:text-gray-300 mb-2">
+                          Horário de fim:
+                        </label>
+                        <input
+                          type="time"
+                          value={eventForm.event_end_time}
+                          onChange={(e) => setEventForm({ ...eventForm, event_end_time: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-secondary-700 dark:text-gray-200"
+                          required={eventForm.repeat_on_multiple_dates}
+                        />
+                      </div>
                     </div>
                     
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      💡 O evento será criado em todos os dias selecionados da semana, no horário especificado, dentro do período de Data Início até Data Fim.
+                      💡 Será criado um evento em cada data selecionada, com o horário de início e fim especificados.
+                      {(eventForm.selected_dates || []).length > 0 && (
+                        <span className="block mt-1 font-semibold">
+                          {eventForm.selected_dates.length} {eventForm.selected_dates.length === 1 ? 'data selecionada' : 'datas selecionadas'}
+                        </span>
+                      )}
                     </p>
                   </div>
                 )}
