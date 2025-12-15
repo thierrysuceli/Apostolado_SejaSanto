@@ -43,16 +43,29 @@ const EventModal = ({
   // Helper to format date for datetime-local input (CORRIGIDO - usa horário local, não UTC)
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
+    
     // Se já está no formato correto (YYYY-MM-DDTHH:MM), retorna direto
-    if (typeof dateString === 'string' && dateString.includes('T') && dateString.length === 16) {
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateString)) {
       return dateString;
     }
+    
+    // Se é só data (YYYY-MM-DD), adiciona horário padrão
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return `${dateString}T00:00`;
+    }
+    
     // Parse da string respeitando timezone local (não UTC!)
     const date = new Date(dateString);
-    // Usa offset local para evitar conversão UTC
-    const offset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - offset);
-    return localDate.toISOString().slice(0, 16);
+    if (isNaN(date.getTime())) return ''; // Data inválida
+    
+    // Formata manualmente para evitar problemas de timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const toggleCategory = (categoryId) => {

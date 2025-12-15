@@ -167,12 +167,15 @@ const Calendar = () => {
 
   const handleDateClick = (arg) => {
     if (isAdmin() || hasPermission('manage_events')) {
+      // Se clicar em uma view de dia inteiro (como month view), adicionar horário padrão
+      const startDate = arg.allDay ? `${arg.dateStr}T09:00` : arg.dateStr;
+      
       setEventForm({
         title: '',
         description: '',
-        start_date: arg.dateStr,
-        end_date: arg.dateStr,
-        all_day: arg.allDay,
+        start_date: startDate,
+        end_date: startDate,
+        all_day: false, // Sempre começa desmarcado
         repeat_on_weekdays: false,
         selected_weekdays: [],
         repeat_time: '',
@@ -232,6 +235,9 @@ const Calendar = () => {
       start_date: selectedEvent.start,
       end_date: selectedEvent.end || selectedEvent.start,
       all_day: selectedEvent.allDay || false,
+      repeat_on_weekdays: false, // Não edita repetições (são eventos individuais)
+      selected_weekdays: [],
+      repeat_time: '',
       location: selectedEvent.location || '',
       meeting_link: selectedEvent.meeting_link || '',
       color: selectedEvent.color || '',
