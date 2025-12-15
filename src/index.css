@@ -324,6 +324,51 @@ pre code {
   color: inherit !important;
 }
 
+/* Estilos de headings - garantir visibilidade no dark mode */
+h1, h2, h3, h4, h5, h6 {
+  color: #1f2937;
+}
+
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6 {
+  color: #ffffff !important;
+}
+
+/* Headings dentro do conteúdo Quill */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6,
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4,
+.article-content h5,
+.article-content h6 {
+  color: #1f2937;
+}
+
+.dark .ql-editor h1,
+.dark .ql-editor h2,
+.dark .ql-editor h3,
+.dark .ql-editor h4,
+.dark .ql-editor h5,
+.dark .ql-editor h6,
+.dark .article-content h1,
+.dark .article-content h2,
+.dark .article-content h3,
+.dark .article-content h4,
+.dark .article-content h5,
+.dark .article-content h6 {
+  color: #ffffff !important;
+}
+
 /* Estilos de imagens */
 img {
   max-width: 100%;

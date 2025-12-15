@@ -152,9 +152,9 @@ const ArtigoDetail = () => {
       )}
 
       {/* Layout principal com TOC Desktop na lateral */}
-      <div className="lg:flex lg:justify-center lg:gap-6 lg:px-4 xl:px-8 lg:max-w-[1600px] lg:mx-auto">
-        {/* Table of Contents - Desktop (espaço à esquerda) */}
-        <div className="hidden lg:block lg:w-64 xl:w-72 lg:flex-shrink-0 lg:pt-32">
+      <div className="lg:flex lg:justify-center lg:gap-6 lg:px-8 xl:px-12 lg:max-w-[1600px] lg:mx-auto">
+        {/* Table of Contents - Desktop e Mobile */}
+        <div className="lg:w-64 xl:w-72 lg:flex-shrink-0 lg:pt-32 lg:pl-4">
           <TableOfContents content={article.content} />
         </div>
 
