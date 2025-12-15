@@ -374,13 +374,21 @@ img {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  margin: 16px 0;
+  display: block;
 }
 
 .prose img,
 .prose-lg img,
 .prose-xl img {
   border-radius: 8px !important;
+  display: block !important;
+}
+
+/* Imagens dentro de artigos podem ter margem */
+.article-content img,
+.prose p img,
+.prose-lg p img,
+.prose-xl p img {
   margin-top: 16px !important;
   margin-bottom: 16px !important;
 }
