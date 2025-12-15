@@ -340,7 +340,9 @@ const Calendar = () => {
             status: 'published'
           };
           
-          for (const dateStr of formData.selected_dates) {
+          for (let i = 0; i < formData.selected_dates.length; i++) {
+            const dateStr = formData.selected_dates[i];
+            
             // Combina data + horário
             const startDateTime = `${dateStr}T${formData.event_start_time}:00`;
             const endDateTime = formData.event_end_time 
@@ -349,15 +351,17 @@ const Calendar = () => {
             
             console.log('Creating event for date:', dateStr, 'Start:', startDateTime, 'End:', endDateTime);
             
-            // Cada evento tem suas próprias datas
+            // Cada evento tem suas próprias datas + título único para evitar conflito de slug
             const eventData = {
               ...baseData,
+              title: i === 0 ? baseData.title : `${baseData.title} (${dateStr})`,
               start_date: startDateTime,
               end_date: endDateTime,
               categories: formData.categories || [],
               roles: formData.roles || []
             };
             
+            console.log('Event data to create:', eventData);
             await api.events.create(eventData);
           }
           
