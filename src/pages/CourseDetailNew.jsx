@@ -95,11 +95,23 @@ function CourseDetail() {
       {/* SEO Meta Tags + Structured Data */}
       <Helmet>
         <title>{course.title} | Curso de Formação Católica | Apostolado Seja Santo</title>
-        <meta name="description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 160) || `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`} />
+        <meta name="description" content={(() => {
+          const cleanDesc = course.description?.replace(/<[^>]*>/g, '').trim();
+          if (cleanDesc && cleanDesc.length > 10) {
+            return cleanDesc.substring(0, 160);
+          }
+          return `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`;
+        })()} />
         
         {/* Open Graph */}
         <meta property="og:title" content={`${course.title} | Curso Católico`} />
-        <meta property="og:description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 200)} />
+        <meta property="og:description" content={(() => {
+          const cleanDesc = course.description?.replace(/<[^>]*>/g, '').trim();
+          if (cleanDesc && cleanDesc.length > 10) {
+            return cleanDesc.substring(0, 200);
+          }
+          return `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`;
+        })()} />
         <meta property="og:image" content={course.cover_image_url || course.image} />
         <meta property="og:type" content="website.course" />
         <meta property="og:url" content={`https://www.apostoladosejasanto.com.br/cursos/${course.slug || id}`} />
@@ -107,8 +119,14 @@ function CourseDetail() {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${course.title} | Curso Católico`} />
-        <meta name="twitter:description" content={course.description?.replace(/<[^>]*>/g, '').substring(0, 200)} />
-        <meta name="twitter:image" content={course.cover_image_url || course.image} />
+        <meta name="twitter:description" content={(() => {
+          const cleanDesc = course.description?.replace(/<[^>]*>/g, '').trim();
+          if (cleanDesc && cleanDesc.length > 10) {
+            return cleanDesc.substring(0, 200);
+          }
+          return `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`;
+        })()} />
+        <meta property="og:image" content={course.cover_image_url || course.image} />
         
         {/* Structured Data (JSON-LD) */}
         <script type="application/ld+json">
@@ -116,7 +134,13 @@ function CourseDetail() {
             "@context": "https://schema.org",
             "@type": "Course",
             "name": course.title,
-            "description": course.description?.replace(/<[^>]*>/g, '').substring(0, 500),
+            "description": (() => {
+              const cleanDesc = course.description?.replace(/<[^>]*>/g, '').trim();
+              if (cleanDesc && cleanDesc.length > 10) {
+                return cleanDesc.substring(0, 500);
+              }
+              return `Curso completo de ${course.title} com ${course.modules?.length || 0} módulos. Aprenda sobre formação católica com qualidade.`;
+            })(),
             "provider": {
               "@type": "Organization",
               "name": "Apostolado Seja Santo",

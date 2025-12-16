@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -339,6 +340,81 @@ function PostDetail() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
+      {/* SEO Meta Tags */}
+      <Helmet>
+        <title>{post.title} | Artigo Católico | Apostolado Seja Santo</title>
+        <meta name="description" content={(() => {
+          const cleanContent = post.content?.replace(/<[^>]*>/g, '').trim();
+          if (cleanContent && cleanContent.length > 10) {
+            return cleanContent.substring(0, 160);
+          }
+          return `Leia ${post.title} - Artigo completo sobre formação católica e espiritualidade.`;
+        })()} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={`${post.title} | Artigo Católico`} />
+        <meta property="og:description" content={(() => {
+          const cleanContent = post.content?.replace(/<[^>]*>/g, '').trim();
+          if (cleanContent && cleanContent.length > 10) {
+            return cleanContent.substring(0, 200);
+          }
+          return `Leia ${post.title} - Artigo completo sobre formação católica e espiritualidade.`;
+        })()} />
+        <meta property="og:image" content={post.image} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://www.apostoladosejasanto.com.br/posts/${post.slug || id}`} />
+        <meta property="article:published_time" content={post.published_at || post.date} />
+        <meta property="article:author" content={post.author?.name || post.author || 'Apostolado Seja Santo'} />
+        {post.category && <meta property="article:section" content={post.category} />}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${post.title} | Artigo Católico`} />
+        <meta name="twitter:description" content={(() => {
+          const cleanContent = post.content?.replace(/<[^>]*>/g, '').trim();
+          if (cleanContent && cleanContent.length > 10) {
+            return cleanContent.substring(0, 200);
+          }
+          return `Leia ${post.title} - Artigo completo sobre formação católica e espiritualidade.`;
+        })()} />
+        <meta name="twitter:image" content={post.image} />
+        
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": post.title,
+            "description": (() => {
+              const cleanContent = post.content?.replace(/<[^>]*>/g, '').trim();
+              if (cleanContent && cleanContent.length > 10) {
+                return cleanContent.substring(0, 500);
+              }
+              return `Leia ${post.title} - Artigo completo sobre formação católica e espiritualidade.`;
+            })(),
+            "image": post.image,
+            "datePublished": post.published_at || post.date,
+            "dateModified": post.updated_at || post.published_at || post.date,
+            "author": {
+              "@type": "Person",
+              "name": post.author?.name || post.author || "Apostolado Seja Santo"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Apostolado Seja Santo",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://www.apostoladosejasanto.com.br/Apostolado_PNG.png"
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": `https://www.apostoladosejasanto.com.br/posts/${post.slug || id}`
+            }
+          })}
+        </script>
+      </Helmet>
+
       {/* Article Header Banner */}
       <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 py-12 md:py-20">
         <div className="container mx-auto px-4 max-w-5xl">
