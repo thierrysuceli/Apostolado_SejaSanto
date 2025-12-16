@@ -628,8 +628,8 @@ const Calendar = () => {
                     name={selectedEvent.title}
                     options="'Apple','Google','Outlook.com','Microsoft365','Yahoo'"
                     location={selectedEvent.location || ''}
-                    startDate={new Date(selectedEvent.start).toISOString().split('T')[0]}
-                    endDate={new Date(selectedEvent.end || selectedEvent.start).toISOString().split('T')[0]}
+                    startDate={(() => { const d = new Date(selectedEvent.start); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()}
+                    endDate={(() => { const d = new Date(selectedEvent.end || selectedEvent.start); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()}
                     startTime={selectedEvent.allDay ? '' : `${String(new Date(selectedEvent.start).getHours()).padStart(2, '0')}:${String(new Date(selectedEvent.start).getMinutes()).padStart(2, '0')}`}
                     endTime={selectedEvent.allDay ? '' : `${String(new Date(selectedEvent.end || selectedEvent.start).getHours()).padStart(2, '0')}:${String(new Date(selectedEvent.end || selectedEvent.start).getMinutes()).padStart(2, '0')}`}
                     timeZone="America/Sao_Paulo"

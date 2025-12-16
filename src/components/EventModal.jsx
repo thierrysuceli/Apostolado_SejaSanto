@@ -512,8 +512,8 @@ const EventModal = ({
                 name={eventForm.title}
                 options="'Apple','Google','Outlook.com','Microsoft365','Yahoo'"
                 location={eventForm.location || ''}
-                startDate={new Date(eventForm.start_date).toISOString().split('T')[0]}
-                endDate={new Date(eventForm.end_date || eventForm.start_date).toISOString().split('T')[0]}
+                startDate={(() => { const d = new Date(eventForm.start_date); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()}
+                endDate={(() => { const d = new Date(eventForm.end_date || eventForm.start_date); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()}
                 startTime={eventForm.all_day ? '' : `${String(new Date(eventForm.start_date).getHours()).padStart(2, '0')}:${String(new Date(eventForm.start_date).getMinutes()).padStart(2, '0')}`}
                 endTime={eventForm.all_day ? '' : `${String(new Date(eventForm.end_date || eventForm.start_date).getHours()).padStart(2, '0')}:${String(new Date(eventForm.end_date || eventForm.start_date).getMinutes()).padStart(2, '0')}`}
                 timeZone="America/Sao_Paulo"
