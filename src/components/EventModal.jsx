@@ -510,7 +510,7 @@ const EventModal = ({
             {isEditMode && (
               <add-to-calendar-button
                 name={eventForm.title}
-                options="'Apple','Google','Outlook.com','Microsoft365'"
+                options="'Apple','Google','Outlook.com','Microsoft365','Yahoo'"
                 location={eventForm.location || ''}
                 startDate={new Date(eventForm.start_date).toISOString().split('T')[0]}
                 endDate={new Date(eventForm.end_date || eventForm.start_date).toISOString().split('T')[0]}
@@ -518,12 +518,14 @@ const EventModal = ({
                 endTime={eventForm.all_day ? '' : `${String(new Date(eventForm.end_date || eventForm.start_date).getHours()).padStart(2, '0')}:${String(new Date(eventForm.end_date || eventForm.start_date).getMinutes()).padStart(2, '0')}`}
                 timeZone="America/Sao_Paulo"
                 description={`${(eventForm.description?.replace(/<[^>]*>/g, '') || '')}${eventForm.meeting_link ? '\n\nLink: ' + eventForm.meeting_link : ''}`}
-                buttonStyle="3d"
-                label="📅 Adicionar à Agenda"
+                buttonStyle="flat"
+                label="Adicionar à Agenda"
                 lightMode="bodyScheme"
                 hideCheckmark
-                styleLight="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
-                styleDark="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
+                hideBranding
+                size="5"
+                styleLight="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif; --list-background: #ffffff; --list-text: #1f2937;"
+                styleDark="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif; --list-background: #1f2937; --list-text: #f3f4f6;"
               ></add-to-calendar-button>
             )}
             

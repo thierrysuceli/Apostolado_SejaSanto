@@ -626,7 +626,7 @@ const Calendar = () => {
                   {/* Botão de Exportar (visível para todos) */}
                   <add-to-calendar-button
                     name={selectedEvent.title}
-                    options="'Apple','Google','Outlook.com','Microsoft365'"
+                    options="'Apple','Google','Outlook.com','Microsoft365','Yahoo'"
                     location={selectedEvent.location || ''}
                     startDate={new Date(selectedEvent.start).toISOString().split('T')[0]}
                     endDate={new Date(selectedEvent.end || selectedEvent.start).toISOString().split('T')[0]}
@@ -634,12 +634,14 @@ const Calendar = () => {
                     endTime={selectedEvent.allDay ? '' : `${String(new Date(selectedEvent.end || selectedEvent.start).getHours()).padStart(2, '0')}:${String(new Date(selectedEvent.end || selectedEvent.start).getMinutes()).padStart(2, '0')}`}
                     timeZone="America/Sao_Paulo"
                     description={`${(selectedEvent.description?.replace(/<[^>]*>/g, '') || '')}${selectedEvent.meeting_link ? '\n\nLink: ' + selectedEvent.meeting_link : ''}`}
-                    buttonStyle="3d"
-                    label="📅 Adicionar à Agenda"
+                    buttonStyle="flat"
+                    label="Adicionar à Agenda"
                     lightMode="bodyScheme"
                     hideCheckmark
-                    styleLight="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
-                    styleDark="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
+                    hideBranding
+                    size="5"
+                    styleLight="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif; --list-background: #ffffff; --list-text: #1f2937;"
+                    styleDark="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif; --list-background: #1f2937; --list-text: #f3f4f6;"
                   ></add-to-calendar-button>
                   
                   {/* Botões de Editar/Deletar (apenas para admin) */}
