@@ -8,6 +8,7 @@ import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
 import EventModal from '../components/EventModal';
+import 'add-to-calendar-button';
 import '../styles/fullcalendar-custom.css';
 
 const Calendar = () => {
@@ -289,66 +290,6 @@ const Calendar = () => {
     } catch (err) {
       console.error('Error deleting event:', err);
       alert('Erro ao deletar evento');
-    }
-  };
-
-  const handleExportToCalendar = () => {
-    try {
-      const start = new Date(selectedEvent.start);
-      const end = new Date(selectedEvent.end || selectedEvent.start);
-      
-      // Formatar data para ICS (YYYYMMDDTHHmmss)
-      const formatDateForICS = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = '00';
-        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
-      };
-      
-      const startFormatted = formatDateForICS(start);
-      const endFormatted = formatDateForICS(end);
-      
-      // Limpar descrição
-      const description = selectedEvent.description?.replace(/<[^>]*>/g, '').replace(/\n/g, '\\n') || '';
-      const location = selectedEvent.location || '';
-      const url = selectedEvent.meeting_link || '';
-      
-      // Criar arquivo ICS manualmente (formato padrão iCalendar)
-      const icsContent = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Apostolado Seja Santo//PT',
-        'CALSCALE:GREGORIAN',
-        'METHOD:PUBLISH',
-        'BEGIN:VEVENT',
-        `DTSTART:${startFormatted}`,
-        `DTEND:${endFormatted}`,
-        `DTSTAMP:${formatDateForICS(new Date())}`,
-        `SUMMARY:${selectedEvent.title}`,
-        `DESCRIPTION:${description}${url ? '\\n\\nLink: ' + url : ''}`,
-        location ? `LOCATION:${location}` : '',
-        url ? `URL:${url}` : '',
-        'STATUS:CONFIRMED',
-        'SEQUENCE:0',
-        'END:VEVENT',
-        'END:VCALENDAR'
-      ].filter(line => line).join('\r\n');
-      
-      // Criar blob e download
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${selectedEvent.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch (err) {
-      console.error('Error exporting to calendar:', err);
-      alert('Erro ao exportar para calendário');
     }
   };
 
@@ -683,15 +624,23 @@ const Calendar = () => {
                 {/* Actions */}
                 <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                   {/* Botão de Exportar (visível para todos) */}
-                  <button
-                    onClick={handleExportToCalendar}
-                    className="w-full bg-amber-500 text-white px-4 py-2.5 rounded-lg hover:bg-amber-600 transition-colors font-semibold shadow-md text-sm sm:text-base flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Adicionar ao Meu Calendário
-                  </button>
+                  <add-to-calendar-button
+                    name={selectedEvent.title}
+                    options="'Apple','Google','Outlook.com','Microsoft365'"
+                    location={selectedEvent.location || ''}
+                    startDate={new Date(selectedEvent.start).toISOString().split('T')[0]}
+                    endDate={new Date(selectedEvent.end || selectedEvent.start).toISOString().split('T')[0]}
+                    startTime={selectedEvent.allDay ? '' : `${String(new Date(selectedEvent.start).getHours()).padStart(2, '0')}:${String(new Date(selectedEvent.start).getMinutes()).padStart(2, '0')}`}
+                    endTime={selectedEvent.allDay ? '' : `${String(new Date(selectedEvent.end || selectedEvent.start).getHours()).padStart(2, '0')}:${String(new Date(selectedEvent.end || selectedEvent.start).getMinutes()).padStart(2, '0')}`}
+                    timeZone="America/Sao_Paulo"
+                    description={`${(selectedEvent.description?.replace(/<[^>]*>/g, '') || '')}${selectedEvent.meeting_link ? '\n\nLink: ' + selectedEvent.meeting_link : ''}`}
+                    buttonStyle="3d"
+                    label="📅 Adicionar à Agenda"
+                    lightMode="bodyScheme"
+                    hideCheckmark
+                    styleLight="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
+                    styleDark="--btn-background: #f59e0b; --btn-text: #ffffff; --btn-background-hover: #d97706; --font: 'Inter', sans-serif;"
+                  ></add-to-calendar-button>
                   
                   {/* Botões de Editar/Deletar (apenas para admin) */}
                   {(isAdmin() || hasPermission('manage_events')) && (
