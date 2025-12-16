@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
+import TableOfContents from '../components/TableOfContents';
 
 // Helper para converter ISO datetime para formato datetime-local
 const formatDateTimeLocal = (isoString) => {
@@ -28,6 +29,7 @@ const AdminArticleCreate = () => {
   const editId = searchParams.get('editId');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -365,14 +367,83 @@ const AdminArticleCreate = () => {
             </div>
           </div>
 
-          {/* Content */}
+          {/* Content with Preview Toggle */}
           <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-2xl font-semibold text-secondary-500 dark:text-gray-400">Conteúdo *</h2>
-            <RichTextEditor
-              value={formData.content}
-              onChange={handleContentChange}
-              isAdmin={true}
-            />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold text-secondary-500 dark:text-gray-400">Conteúdo *</h2>
+              <button
+                type="button"
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              >
+                {showPreview ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Modo Edição
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Ver Preview
+                  </>
+                )}
+              </button>
+            </div>
+
+            {!showPreview ? (
+              <RichTextEditor
+                value={formData.content}
+                onChange={handleContentChange}
+                isAdmin={true}
+              />
+            ) : (
+              // Preview Layout com TOC
+              <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-6 min-h-[600px]">
+                <div className="lg:flex lg:gap-8 lg:max-w-[1400px] lg:mx-auto">
+                  {/* Table of Contents - Esquerda */}
+                  <div className="lg:w-64 lg:flex-shrink-0">
+                    <div className="lg:sticky lg:top-6">
+                      <TableOfContents content={formData.content} />
+                    </div>
+                  </div>
+
+                  {/* Content Preview - Direita */}
+                  <div className="flex-1 lg:max-w-3xl">
+                    <article className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+                      {/* Title */}
+                      <h1 className="text-4xl font-bold text-secondary-900 dark:text-white mb-6">
+                        {formData.title || 'Título do Artigo'}
+                      </h1>
+
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {formData.published_at ? new Date(formData.published_at).toLocaleDateString('pt-BR') : 'Data não definida'}
+                        </span>
+                        <span>•</span>
+                        <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-full text-xs font-semibold">
+                          {availableColumns.find(c => c.id === formData.editorial_column_id)?.name || 'Sem coluna'}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div 
+                        className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-img:rounded-xl prose-img:shadow-lg prose-a:text-primary-600 dark:prose-a:text-primary-400"
+                        dangerouslySetInnerHTML={{ __html: formData.content || '<p class="text-gray-500 italic">O conteúdo aparecerá aqui...</p>' }}
+                      />
+                    </article>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Permissões de Visualização */}
