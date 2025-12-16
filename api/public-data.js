@@ -1509,6 +1509,94 @@ export default async function handler(req, res) {
       return res.status(200).json({ views_count: data.views_count });
     }
 
+    // INCREMENT NEWS VIEWS
+    if (type === 'news-view' && req.method === 'POST') {
+      const { news_id } = req.body;
+      
+      if (!news_id) {
+        return res.status(400).json({ error: 'news_id é obrigatório' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('news')
+        .update({ 
+          views_count: supabaseAdmin.rpc('increment')
+        })
+        .eq('id', news_id)
+        .select('views_count')
+        .single();
+      
+      if (error) {
+        console.error('[NEWS VIEW] Error:', error);
+        // Fallback: incrementar manualmente
+        const { data: news } = await supabaseAdmin
+          .from('news')
+          .select('views_count')
+          .eq('id', news_id)
+          .single();
+        
+        if (news) {
+          const { data: updated, error: updateError } = await supabaseAdmin
+            .from('news')
+            .update({ views_count: (news.views_count || 0) + 1 })
+            .eq('id', news_id)
+            .select('views_count')
+            .single();
+          
+          if (updateError) throw updateError;
+          return res.status(200).json({ views_count: updated.views_count });
+        }
+        
+        throw error;
+      }
+      
+      return res.status(200).json({ views_count: data.views_count });
+    }
+
+    // INCREMENT POST VIEWS
+    if (type === 'post-view' && req.method === 'POST') {
+      const { post_id } = req.body;
+      
+      if (!post_id) {
+        return res.status(400).json({ error: 'post_id é obrigatório' });
+      }
+      
+      const { data, error } = await supabaseAdmin
+        .from('posts')
+        .update({ 
+          views_count: supabaseAdmin.rpc('increment')
+        })
+        .eq('id', post_id)
+        .select('views_count')
+        .single();
+      
+      if (error) {
+        console.error('[POST VIEW] Error:', error);
+        // Fallback: incrementar manualmente
+        const { data: post } = await supabaseAdmin
+          .from('posts')
+          .select('views_count')
+          .eq('id', post_id)
+          .single();
+        
+        if (post) {
+          const { data: updated, error: updateError } = await supabaseAdmin
+            .from('posts')
+            .update({ views_count: (post.views_count || 0) + 1 })
+            .eq('id', post_id)
+            .select('views_count')
+            .single();
+          
+          if (updateError) throw updateError;
+          return res.status(200).json({ views_count: updated.views_count });
+        }
+        
+        throw error;
+      }
+      
+      return res.status(200).json({ views_count: data.views_count });
+    }
+
     // SITEMAP.XML - Geração dinâmica
     if (type === 'sitemap' && req.method === 'GET') {
       const baseUrl = 'https://www.apostoladosejasanto.com.br';

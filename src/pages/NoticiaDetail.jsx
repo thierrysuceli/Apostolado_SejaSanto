@@ -33,6 +33,13 @@ const NoticiaDetail = () => {
         const newsItem = data.news;
         setNews(newsItem);
         
+        // Increment views (sempre, não precisa estar logado)
+        fetch('/api/public-data?type=news-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ news_id: newsItem.id })
+        }).catch(err => console.log('View count skipped:', err));
+        
         // Save to history
         if (currentUser) {
           await post('/api/public-data?type=news-history', {
