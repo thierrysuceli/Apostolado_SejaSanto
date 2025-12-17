@@ -402,19 +402,19 @@ const AdminArticleCreate = () => {
                 isAdmin={true}
               />
             ) : (
-              // Preview Layout com TOC
-              <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-6 min-h-[600px]">
-                <div className="lg:flex lg:gap-8 lg:max-w-[1400px] lg:mx-auto">
-                  {/* Table of Contents - Esquerda */}
-                  <div className="lg:w-64 lg:flex-shrink-0">
+              // Preview Layout com TOC (replicando layout da leitura)
+              <div className="bg-gray-50 dark:bg-gray-950 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 min-h-[600px]">
+                <div className="lg:flex lg:justify-center lg:gap-6 lg:max-w-[1600px] lg:mx-auto">
+                  {/* Table of Contents - Esquerda (box separada) */}
+                  <div className="lg:w-64 xl:w-72 lg:flex-shrink-0">
                     <div className="lg:sticky lg:top-6">
                       <TableOfContents content={formData.content} />
                     </div>
                   </div>
 
-                  {/* Content Preview - Direita */}
-                  <div className="flex-1 lg:max-w-3xl">
-                    <article className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+                  {/* Content Preview - Direita (box branca separada) */}
+                  <div className="w-full lg:max-w-4xl lg:flex-shrink-0 mt-6 lg:mt-0">
+                    <article className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 md:p-12 border-2 border-gray-200 dark:border-gray-700">
                       {/* Title */}
                       <h1 className="text-4xl font-bold text-secondary-900 dark:text-white mb-6">
                         {formData.title || 'Título do Artigo'}
@@ -441,6 +441,9 @@ const AdminArticleCreate = () => {
                       />
                     </article>
                   </div>
+
+                  {/* Espaçador direito (balanceia o layout como na leitura) */}
+                  <div className="hidden lg:block lg:w-72 xl:w-80 lg:flex-shrink-0"></div>
                 </div>
               </div>
             )}

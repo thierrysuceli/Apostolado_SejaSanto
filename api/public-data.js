@@ -351,7 +351,7 @@ export default async function handler(req, res) {
     
     // COMMENTS
     if (type === 'comments' && req.method === 'GET' && !id) {
-      const { post_id, topic_id, event_id } = req.query;
+      const { post_id, topic_id, event_id, article_id } = req.query;
       let query = supabaseAdmin
         .from('comments')
         .select(`
@@ -363,6 +363,7 @@ export default async function handler(req, res) {
       if (post_id) query = query.eq('post_id', post_id);
       if (topic_id) query = query.eq('topic_id', topic_id);
       if (event_id) query = query.eq('event_id', event_id);
+      if (article_id) query = query.eq('article_id', article_id);
       
       const { data, error } = await query;
       if (error) throw error;
@@ -383,13 +384,14 @@ export default async function handler(req, res) {
     if (type === 'comments' && req.method === 'POST') {
       await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
-      const { content, post_id, topic_id, event_id, parent_comment_id } = req.body;
+      const { content, post_id, topic_id, event_id, article_id, parent_comment_id } = req.body;
       const insertData = { 
         content, 
         author_id: req.user.id,
         ...(post_id && { post_id }),
         ...(topic_id && { topic_id }),
         ...(event_id && { event_id }),
+        ...(article_id && { article_id }),
         ...(parent_comment_id && { parent_comment_id })
       };
       const { data, error } = await supabaseAdmin

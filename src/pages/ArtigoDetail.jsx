@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import SEO from '../components/SEO';
 import TableOfContents from '../components/TableOfContents';
+import CommentsSection from '../components/CommentsSection';
 
 const ArtigoDetail = () => {
   const { slug } = useParams();
@@ -269,8 +270,11 @@ const ArtigoDetail = () => {
             </div>
           )}
 
+          {/* Comments Section */}
+          <CommentsSection articleId={article.id} type="article" />
+
           {/* Back Link */}
-          <div className="mb-12">
+          <div className="mb-12 mt-12">
             <Link 
               to="/artigos"
               className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
