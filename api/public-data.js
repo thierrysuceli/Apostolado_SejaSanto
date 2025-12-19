@@ -405,6 +405,24 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(201).json({ comment: data });
     }
+    if (type === 'comments' && req.method === 'PUT' && id) {
+      await authenticate(req, res);
+      if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });
+      const { content } = req.body;
+      if (!content) return res.status(400).json({ error: 'Conteúdo é obrigatório' });
+      
+      const { data, error } = await supabaseAdmin
+        .from('comments')
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select(`
+          *,
+          users(id, name, avatar_url)
+        `)
+        .single();
+      if (error) throw error;
+      return res.status(200).json({ comment: data });
+    }
     if (type === 'comments' && req.method === 'DELETE' && id) {
       await authenticate(req, res);
       if (!req.user) return res.status(401).json({ error: 'Autenticação necessária' });

@@ -73,7 +73,7 @@ git push origin main
 ### Testar no PowerShell:
 ```powershell
 nslookup -type=TXT apostoladosejasanto.com.br
-```
+```?
 
 ---
 

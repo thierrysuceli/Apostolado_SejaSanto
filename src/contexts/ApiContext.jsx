@@ -190,6 +190,22 @@ export const ApiProvider = ({ children }) => {
   // Alias para manter compatibilidade
   const deleteRequest = del;
 
+  // ==================== ARTICLES ====================
+  
+  const articles = {
+    getAll: () => {
+      const token = getToken();
+      return get('/api/content?type=articles', !!token);
+    },
+    getById: (id) => {
+      const token = getToken();
+      return get(`/api/content?type=articles&id=${id}`, !!token);
+    },
+    create: (data) => post('/api/content?type=articles', data),
+    update: (id, data) => put(`/api/content?type=articles&id=${id}`, data),
+    delete: (id) => del(`/api/content?type=articles&id=${id}`)
+  };
+
   // ==================== POSTS ====================
   
   const posts = {
@@ -448,6 +464,7 @@ export const ApiProvider = ({ children }) => {
         put,
         del,
         delete: deleteRequest, // Alias para delete
+        articles,
         posts,
         courses,
         topics,

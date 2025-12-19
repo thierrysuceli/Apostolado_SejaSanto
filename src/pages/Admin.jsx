@@ -15,7 +15,7 @@ const Admin = () => {
   // Dashboard data
   const [stats, setStats] = useState({
     totalUsers: 0,
-    totalPosts: 0,
+    totalArticles: 0,
     totalCourses: 0,
     totalEvents: 0
   });
@@ -29,7 +29,7 @@ const Admin = () => {
   const [userRoles, setUserRoles] = useState([]);
   
   // Content data
-  const [posts, setPosts] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [courses, setCourses] = useState([]);
   const [events, setEvents] = useState([]);
 
@@ -56,16 +56,16 @@ const Admin = () => {
       setLoading(true);
       setError('');
       
-      const [usersData, postsData, coursesData, eventsData] = await Promise.all([
+      const [usersData, articlesData, coursesData, eventsData] = await Promise.all([
         api.admin.users.getAll(),
-        api.posts.getAll(),
+        api.get('/api/content?type=articles'),
         api.courses.getAll(),
         api.events.getAll()
       ]);
       
       setStats({
         totalUsers: usersData.users?.length || 0,
-        totalPosts: postsData.posts?.length || 0,
+        totalArticles: articlesData.articles?.length || 0,
         totalCourses: coursesData.courses?.length || 0,
         totalEvents: eventsData.events?.length || 0
       });
@@ -122,13 +122,13 @@ const Admin = () => {
       setLoading(true);
       setError('');
       
-      const [postsData, coursesData, eventsData] = await Promise.all([
-        api.posts.getAll(),
+      const [articlesData, coursesData, eventsData] = await Promise.all([
+        api.get('/api/content?type=articles'),
         api.courses.getAll(),
         api.events.getAll()
       ]);
       
-      setPosts(postsData.posts || []);
+      setArticles(articlesData.articles || []);
       setCourses(coursesData.courses || []);
       setEvents(eventsData.events || []);
     } catch (err) {
@@ -211,7 +211,7 @@ const Admin = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard icon="👥" title="Usuários" value={stats.totalUsers} color="blue" />
-              <StatCard icon="📝" title="Posts" value={stats.totalPosts} color="green" />
+              <StatCard icon="📝" title="Artigos" value={stats.totalArticles} color="green" />
               <StatCard icon="🎓" title="Cursos" value={stats.totalCourses} color="purple" />
               <StatCard icon="📅" title="Eventos" value={stats.totalEvents} color="orange" />
             </div>
@@ -287,12 +287,12 @@ const Admin = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate('/admin/posts/create')}
+                  onClick={() => navigate('/admin/articles/create')}
                   className="flex items-center gap-3 p-4 border-2 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-left"
                 >
                   <div className="text-3xl">✍️</div>
                   <div>
-                    <h3 className="font-bold text-green-700 dark:text-green-500">Novo Post</h3>
+                    <h3 className="font-bold text-green-700 dark:text-green-500">Novo Artigo</h3>
                     <p className="text-sm text-green-600 dark:text-green-400">Escrever um novo artigo</p>
                   </div>
                 </button>
@@ -479,25 +479,30 @@ const Admin = () => {
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-secondary-700 dark:text-gray-200">Posts ({posts.length})</h2>
+                <h2 className="text-2xl font-bold text-secondary-700 dark:text-gray-200">Artigos ({articles.length})</h2>
                 <button
-                  onClick={() => navigate('/admin/content-editor')}
+                  onClick={() => navigate('/admin/articles/create')}
                   className="bg-primary-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-700"
                 >
-                  + Criar Post
+                  + Criar Artigo
                 </button>
               </div>
               
               <div className="space-y-3">
-                {posts.slice(0, 5).map(post => (
-                  <div key={post.id} className="flex items-center justify-between p-3 bg-beige-50 dark:bg-gray-800 rounded-lg">
+                {articles.slice(0, 5).map(article => (
+                  <div key={article.id} className="flex items-center justify-between p-3 bg-beige-50 dark:bg-gray-800 rounded-lg">
                     <div>
-                      <h3 className="font-semibold text-secondary-700 dark:text-gray-200">{post.title}</h3>
+                      <h3 className="font-semibold text-secondary-700 dark:text-gray-200">{article.title}</h3>
                       <p className="text-sm text-secondary-600 dark:text-gray-300">
-                        Por {post.author?.name} • {new Date(post.published_at).toLocaleDateString('pt-BR')}
+                        Por {article.author?.name} • {new Date(article.published_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
-                    <button className="text-primary-600 hover:text-primary-700 text-sm font-semibold">Ver</button>
+                    <button 
+                      onClick={() => navigate(`/artigos/${article.slug}`)}
+                      className="text-primary-600 hover:text-primary-700 text-sm font-semibold"
+                    >
+                      Ver
+                    </button>
                   </div>
                 ))}
               </div>

@@ -9,7 +9,10 @@ const CommentsSection = ({ articleId, type = 'article' }) => {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editContent, setEditContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const isAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
 
   useEffect(() => {
     loadComments();
@@ -108,6 +111,37 @@ const CommentsSection = ({ articleId, type = 'article' }) => {
     }
   };
 
+  const handleEditComment = async (e, commentId) => {
+    e.preventDefault();
+    if (!editContent.trim()) return;
+
+    try {
+      setLoading(true);
+      await api.put(`/api/public-data?type=comments&id=${commentId}`, {
+        content: editContent
+      });
+      
+      setEditingCommentId(null);
+      setEditContent('');
+      await loadComments();
+    } catch (err) {
+      console.error('Error editing comment:', err);
+      alert('Erro ao editar comentário');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startEdit = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditContent(comment.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingCommentId(null);
+    setEditContent('');
+  };
+
   // Organizar comentários em árvore (parent -> children)
   const organizeComments = () => {
     const commentMap = {};
@@ -132,7 +166,10 @@ const CommentsSection = ({ articleId, type = 'article' }) => {
 
   const renderComment = (comment, depth = 0) => {
     const isAuthor = user?.id === comment.author_id;
+    const canDelete = isAuthor || isAdmin;
+    const canEdit = isAuthor;
     const maxDepth = 3;
+    const isEditing = editingCommentId === comment.id;
 
     return (
       <div key={comment.id} className={`${depth > 0 ? 'ml-8 md:ml-12 mt-4' : 'mt-6'}`}>
@@ -168,28 +205,70 @@ const CommentsSection = ({ articleId, type = 'article' }) => {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
+                  {comment.updated_at !== comment.created_at && ' (editado)'}
                 </span>
               </div>
             </div>
 
-            {/* Delete Button (only for author) */}
-            {isAuthor && (
-              <button
-                onClick={() => handleDeleteComment(comment.id)}
-                className="text-red-500 hover:text-red-600 p-1"
-                title="Deletar comentário"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            )}
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1">
+              {canEdit && !isEditing && (
+                <button
+                  onClick={() => startEdit(comment)}
+                  className="text-blue-500 hover:text-blue-600 p-1"
+                  title="Editar comentário"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="text-red-500 hover:text-red-600 p-1"
+                  title="Deletar comentário"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Comment Content */}
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
-            {comment.content}
-          </p>
+          {/* Comment Content or Edit Form */}
+          {isEditing ? (
+            <form onSubmit={(e) => handleEditComment(e, comment.id)} className="space-y-3">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                rows="3"
+                disabled={loading}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={loading || !editContent.trim()}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  {loading ? 'Salvando...' : 'Salvar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+              {comment.content}
+            </p>
+          )}
 
           {/* Reply Button */}
           {user && depth < maxDepth && (
