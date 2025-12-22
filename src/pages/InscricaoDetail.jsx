@@ -207,7 +207,7 @@ const InscricaoDetail = () => {
             {/* Role Badge */}
             {inscricao.role_to_grant_info && (
               <div className="mb-6">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Você receberá o cargo:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Inscrição para:</span>
                 <div 
                   className="inline-block ml-2 px-3 py-1 rounded-full font-semibold text-sm"
                   style={{ 

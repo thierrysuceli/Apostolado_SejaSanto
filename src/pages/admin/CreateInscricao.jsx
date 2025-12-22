@@ -21,7 +21,8 @@ const CreateInscricao = () => {
     approval_type: 'automatic',
     registration_starts: '',
     registration_ends: '',
-    is_active: true
+    is_active: true,
+    visible_to_roles: [] // 🆕 Array de role IDs que podem ver a inscrição
   });
   
   const [roles, setRoles] = useState([]);
@@ -29,6 +30,7 @@ const CreateInscricao = () => {
   const [loadingData, setLoadingData] = useState(!!inscricaoId);
   const [error, setError] = useState('');
   const [showNewRole, setShowNewRole] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false); // 🆕 Loading do upload
   const [newRole, setNewRole] = useState({
     name: '',
     display_name: '',
@@ -63,7 +65,8 @@ const CreateInscricao = () => {
         approval_type: inscricao.approval_type || 'automatic',
         registration_starts: inscricao.registration_starts ? new Date(inscricao.registration_starts).toISOString().slice(0, 16) : '',
         registration_ends: inscricao.registration_ends ? new Date(inscricao.registration_ends).toISOString().slice(0, 16) : '',
-        is_active: inscricao.is_active !== false
+        is_active: inscricao.is_active !== false,
+        visible_to_roles: inscricao.visible_to_roles || [] // 🆕 Carregar visibilidade
       });
     } catch (err) {
       console.error('Error loading inscricao:', err);
@@ -106,6 +109,61 @@ const CreateInscricao = () => {
     } catch (err) {
       console.error('Error creating role:', err);
       alert('Erro ao criar role: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // 🆕 Upload de imagem (converte para URL via upload ou base64 temporário)
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione uma imagem válida');
+      return;
+    }
+    
+    // Validar tamanho (máx 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Imagem muito grande. Máximo 2MB.');
+      return;
+    }
+    
+    try {
+      setUploadingImage(true);
+      
+      // Por enquanto, converte para base64 (ideal seria upload para Supabase Storage)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, cover_image_url: reader.result });
+        setUploadingImage(false);
+      };
+      reader.onerror = () => {
+        alert('Erro ao carregar imagem');
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+      
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('Erro ao fazer upload da imagem');
+      setUploadingImage(false);
+    }
+  };
+  
+  // 🆕 Toggle de role no seletor de visibilidade
+  const toggleRoleVisibility = (roleId) => {
+    const current = formData.visible_to_roles || [];
+    if (current.includes(roleId)) {
+      setFormData({ 
+        ...formData, 
+        visible_to_roles: current.filter(id => id !== roleId) 
+      });
+    } else {
+      setFormData({ 
+        ...formData, 
+        visible_to_roles: [...current, roleId] 
+      });
     }
   };
 
@@ -220,23 +278,69 @@ const CreateInscricao = () => {
               {/* Imagem de Capa (opcional) */}
               <div>
                 <label className="block text-sm font-semibold text-secondary-700 dark:text-gray-200 mb-2">
-                  URL da Imagem de Capa (opcional)
+                  Imagem de Capa (opcional)
                 </label>
-                <input
-                  type="url"
-                  value={formData.cover_image_url}
-                  onChange={(e) => setFormData({ ...formData, cover_image_url: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500"
-                  placeholder="https://exemplo.com/imagem.jpg"
-                />
-                {formData.cover_image_url && (
-                  <img 
-                    src={formData.cover_image_url} 
-                    alt="Preview" 
-                    className="mt-3 w-full h-48 object-cover rounded-lg"
-                    onError={(e) => e.target.style.display = 'none'}
+                
+                <div className="space-y-3">
+                  {/* Upload de arquivo */}
+                  <div>
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {uploadingImage ? 'Carregando...' : 'Escolher Arquivo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploadingImage}
+                      />
+                    </label>
+                    <span className="ml-3 text-xs text-gray-500 dark:text-gray-400">
+                      Máx 2MB (JPG, PNG, GIF)
+                    </span>
+                  </div>
+                  
+                  {/* Ou URL direta */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">OU</span>
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+                  </div>
+                  
+                  <input
+                    type="url"
+                    value={formData.cover_image_url}
+                    onChange={(e) => setFormData({ ...formData, cover_image_url: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500"
+                    placeholder="Colar URL da imagem (https://...)"
                   />
-                )}
+                  
+                  {/* Preview */}
+                  {formData.cover_image_url && (
+                    <div className="relative">
+                      <img 
+                        src={formData.cover_image_url} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                        onError={(e) => {
+                          e.target.src = '';
+                          e.target.alt = 'Erro ao carregar imagem';
+                          e.target.className = 'w-full h-48 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-red-500 text-red-500';
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, cover_image_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                        title="Remover imagem"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Descrição com Quill */}
@@ -333,6 +437,51 @@ const CreateInscricao = () => {
                   </div>
                 </div>
               )}
+
+              {/* 🆕 Visibilidade por Cargos (opcional) */}
+              <div>
+                <label className="block text-sm font-semibold text-secondary-700 dark:text-gray-200 mb-2">
+                  Visibilidade (Quem pode ver a inscrição?)
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                  Se nenhum cargo for selecionado, a inscrição será pública para todos
+                </p>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                  {roles.length === 0 ? (
+                    <p className="col-span-full text-sm text-gray-500 dark:text-gray-400">
+                      Nenhum cargo disponível
+                    </p>
+                  ) : (
+                    roles.map(role => {
+                      const isSelected = (formData.visible_to_roles || []).includes(role.id);
+                      return (
+                        <label 
+                          key={role.id}
+                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition ${
+                            isSelected 
+                              ? 'bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-500' 
+                              : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:border-primary-400'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleRoleVisibility(role.id)}
+                            className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                          />
+                          <span 
+                            className="text-sm font-medium"
+                            style={{ color: isSelected ? role.color : undefined }}
+                          >
+                            {role.display_name}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
 
               {/* Tipo de Aprovação */}
               <div>

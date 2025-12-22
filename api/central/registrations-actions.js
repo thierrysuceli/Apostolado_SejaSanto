@@ -15,6 +15,13 @@ export default async function handler(req, res) {
 
   const { id: registrationId, action } = req.query;
   
+  console.log('[registrations-actions] Request:', { 
+    method: req.method, 
+    registrationId, 
+    action,
+    userId: req.user?.id 
+  });
+  
   if (!registrationId) {
     return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
   }
@@ -39,18 +46,23 @@ export default async function handler(req, res) {
     // 1. POST ?action=subscribe - Se inscrever
     // ============================================
     if (req.method === 'POST' && action === 'subscribe') {
-      // Buscar inscrição
+      console.log('[Subscribe] Starting subscription for registration:', registrationId);
+      
+      // Buscar inscrição (pode ser pública ou de grupo)
       const { data: registration, error: regError } = await supabaseAdmin
         .from('central_registrations')
-        .select(`
-          *,
-          central_groups!inner(role_id)
-        `)
+        .select('*')
         .eq('id', registrationId)
         .single();
       
+      console.log('[Subscribe] Registration query result:', { 
+        found: !!registration, 
+        error: regError,
+        registrationData: registration ? { id: registration.id, title: registration.title } : null
+      });
+      
       if (regError || !registration) {
-        console.error('Registration not found:', regError);
+        console.error('[Subscribe] Registration not found:', regError);
         return res.status(404).json({ error: 'Inscrição não encontrada' });
       }
       

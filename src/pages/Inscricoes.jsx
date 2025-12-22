@@ -15,7 +15,7 @@ const Inscricoes = () => {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('active'); // active, all, closed
   const [showApprovals, setShowApprovals] = useState(false);
-  const [showAdminView, setShowAdminView] = useState(false);
+  const [showAdminView, setShowAdminView] = useState(true); // 🔧 Inicia como TRUE para admins verem controles
 
   const isUserAdmin = isAdmin && isAdmin();
 
