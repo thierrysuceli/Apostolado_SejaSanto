@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApi } from '../../contexts/ApiContext';
@@ -8,6 +8,7 @@ import 'react-quill/dist/quill.snow.css';
 
 const CreateInscricao = () => {
   const navigate = useNavigate();
+  const { id: inscricaoId } = useParams(); // Se tem ID, é edição
   const { user, isAdmin } = useAuth();
   const api = useApi();
   
@@ -25,6 +26,7 @@ const CreateInscricao = () => {
   
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(!!inscricaoId);
   const [error, setError] = useState('');
   const [showNewRole, setShowNewRole] = useState(false);
   const [newRole, setNewRole] = useState({
@@ -39,7 +41,38 @@ const CreateInscricao = () => {
       return;
     }
     loadRoles();
-  }, [user, isAdmin, navigate]);
+    
+    // Se tem ID, carregar dados da inscrição
+    if (inscricaoId) {
+      loadInscricao();
+    }
+  }, [user, isAdmin, navigate, inscricaoId]);
+
+  const loadInscricao = async () => {
+    try {
+      setLoadingData(true);
+      const data = await api.registrations.getById(inscricaoId);
+      const inscricao = data.registration;
+      
+      setFormData({
+        title: inscricao.title || '',
+        description: inscricao.description || '',
+        cover_image_url: inscricao.cover_image_url || '',
+        role_to_grant: inscricao.role_to_grant || '',
+        max_participants: inscricao.max_participants || '',
+        approval_type: inscricao.approval_type || 'automatic',
+        registration_starts: inscricao.registration_starts ? new Date(inscricao.registration_starts).toISOString().slice(0, 16) : '',
+        registration_ends: inscricao.registration_ends ? new Date(inscricao.registration_ends).toISOString().slice(0, 16) : '',
+        is_active: inscricao.is_active !== false
+      });
+    } catch (err) {
+      console.error('Error loading inscricao:', err);
+      alert('Erro ao carregar inscrição');
+      navigate('/admin#inscricoes');
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   const loadRoles = async () => {
     try {
@@ -100,14 +133,21 @@ const CreateInscricao = () => {
         is_active: formData.is_active
       };
 
-      const result = await api.registrations.adminCreate(payload);
+      if (inscricaoId) {
+        // Editar
+        await api.registrations.adminUpdate(inscricaoId, payload);
+        alert('✅ Inscrição atualizada com sucesso!');
+      } else {
+        // Criar
+        await api.registrations.adminCreate(payload);
+        alert('✅ Inscrição criada com sucesso!');
+      }
       
-      alert('✅ Inscrição criada com sucesso!');
       navigate('/admin#inscricoes');
       
     } catch (err) {
-      console.error('Error creating inscricao:', err);
-      setError(err.response?.data?.error || 'Erro ao criar inscrição');
+      console.error('Error saving inscricao:', err);
+      setError(err.response?.data?.error || 'Erro ao salvar inscrição');
     } finally {
       setLoading(false);
     }
@@ -124,10 +164,21 @@ const CreateInscricao = () => {
     ]
   };
 
+  if (loadingData) {
+    return (
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-secondary-600 dark:text-gray-300">Carregando inscrição...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Helmet>
-        <title>Criar Inscrição - Admin - Apostolado</title>
+        <title>{inscricaoId ? 'Editar' : 'Criar'} Inscrição - Admin - Apostolado</title>
       </Helmet>
 
       <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
@@ -141,7 +192,7 @@ const CreateInscricao = () => {
 
           <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-8">
             <h1 className="text-3xl font-bold text-secondary-700 dark:text-gray-200 mb-6">
-              📝 Criar Nova Inscrição
+              {inscricaoId ? '✏️ Editar Inscrição' : '📝 Criar Nova Inscrição'}
             </h1>
 
             {error && (
@@ -380,7 +431,10 @@ const CreateInscricao = () => {
                   disabled={loading}
                   className="flex-1 bg-primary-600 text-white py-4 rounded-xl font-bold hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Criando...' : '✓ Criar Inscrição'}
+                  {loading 
+                    ? (inscricaoId ? 'Salvando...' : 'Criando...') 
+                    : (inscricaoId ? '✓ Salvar Alterações' : '✓ Criar Inscrição')
+                  }
                 </button>
                 <button
                   type="button"

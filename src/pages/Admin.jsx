@@ -45,6 +45,14 @@ const Admin = () => {
     }
   }, [user, authLoading, isAdmin, navigate]);
 
+  // Detectar hash na URL para abrir aba específica
+  useEffect(() => {
+    const hash = window.location.hash.substring(1); // Remove o #
+    if (hash && ['dashboard', 'users', 'roles', 'content', 'inscricoes', 'bible-notes'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, []);
+
   useEffect(() => {
     if (activeTab === 'dashboard') {
       loadDashboard();
@@ -199,6 +207,37 @@ const Admin = () => {
     }
   };
 
+  const handleToggleActive = async (inscricaoId, newStatus) => {
+    const action = newStatus ? 'ativar' : 'desativar';
+    if (!confirm(`Deseja ${action} esta inscrição?`)) return;
+    
+    try {
+      await api.registrations.adminUpdate(inscricaoId, { is_active: newStatus });
+      alert(`✅ Inscrição ${newStatus ? 'ativada' : 'desativada'} com sucesso!`);
+      await loadInscricoes();
+    } catch (err) {
+      console.error('Error toggling active:', err);
+      alert('Erro ao atualizar: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleEditInscricao = (inscricaoId) => {
+    navigate(`/admin/inscricoes/edit/${inscricaoId}`);
+  };
+
+  const handleDeleteInscricao = async (inscricaoId) => {
+    if (!confirm('⚠️ ATENÇÃO: Deletar esta inscrição irá remover TODOS os participantes associados. Deseja continuar?')) return;
+    
+    try {
+      await api.registrations.adminDelete(inscricaoId);
+      alert('✅ Inscrição deletada com sucesso!');
+      await loadInscricoes();
+    } catch (err) {
+      console.error('Error deleting:', err);
+      alert('Erro ao deletar: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleAssignRoles = async (userId, roleIds) => {
     try {
       await api.admin.users.assignRoles(userId, roleIds);
@@ -244,7 +283,10 @@ const Admin = () => {
           {['dashboard', 'users', 'roles', 'content', 'inscricoes', 'bible-notes'].map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                window.location.hash = tab;
+              }}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
                 activeTab === tab
                   ? 'bg-primary-600 text-white'
@@ -705,15 +747,35 @@ const Admin = () => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => navigate(`/inscricoes/${inscricao.id}`)}
-                            className="text-primary-600 hover:text-primary-700 text-sm font-semibold px-3 py-1 rounded hover:bg-primary-50 dark:hover:bg-primary-900/20 transition"
+                            className="text-blue-600 hover:text-blue-700 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition flex items-center gap-1"
+                            title="Ver detalhes"
                           >
                             👁️ Ver
                           </button>
                           <button
-                            onClick={() => navigate(`/admin/inscricoes/edit/${inscricao.id}`)}
-                            className="text-blue-600 hover:text-blue-700 text-sm font-semibold px-3 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                            onClick={() => handleToggleActive(inscricao.id, !inscricao.is_active)}
+                            className={`text-sm font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1 ${
+                              inscricao.is_active
+                                ? 'text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                                : 'text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                            }`}
+                            title={inscricao.is_active ? 'Desativar' : 'Ativar'}
+                          >
+                            {inscricao.is_active ? '⏸️ Desativar' : '▶️ Ativar'}
+                          </button>
+                          <button
+                            onClick={() => handleEditInscricao(inscricao.id)}
+                            className="text-purple-600 hover:text-purple-700 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition flex items-center gap-1"
+                            title="Editar"
                           >
                             ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInscricao(inscricao.id)}
+                            className="text-red-600 hover:text-red-700 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-1"
+                            title="Deletar"
+                          >
+                            🗑️ Deletar
                           </button>
                         </div>
                       </div>
