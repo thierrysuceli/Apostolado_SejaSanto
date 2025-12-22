@@ -97,6 +97,9 @@ const InscricaoDetail = () => {
       const result = await api.registrations.subscribe(id);
       setShowConfirmModal(false);
       alert(result.message);
+      
+      // Pequeno delay para garantir que o banco atualizou
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadInscricao(); // Recarregar para atualizar status
     } catch (err) {
       console.error('Error subscribing:', err);

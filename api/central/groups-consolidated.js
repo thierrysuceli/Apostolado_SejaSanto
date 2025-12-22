@@ -344,10 +344,12 @@ export default async function handler(req, res) {
       console.log('[Pending Approvals] Found registrations:', registrations?.length || 0);
 
       if (!registrations || registrations.length === 0) {
+        console.log('[Pending Approvals] No manual registrations found, returning empty');
         return res.status(200).json({ approvals: [] });
       }
 
       const registrationIds = registrations.map(r => r.id);
+      console.log('[Pending Approvals] Registration IDs:', registrationIds);
 
       // Buscar participantes pendentes
       const { data: participants, error: partError } = await supabaseAdmin
@@ -368,14 +370,22 @@ export default async function handler(req, res) {
       console.log('[Pending Approvals] Found pending participants:', participants?.length || 0);
 
       // Adicionar info da inscrição
-      const approvals = (participants || []).map(p => ({
-        ...p,
-        registration: registrations.find(r => r.id === p.registration_id)
-      }));
+      const approvals = (participants || []).map(p => {
+        const registration = registrations.find(r => r.id === p.registration_id);
+        if (!registration) {
+          console.warn('[Pending Approvals] Registration not found for participant:', p.id);
+        }
+        return {
+          ...p,
+          registration
+        };
+      });
 
+      console.log('[Pending Approvals] Returning', approvals.length, 'approvals');
       return res.status(200).json({ approvals });
     } catch (error) {
       console.error('[Pending Approvals] Error:', error);
+      console.error('[Pending Approvals] Error stack:', error.stack);
       return res.status(500).json({ 
         error: 'Erro ao buscar aprovações pendentes',
         details: error.message 

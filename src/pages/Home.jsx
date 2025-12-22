@@ -201,12 +201,23 @@ const Home = () => {
       return;
     }
 
+    if (!confirm('Deseja confirmar sua inscrição?')) return;
+
     try {
-      await api.post(`/api/central/registrations/${registrationId}/subscribe`);
-      await loadRecentActivity(); // Recarregar atividades
+      await api.registrations.subscribe(registrationId);
+      alert('Inscrição realizada com sucesso!');
+      // Recarregar dados da home para atualizar status
+      const inscricoesData = await api.registrations.getAll();
+      const now = new Date();
+      const openInscricoes = (inscricoesData.registrations || []).filter(reg =>
+        reg.is_active &&
+        new Date(reg.registration_starts) <= now &&
+        new Date(reg.registration_ends) >= now
+      );
+      setInscricoes(openInscricoes.slice(0, 6));
     } catch (error) {
       console.error('Error subscribing:', error);
-      alert('Erro ao se inscrever. Tente novamente.');
+      alert(error.response?.data?.error || 'Erro ao se inscrever. Tente novamente.');
     }
   };
 
@@ -767,17 +778,14 @@ const Home = () => {
                         </h3>
 
                         {/* Description Preview */}
-                        <div 
-                          className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2"
-                          dangerouslySetInnerHTML={{ 
-                            __html: inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 100) + '...' 
-                          }}
-                        />
+                        <div className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                          {inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                        </div>
 
                         {/* Footer Info */}
                         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                           <span>
-                            At\u00e9: {new Date(inscricao.registration_ends).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                            Até: {new Date(inscricao.registration_ends).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                           </span>
                           {inscricao.max_participants && (
                             <span>
@@ -797,7 +805,7 @@ const Home = () => {
                 to="/inscricoes"
                 className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
               >
-                Ver todas as inscri\u00e7\u00f5es
+                Ver todas as inscrições
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
