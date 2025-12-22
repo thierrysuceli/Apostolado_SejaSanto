@@ -64,7 +64,7 @@ async function handlePublicRegistrations(req, res) {
             .select('*')
             .eq('registration_id', registrationId)
             .eq('user_id', userData.user.id)
-            .single();
+            .maybeSingle(); // 🔧 Usa maybeSingle para não dar erro se não existir
 
           console.log('[Public Registration Detail] Participation check:', {
             hasParticipation: !!participation,

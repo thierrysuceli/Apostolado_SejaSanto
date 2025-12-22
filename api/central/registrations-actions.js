@@ -93,16 +93,32 @@ export default async function handler(req, res) {
         });
       }
       
-      // Verificar se já está inscrito
-      const { data: existing } = await supabaseAdmin
+      // Verificar se já está inscrito (ignora se foi rejeitado)
+      const { data: existing, error: existError } = await supabaseAdmin
         .from('central_registration_participants')
         .select('id, status')
         .eq('registration_id', registrationId)
         .eq('user_id', req.user.id)
-        .single();
+        .maybeSingle(); // 🔧 Usa maybeSingle para não dar erro se não existir
       
-      if (existing) {
-        return res.status(400).json({ error: 'Você já está inscrito' });
+      console.log('[Subscribe] Existing participation check:', { 
+        hasExisting: !!existing, 
+        status: existing?.status,
+        existError: existError?.code 
+      });
+      
+      if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
+        console.log('[Subscribe] User already has active participation:', existing.status);
+        return res.status(400).json({ 
+          error: existing.status === 'pending' 
+            ? 'Você já tem uma inscrição pendente' 
+            : 'Você já está inscrito' 
+        });
+      }
+      
+      // Se foi rejeitado, pode se inscrever novamente
+      if (existing && existing.status === 'rejected') {
+        console.log('[Subscribe] Previous participation was rejected, allowing new subscription');
       }
       
       // Verificar vagas
