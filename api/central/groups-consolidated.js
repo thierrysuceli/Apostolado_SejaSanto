@@ -59,6 +59,11 @@ async function handlePublicRegistrations(req, res) {
         });
         
         if (userData?.user) {
+          console.log('[Public Registration Detail] Querying participation:', {
+            registrationId,
+            userId: userData.user.id
+          });
+
           const { data: participation, error: partError } = await supabaseAdmin
             .from('central_registration_participants')
             .select('*')
@@ -69,6 +74,7 @@ async function handlePublicRegistrations(req, res) {
           console.log('[Public Registration Detail] Participation check:', {
             hasParticipation: !!participation,
             status: participation?.status,
+            participationData: participation,
             partError
           });
 
@@ -78,7 +84,9 @@ async function handlePublicRegistrations(req, res) {
 
       console.log('[Public Registration Detail] Final response:', {
         registrationId,
-        hasUserParticipation: !!userParticipation
+        hasUserParticipation: !!userParticipation,
+        participationStatus: userParticipation?.status,
+        participationId: userParticipation?.id
       });
 
       return res.status(200).json({ 
@@ -356,7 +364,7 @@ export default async function handler(req, res) {
         .from('central_registration_participants')
         .select(`
           *,
-          user:users!central_registration_participants_user_id_fkey(id, name, email, avatar_url)
+          user:users(id, name, email, avatar_url)
         `)
         .in('registration_id', registrationIds)
         .eq('status', 'pending')
