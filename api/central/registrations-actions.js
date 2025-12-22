@@ -259,6 +259,113 @@ export default async function handler(req, res) {
         registration: data
       });
     }
+
+    // ============================================
+    // 4. POST ?action=approve&participant_id=X - Aprovar inscrição (ADMIN)
+    // ============================================
+    if (req.method === 'POST' && action === 'approve') {
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas admins podem aprovar inscrições' });
+      }
+
+      const { participant_id } = req.query;
+      if (!participant_id) {
+        return res.status(400).json({ error: 'ID do participante é obrigatório' });
+      }
+
+      // Buscar participante e inscrição
+      const { data: participant, error: participantError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select(`
+          *,
+          registration:central_registrations(role_to_grant)
+        `)
+        .eq('id', participant_id)
+        .single();
+
+      if (participantError || !participant) {
+        return res.status(404).json({ error: 'Participante não encontrado' });
+      }
+
+      if (participant.status === 'approved') {
+        return res.status(400).json({ error: 'Já aprovado' });
+      }
+
+      // Atualizar status para aprovado
+      const { error: updateError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .update({ status: 'approved' })
+        .eq('id', participant_id);
+
+      if (updateError) throw updateError;
+
+      // Conceder role ao usuário
+      const roleId = participant.registration.role_to_grant;
+      
+      // Verificar se já tem a role
+      const { data: existingRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', participant.user_id)
+        .eq('role_id', roleId)
+        .single();
+
+      if (!existingRole) {
+        const { error: roleError } = await supabaseAdmin
+          .from('user_roles')
+          .insert({
+            user_id: participant.user_id,
+            role_id: roleId
+          });
+
+        if (roleError) throw roleError;
+      }
+
+      return res.status(200).json({ 
+        message: 'Inscrição aprovada e cargo concedido com sucesso'
+      });
+    }
+
+    // ============================================
+    // 5. POST ?action=reject&participant_id=X - Rejeitar inscrição (ADMIN)
+    // ============================================
+    if (req.method === 'POST' && action === 'reject') {
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas admins podem rejeitar inscrições' });
+      }
+
+      const { participant_id } = req.query;
+      if (!participant_id) {
+        return res.status(400).json({ error: 'ID do participante é obrigatório' });
+      }
+
+      // Buscar participante
+      const { data: participant, error: participantError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select('id, status')
+        .eq('id', participant_id)
+        .single();
+
+      if (participantError || !participant) {
+        return res.status(404).json({ error: 'Participante não encontrado' });
+      }
+
+      if (participant.status === 'rejected') {
+        return res.status(400).json({ error: 'Já rejeitado' });
+      }
+
+      // Atualizar status para rejeitado
+      const { error: updateError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .update({ status: 'rejected' })
+        .eq('id', participant_id);
+
+      if (updateError) throw updateError;
+
+      return res.status(200).json({ 
+        message: 'Inscrição rejeitada com sucesso'
+      });
+    }
     
     return res.status(405).json({ error: 'Método não permitido' });
     

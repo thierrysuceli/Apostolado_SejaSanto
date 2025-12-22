@@ -130,6 +130,221 @@ export default async function handler(req, res) {
   const { id: groupId, action } = req.query;
   
   // ============================================
+  // ADMIN ONLY: Criar Inscrição Pública
+  // ============================================
+  if (req.method === 'POST' && resource === 'admin-registrations') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores podem criar inscrições' });
+    }
+
+    try {
+      const {
+        title,
+        description,
+        cover_image_url,
+        role_to_grant,
+        max_participants,
+        approval_type,
+        registration_starts,
+        registration_ends,
+        is_active
+      } = req.body;
+
+      if (!title || !description || !role_to_grant) {
+        return res.status(400).json({ error: 'Título, descrição e cargo são obrigatórios' });
+      }
+
+      // Criar slug a partir do título
+      const slug = title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      const startsAt = registration_starts || new Date().toISOString();
+      const endsAt = registration_ends || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+      const { data: registration, error } = await supabaseAdmin
+        .from('central_registrations')
+        .insert({
+          group_id: null, // NULL = inscrição pública
+          author_id: user.id,
+          title,
+          description,
+          slug,
+          cover_image_url: cover_image_url || null,
+          role_to_grant,
+          max_participants: max_participants || null,
+          approval_type: approval_type || 'automatic',
+          registration_starts: startsAt,
+          registration_ends: endsAt,
+          is_active: is_active !== false
+        })
+        .select(`
+          *,
+          author:users!central_registrations_author_id_fkey(id, name, avatar_url),
+          role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      return res.status(201).json({ registration });
+    } catch (error) {
+      console.error('Create registration error:', error);
+      return res.status(500).json({ error: 'Erro ao criar inscrição' });
+    }
+  }
+
+  // ============================================
+  // ADMIN ONLY: Editar Inscrição Pública
+  // ============================================
+  if (req.method === 'PUT' && resource === 'admin-registrations') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores podem editar inscrições' });
+    }
+
+    try {
+      const { id: registrationId } = req.query;
+      if (!registrationId) {
+        return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
+      }
+
+      const {
+        title,
+        description,
+        cover_image_url,
+        role_to_grant,
+        max_participants,
+        approval_type,
+        registration_starts,
+        registration_ends,
+        is_active
+      } = req.body;
+
+      const updates = {};
+      if (title !== undefined) {
+        updates.title = title;
+        updates.slug = title
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      }
+      if (description !== undefined) updates.description = description;
+      if (cover_image_url !== undefined) updates.cover_image_url = cover_image_url;
+      if (role_to_grant !== undefined) updates.role_to_grant = role_to_grant;
+      if (max_participants !== undefined) updates.max_participants = max_participants;
+      if (approval_type !== undefined) updates.approval_type = approval_type;
+      if (registration_starts !== undefined) updates.registration_starts = registration_starts;
+      if (registration_ends !== undefined) updates.registration_ends = registration_ends;
+      if (is_active !== undefined) updates.is_active = is_active;
+
+      const { data: registration, error } = await supabaseAdmin
+        .from('central_registrations')
+        .update(updates)
+        .eq('id', registrationId)
+        .is('group_id', null)
+        .select(`
+          *,
+          author:users!central_registrations_author_id_fkey(id, name, avatar_url),
+          role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({ registration });
+    } catch (error) {
+      console.error('Update registration error:', error);
+      return res.status(500).json({ error: 'Erro ao atualizar inscrição' });
+    }
+  }
+
+  // ============================================
+  // ADMIN ONLY: Deletar Inscrição Pública
+  // ============================================
+  if (req.method === 'DELETE' && resource === 'admin-registrations') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores podem deletar inscrições' });
+    }
+
+    try {
+      const { id: registrationId } = req.query;
+      if (!registrationId) {
+        return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
+      }
+
+      const { error } = await supabaseAdmin
+        .from('central_registrations')
+        .delete()
+        .eq('id', registrationId)
+        .is('group_id', null);
+
+      if (error) throw error;
+
+      return res.status(200).json({ message: 'Inscrição deletada com sucesso' });
+    } catch (error) {
+      console.error('Delete registration error:', error);
+      return res.status(500).json({ error: 'Erro ao deletar inscrição' });
+    }
+  }
+
+  // ============================================
+  // ADMIN ONLY: Listar Aprovações Pendentes
+  // ============================================
+  if (req.method === 'GET' && resource === 'pending-approvals') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores podem ver aprovações' });
+    }
+
+    try {
+      // Buscar todas as inscrições públicas com aprovação manual
+      const { data: registrations } = await supabaseAdmin
+        .from('central_registrations')
+        .select('id, title')
+        .is('group_id', null)
+        .eq('approval_type', 'manual');
+
+      if (!registrations || registrations.length === 0) {
+        return res.status(200).json({ approvals: [] });
+      }
+
+      const registrationIds = registrations.map(r => r.id);
+
+      // Buscar participantes pendentes
+      const { data: participants, error } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select(`
+          *,
+          user:users!central_registration_participants_user_id_fkey(id, name, email, avatar_url)
+        `)
+        .in('registration_id', registrationIds)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Adicionar info da inscrição
+      const approvals = participants.map(p => ({
+        ...p,
+        registration: registrations.find(r => r.id === p.registration_id)
+      }));
+
+      return res.status(200).json({ approvals });
+    } catch (error) {
+      console.error('Get pending approvals error:', error);
+      return res.status(500).json({ error: 'Erro ao buscar aprovações pendentes' });
+    }
+  }
+  
+  // ============================================
   // 1. GET /api/central/groups - Listar grupos
   // ============================================
   if (req.method === 'GET' && !groupId && !resource) {

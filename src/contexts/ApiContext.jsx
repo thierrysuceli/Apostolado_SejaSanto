@@ -338,10 +338,10 @@ export const ApiProvider = ({ children }) => {
   // ==================== REGISTRATIONS (usando endpoints existentes do Central) ====================
   
   const registrations = {
-    // Listar todas as inscrições públicas
+    // Listar todas as inscrições públicas (público)
     getAll: () => get('/api/central/groups?resource=public-registrations', false),
     
-    // Buscar uma inscrição específica
+    // Buscar uma inscrição específica (público)
     getById: (id) => {
       const token = getToken();
       return get(`/api/central/groups?resource=public-registrations&id=${id}`, !!token);
@@ -350,8 +350,23 @@ export const ApiProvider = ({ children }) => {
     // Inscrever-se (usa endpoint existente de actions)
     subscribe: (registrationId) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, {}),
     
-    // Admin - CRUD (requer implementação no backend existente ou uso direto do Supabase Admin)
-    // Por enquanto, admin cria/edita direto no Central via grupos
+    // 🔐 ADMIN - Criar inscrição pública
+    adminCreate: (data) => post('/api/central/groups?resource=admin-registrations', data),
+    
+    // 🔐 ADMIN - Editar inscrição pública
+    adminUpdate: (id, data) => put(`/api/central/groups?resource=admin-registrations&id=${id}`, data),
+    
+    // 🔐 ADMIN - Deletar inscrição pública
+    adminDelete: (id) => del(`/api/central/groups?resource=admin-registrations&id=${id}`),
+    
+    // 🔐 ADMIN - Listar aprovações pendentes
+    getPendingApprovals: () => get('/api/central/groups?resource=pending-approvals'),
+    
+    // 🔐 ADMIN - Aprovar inscrição (usa endpoint registrations-actions)
+    approve: (participantId) => post(`/api/central/registrations-actions?action=approve&participant_id=${participantId}`, {}),
+    
+    // 🔐 ADMIN - Rejeitar inscrição (usa endpoint registrations-actions)
+    reject: (participantId) => post(`/api/central/registrations-actions?action=reject&participant_id=${participantId}`, {})
   };
 
   // ==================== BIBLE NOTES ====================

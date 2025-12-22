@@ -165,11 +165,37 @@ const Admin = () => {
 
   const loadPendingApprovals = async () => {
     try {
-      // TODO: Implementar endpoint para listar aprovações pendentes
-      // Por enquanto, retorna vazio
-      setPendingApprovals([]);
+      const data = await api.registrations.getPendingApprovals();
+      setPendingApprovals(data.approvals || []);
     } catch (err) {
       console.error('Error loading pending approvals:', err);
+      setPendingApprovals([]);
+    }
+  };
+
+  const handleApprove = async (participantId) => {
+    if (!confirm('Aprovar esta inscrição?')) return;
+    
+    try {
+      await api.registrations.approve(participantId);
+      alert('✅ Inscrição aprovada! Cargo atribuído ao usuário.');
+      await loadPendingApprovals(); // Recarregar lista
+    } catch (err) {
+      console.error('Error approving:', err);
+      alert('Erro ao aprovar: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleReject = async (participantId) => {
+    if (!confirm('Rejeitar esta inscrição?')) return;
+    
+    try {
+      await api.registrations.reject(participantId);
+      alert('❌ Inscrição rejeitada.');
+      await loadPendingApprovals(); // Recarregar lista
+    } catch (err) {
+      console.error('Error rejecting:', err);
+      alert('Erro ao rejeitar: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -730,16 +756,24 @@ const Admin = () => {
                                 {approval.user?.name}
                               </p>
                               <p className="text-sm text-secondary-600 dark:text-gray-400">
-                                {approval.registration?.title}
+                                {approval.user?.email}
+                              </p>
+                              <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                                📋 {approval.registration?.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                Solicitado em {new Date(approval.created_at).toLocaleString('pt-BR')}
                               </p>
                             </div>
                             <div className="flex gap-2">
                               <button
+                                onClick={() => handleApprove(approval.id)}
                                 className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition"
                               >
                                 ✓ Aprovar
                               </button>
                               <button
+                                onClick={() => handleReject(approval.id)}
                                 className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition"
                               >
                                 ✕ Rejeitar

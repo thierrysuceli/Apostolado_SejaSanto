@@ -88,7 +88,6 @@ const CreateInscricao = () => {
       setLoading(true);
       setError('');
 
-      // Criar inscrição pública (group_id será NULL)
       const payload = {
         title: formData.title,
         description: formData.description,
@@ -96,16 +95,14 @@ const CreateInscricao = () => {
         role_to_grant: formData.role_to_grant,
         max_participants: formData.max_participants ? parseInt(formData.max_participants) : null,
         approval_type: formData.approval_type,
-        registration_starts: formData.registration_starts || new Date().toISOString(),
-        registration_ends: formData.registration_ends || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        registration_starts: formData.registration_starts || null,
+        registration_ends: formData.registration_ends || null,
         is_active: formData.is_active
       };
 
-      // TODO: Criar endpoint para admin criar inscrições públicas
-      // Por enquanto, redireciona com mensagem
-      console.log('Creating inscription with data:', payload);
+      const result = await api.registrations.adminCreate(payload);
       
-      alert('⚠️ Endpoint de criação ainda não implementado no backend.\n\nVocê precisará criar manualmente no Supabase por enquanto.');
+      alert('✅ Inscrição criada com sucesso!');
       navigate('/admin#inscricoes');
       
     } catch (err) {
