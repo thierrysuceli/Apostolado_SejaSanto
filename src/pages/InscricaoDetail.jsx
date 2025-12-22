@@ -5,6 +5,43 @@ import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import DOMPurify from 'isomorphic-dompurify';
 
+// 🎨 Modal de Confirmação Customizado
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, loading }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border-2 border-amber-500 shadow-2xl">
+        <h3 className="text-xl font-bold text-secondary-700 dark:text-gray-200 mb-3">{title}</h3>
+        <p className="text-secondary-600 dark:text-gray-400 mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-secondary-700 dark:text-gray-200 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-5 py-2.5 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Processando...
+              </>
+            ) : (
+              'Confirmar'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const InscricaoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,6 +52,7 @@ const InscricaoDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [userParticipation, setUserParticipation] = useState(null);
 
   useEffect(() => {
@@ -44,16 +82,20 @@ const InscricaoDetail = () => {
       return;
     }
 
-    if (!confirm('Deseja confirmar sua inscrição?')) return;
-
+    setShowConfirmModal(true);
+  };
+  
+  const confirmSubscribe = async () => {
     try {
       setSubmitting(true);
       const result = await api.registrations.subscribe(id);
+      setShowConfirmModal(false);
       alert(result.message);
       await loadInscricao(); // Recarregar para atualizar status
     } catch (err) {
       console.error('Error subscribing:', err);
       alert(err.response?.data?.error || 'Erro ao se inscrever');
+      setShowConfirmModal(false);
     } finally {
       setSubmitting(false);
     }
@@ -131,6 +173,16 @@ const InscricaoDetail = () => {
         <title>{inscricao.title} | Inscrições</title>
         <meta name="description" content={inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 160)} />
       </Helmet>
+      
+      {/* Modal de Confirmação */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={confirmSubscribe}
+        title="Confirmar Inscrição"
+        message="Deseja confirmar sua inscrição? Você receberá uma notificação quando for aprovado."
+        loading={submitting}
+      />
 
       <div className="min-h-screen bg-gradient-to-b from-beige-50 to-white dark:from-gray-950 dark:to-gray-900 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -226,8 +278,8 @@ const InscricaoDetail = () => {
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inscricao.description) }}
             />
 
-            {/* Subscribe Button */}
-            {statusInfo.canSubscribe && (
+            {/* Subscribe Button ou Status Badge */}
+            {statusInfo.canSubscribe ? (
               <button
                 onClick={handleSubscribe}
                 disabled={submitting}
@@ -235,18 +287,39 @@ const InscricaoDetail = () => {
               >
                 {submitting ? 'Inscrevendo...' : 'Inscrever-se Agora'}
               </button>
+            ) : (
+              <div className={`w-full py-4 rounded-xl text-center font-bold ${
+                userParticipation?.status === 'approved' 
+                  ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-500 text-green-700 dark:text-green-400'
+                  : userParticipation?.status === 'pending'
+                  ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 text-yellow-700 dark:text-yellow-400'
+                  : userParticipation?.status === 'rejected'
+                  ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-700 dark:text-red-400'
+                  : 'bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
+                {userParticipation?.status === 'approved' && '✓ Você já está inscrito!'}
+                {userParticipation?.status === 'pending' && '⏳ Aguardando Aprovação'}
+                {userParticipation?.status === 'rejected' && '✕ Inscrição Recusada'}
+                {!userParticipation && statusInfo.label}
+              </div>
             )}
 
             {/* Info Messages */}
             {userParticipation?.status === 'pending' && (
               <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-lg">
-                Sua inscrição está aguardando aprovação do administrador.
+                📋 Sua inscrição está aguardando aprovação do administrador.
               </div>
             )}
 
             {userParticipation?.status === 'approved' && (
               <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg">
                 ✓ Você está inscrito! O cargo foi atribuído à sua conta.
+              </div>
+            )}
+            
+            {userParticipation?.status === 'rejected' && (
+              <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
+                ✕ Sua inscrição foi recusada pelo administrador.
               </div>
             )}
           </div>

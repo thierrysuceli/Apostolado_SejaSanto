@@ -305,12 +305,21 @@ export default async function handler(req, res) {
     }
 
     try {
+      console.log('[Pending Approvals] Starting fetch...');
+      
       // Buscar todas as inscrições públicas com aprovação manual
-      const { data: registrations } = await supabaseAdmin
+      const { data: registrations, error: regError } = await supabaseAdmin
         .from('central_registrations')
         .select('id, title')
         .is('group_id', null)
         .eq('approval_type', 'manual');
+
+      if (regError) {
+        console.error('[Pending Approvals] Error fetching registrations:', regError);
+        throw regError;
+      }
+
+      console.log('[Pending Approvals] Found registrations:', registrations?.length || 0);
 
       if (!registrations || registrations.length === 0) {
         return res.status(200).json({ approvals: [] });
@@ -319,7 +328,7 @@ export default async function handler(req, res) {
       const registrationIds = registrations.map(r => r.id);
 
       // Buscar participantes pendentes
-      const { data: participants, error } = await supabaseAdmin
+      const { data: participants, error: partError } = await supabaseAdmin
         .from('central_registration_participants')
         .select(`
           *,
@@ -329,18 +338,26 @@ export default async function handler(req, res) {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (partError) {
+        console.error('[Pending Approvals] Error fetching participants:', partError);
+        throw partError;
+      }
+
+      console.log('[Pending Approvals] Found pending participants:', participants?.length || 0);
 
       // Adicionar info da inscrição
-      const approvals = participants.map(p => ({
+      const approvals = (participants || []).map(p => ({
         ...p,
         registration: registrations.find(r => r.id === p.registration_id)
       }));
 
       return res.status(200).json({ approvals });
     } catch (error) {
-      console.error('Get pending approvals error:', error);
-      return res.status(500).json({ error: 'Erro ao buscar aprovações pendentes' });
+      console.error('[Pending Approvals] Error:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao buscar aprovações pendentes',
+        details: error.message 
+      });
     }
   }
   

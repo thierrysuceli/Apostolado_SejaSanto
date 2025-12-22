@@ -30,7 +30,7 @@ const CreateInscricao = () => {
   const [loadingData, setLoadingData] = useState(!!inscricaoId);
   const [error, setError] = useState('');
   const [showNewRole, setShowNewRole] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false); // 🆕 Loading do upload
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [newRole, setNewRole] = useState({
     name: '',
     display_name: '',
