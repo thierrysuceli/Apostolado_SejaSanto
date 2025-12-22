@@ -65,6 +65,12 @@ const InscricaoDetail = () => {
       setError('');
       
       const data = await api.registrations.getById(id);
+      console.log('[InscricaoDetail] Loaded data:', {
+        registration: data.registration?.title,
+        userParticipation: data.user_participation,
+        hasToken: !!localStorage.getItem('token')
+      });
+      
       setInscricao(data.registration);
       setUserParticipation(data.user_participation || null);
     } catch (err) {
@@ -108,6 +114,14 @@ const InscricaoDetail = () => {
     const starts = new Date(inscricao.registration_starts);
     const ends = new Date(inscricao.registration_ends);
     
+    console.log('[getStatusInfo] Checking status:', {
+      userParticipation,
+      isActive: inscricao.is_active,
+      now: now.toISOString(),
+      starts: starts.toISOString(),
+      ends: ends.toISOString()
+    });
+    
     if (!inscricao.is_active) {
       return { status: 'inactive', label: 'Inscrição Inativa', color: 'gray', canSubscribe: false };
     }
@@ -124,7 +138,10 @@ const InscricaoDetail = () => {
       return { status: 'full', label: 'Vagas Esgotadas', color: 'orange', canSubscribe: false };
     }
     
+    // 🔍 VERIFICAR STATUS DO USUÁRIO
     if (userParticipation) {
+      console.log('[getStatusInfo] User has participation:', userParticipation.status);
+      
       if (userParticipation.status === 'pending') {
         return { status: 'pending', label: 'Aguardando Aprovação', color: 'yellow', canSubscribe: false };
       }
@@ -180,7 +197,7 @@ const InscricaoDetail = () => {
         onClose={() => setShowConfirmModal(false)}
         onConfirm={confirmSubscribe}
         title="Confirmar Inscrição"
-        message="Deseja confirmar sua inscrição? Você receberá uma notificação quando for aprovado."
+        message={`Deseja se inscrever em "${inscricao.title}"? ${inscricao.approval_type === 'manual' ? 'Sua inscrição ficará pendente até ser aprovada por um administrador.' : 'Você receberá o cargo imediatamente.'}`}
         loading={submitting}
       />
 

@@ -311,10 +311,9 @@ const Inscricoes = () => {
                     {/* Description Preview */}
                     <div 
                       className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3"
-                      dangerouslySetInnerHTML={{ 
-                        __html: inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 150) + '...' 
-                      }}
-                    />
+                    >
+                      {inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                    </div>
 
                     {/* Footer Info */}
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
