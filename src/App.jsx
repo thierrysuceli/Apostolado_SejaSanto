@@ -42,6 +42,7 @@ import AdminEditorialColumns from './pages/admin/AdminEditorialColumns';
 import AdminNewsTags from './pages/admin/AdminNewsTags';
 import AdminArticleEdit from './pages/admin/AdminArticleEdit';
 import AdminNewsEdit from './pages/admin/AdminNewsEdit';
+import CreateInscricao from './pages/admin/CreateInscricao';
 import Biblia from './pages/Biblia';
 import Liturgia from './pages/Liturgia';
 import Historico from './pages/Historico';
@@ -103,6 +104,8 @@ function App() {
                   <Route path="/admin/roles" element={<AdminRoles />} />
                   <Route path="/admin/editorial-columns" element={<AdminEditorialColumns />} />
                   <Route path="/admin/news-tags" element={<AdminNewsTags />} />
+                  <Route path="/admin/inscricoes/create" element={<CreateInscricao />} />
+                  <Route path="/admin/inscricoes/edit/:id" element={<CreateInscricao />} />
                     <Route path="/admin/bible-notes" element={<AdminBibleNotes />} />
                     <Route path="/termos-de-uso" element={<TermosDeUso />} />
                     <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />

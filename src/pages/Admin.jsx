@@ -32,6 +32,12 @@ const Admin = () => {
   const [articles, setArticles] = useState([]);
   const [courses, setCourses] = useState([]);
   const [events, setEvents] = useState([]);
+  
+  // Inscricoes data
+  const [inscricoes, setInscricoes] = useState([]);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [showCreateInscricao, setShowCreateInscricao] = useState(false);
+  const [showApprovals, setShowApprovals] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin())) {
@@ -48,6 +54,8 @@ const Admin = () => {
       loadRoles();
     } else if (activeTab === 'content') {
       loadContent();
+    } else if (activeTab === 'inscricoes') {
+      loadInscricoes();
     }
   }, [activeTab]);
 
@@ -139,6 +147,32 @@ const Admin = () => {
     }
   };
 
+  const loadInscricoes = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Carregar todas as inscrições públicas (sem grupo)
+      const data = await api.registrations.getAll();
+      setInscricoes(data.registrations || []);
+    } catch (err) {
+      console.error('Error loading inscricoes:', err);
+      setError('Erro ao carregar inscrições');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadPendingApprovals = async () => {
+    try {
+      // TODO: Implementar endpoint para listar aprovações pendentes
+      // Por enquanto, retorna vazio
+      setPendingApprovals([]);
+    } catch (err) {
+      console.error('Error loading pending approvals:', err);
+    }
+  };
+
   const handleAssignRoles = async (userId, roleIds) => {
     try {
       await api.admin.users.assignRoles(userId, roleIds);
@@ -181,7 +215,7 @@ const Admin = () => {
 
         {/* Tabs */}
         <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-2 mb-8 flex flex-wrap gap-2">
-          {['dashboard', 'users', 'roles', 'content', 'bible-notes'].map(tab => (
+          {['dashboard', 'users', 'roles', 'content', 'inscricoes', 'bible-notes'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -195,6 +229,7 @@ const Admin = () => {
               {tab === 'users' && '👥 Usuários'}
               {tab === 'roles' && '🔐 Roles & Permissões'}
               {tab === 'content' && '📝 Conteúdo'}
+              {tab === 'inscricoes' && '📋 Inscrições'}
               {tab === 'bible-notes' && '📖 Notas Bíblicas'}
             </button>
           ))}
@@ -552,6 +587,172 @@ const Admin = () => {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Inscricoes Tab */}
+        {activeTab === 'inscricoes' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-900 border border-beige-200 dark:border-gray-700 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-secondary-700 dark:text-gray-200">
+                  Inscrições Públicas ({inscricoes.length})
+                </h2>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowApprovals(true);
+                      loadPendingApprovals();
+                    }}
+                    className="bg-yellow-500 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition"
+                  >
+                    ⏳ Aprovações Pendentes
+                  </button>
+                  <button
+                    onClick={() => navigate('/admin/inscricoes/create')}
+                    className="bg-primary-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-700 transition"
+                  >
+                    + Criar Inscrição
+                  </button>
+                </div>
+              </div>
+              
+              {inscricoes.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📋</div>
+                  <p className="text-secondary-600 dark:text-gray-400 mb-4">
+                    Nenhuma inscrição criada ainda
+                  </p>
+                  <button
+                    onClick={() => navigate('/admin/inscricoes/create')}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
+                  >
+                    Criar Primeira Inscrição
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {inscricoes.map(inscricao => {
+                    const now = new Date();
+                    const starts = new Date(inscricao.registration_starts);
+                    const ends = new Date(inscricao.registration_ends);
+                    const isOpen = now >= starts && now <= ends && inscricao.is_active;
+                    
+                    return (
+                      <div key={inscricao.id} className="flex items-center justify-between p-4 bg-beige-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold text-secondary-700 dark:text-gray-200">
+                              {inscricao.title}
+                            </h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                              isOpen 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>
+                              {isOpen ? '🟢 Aberta' : '🔴 Encerrada'}
+                            </span>
+                            {inscricao.approval_type === 'manual' && (
+                              <span className="px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                👤 Aprovação Manual
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-secondary-600 dark:text-gray-400">
+                            {inscricao.participants_count || 0} inscritos • 
+                            Até {new Date(inscricao.registration_ends).toLocaleDateString('pt-BR')}
+                          </p>
+                          {inscricao.role_to_grant_info && (
+                            <div className="mt-2">
+                              <span 
+                                className="inline-block px-2 py-1 rounded text-xs font-semibold"
+                                style={{ 
+                                  backgroundColor: `${inscricao.role_to_grant_info.color}20`,
+                                  color: inscricao.role_to_grant_info.color 
+                                }}
+                              >
+                                🎭 Cargo: {inscricao.role_to_grant_info.display_name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/inscricoes/${inscricao.id}`)}
+                            className="text-primary-600 hover:text-primary-700 text-sm font-semibold px-3 py-1 rounded hover:bg-primary-50 dark:hover:bg-primary-900/20 transition"
+                          >
+                            👁️ Ver
+                          </button>
+                          <button
+                            onClick={() => navigate(`/admin/inscricoes/edit/${inscricao.id}`)}
+                            className="text-blue-600 hover:text-blue-700 text-sm font-semibold px-3 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                          >
+                            ✏️ Editar
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal de Aprovações Pendentes */}
+            {showApprovals && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-secondary-700 dark:text-gray-200">
+                      ⏳ Aprovações Pendentes
+                    </h3>
+                    <button
+                      onClick={() => setShowApprovals(false)}
+                      className="text-secondary-600 hover:text-secondary-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {pendingApprovals.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4">✅</div>
+                      <p className="text-secondary-600 dark:text-gray-400">
+                        Nenhuma aprovação pendente no momento
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {pendingApprovals.map(approval => (
+                        <div key={approval.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-secondary-700 dark:text-gray-200">
+                                {approval.user?.name}
+                              </p>
+                              <p className="text-sm text-secondary-600 dark:text-gray-400">
+                                {approval.registration?.title}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition"
+                              >
+                                ✓ Aprovar
+                              </button>
+                              <button
+                                className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition"
+                              >
+                                ✕ Rejeitar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
