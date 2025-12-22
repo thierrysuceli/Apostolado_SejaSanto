@@ -43,21 +43,43 @@ async function handlePublicRegistrations(req, res) {
       let userParticipation = null;
       const authHeader = req.headers.authorization;
       
+      console.log('[Public Registration Detail] Auth check:', {
+        hasAuthHeader: !!authHeader,
+        authHeaderType: authHeader?.substring(0, 20)
+      });
+      
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        const { data: userData } = await supabaseAdmin.auth.getUser(token);
+        const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+        
+        console.log('[Public Registration Detail] User auth result:', {
+          hasUser: !!userData?.user,
+          userId: userData?.user?.id,
+          userError
+        });
         
         if (userData?.user) {
-          const { data: participation } = await supabaseAdmin
+          const { data: participation, error: partError } = await supabaseAdmin
             .from('central_registration_participants')
             .select('*')
             .eq('registration_id', registrationId)
             .eq('user_id', userData.user.id)
             .single();
 
+          console.log('[Public Registration Detail] Participation check:', {
+            hasParticipation: !!participation,
+            status: participation?.status,
+            partError
+          });
+
           userParticipation = participation;
         }
       }
+
+      console.log('[Public Registration Detail] Final response:', {
+        registrationId,
+        hasUserParticipation: !!userParticipation
+      });
 
       return res.status(200).json({ 
         registration,

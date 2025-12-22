@@ -320,6 +320,16 @@ const InscricaoDetail = () => {
                 {!userParticipation && statusInfo.label}
               </div>
             )}
+            
+            {/* DEBUG INFO */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-500 rounded text-xs text-blue-700 dark:text-blue-400">
+                <strong>DEBUG:</strong><br/>
+                canSubscribe: {statusInfo.canSubscribe ? 'SIM' : 'NÃO'}<br/>
+                userParticipation: {userParticipation ? JSON.stringify(userParticipation.status) : 'null'}<br/>
+                statusInfo: {JSON.stringify(statusInfo)}
+              </div>
+            )}
 
             {/* Info Messages */}
             {userParticipation?.status === 'pending' && (
