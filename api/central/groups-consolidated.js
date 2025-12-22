@@ -50,12 +50,14 @@ async function handlePublicRegistrations(req, res) {
       
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
+        console.log('[Public Registration Detail] Token received:', token.substring(0, 20) + '...');
+        
         const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
         
         console.log('[Public Registration Detail] User auth result:', {
           hasUser: !!userData?.user,
           userId: userData?.user?.id,
-          userError
+          userError: userError?.message
         });
         
         if (userData?.user) {
@@ -364,7 +366,7 @@ export default async function handler(req, res) {
         .from('central_registration_participants')
         .select(`
           *,
-          user:users(id, name, email, avatar_url)
+          user:users!central_registration_participants_user_id_fkey(id, name, email, avatar_url)
         `)
         .in('registration_id', registrationIds)
         .eq('status', 'pending')
