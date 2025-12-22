@@ -335,13 +335,23 @@ export const ApiProvider = ({ children }) => {
     delete: (pollId) => del(`/api/central/polls/${pollId}?action=delete`)
   };
 
-  // ==================== REGISTRATIONS (Central) ====================
+  // ==================== REGISTRATIONS (usando endpoints existentes do Central) ====================
   
   const registrations = {
-    subscribe: (registrationId) => post(`/api/central/registrations/${registrationId}/subscribe`),
-    create: (groupId, data) => post(`/api/central/groups/${groupId}/registrations`, data),
-    update: (registrationId, data) => put(`/api/central/registrations/${registrationId}/edit`, data),
-    delete: (registrationId) => del(`/api/central/registrations/${registrationId}`)
+    // Listar todas as inscrições públicas
+    getAll: () => get('/api/central/groups?resource=public-registrations', false),
+    
+    // Buscar uma inscrição específica
+    getById: (id) => {
+      const token = getToken();
+      return get(`/api/central/groups?resource=public-registrations&id=${id}`, !!token);
+    },
+    
+    // Inscrever-se (usa endpoint existente de actions)
+    subscribe: (registrationId) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, {}),
+    
+    // Admin - CRUD (requer implementação no backend existente ou uso direto do Supabase Admin)
+    // Por enquanto, admin cria/edita direto no Central via grupos
   };
 
   // ==================== BIBLE NOTES ====================

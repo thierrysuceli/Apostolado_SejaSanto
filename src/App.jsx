@@ -16,6 +16,8 @@ import Artigos from './pages/Artigos';
 import ArtigoDetail from './pages/ArtigoDetail';
 import Noticias from './pages/Noticias';
 import NoticiaDetail from './pages/NoticiaDetail';
+import Inscricoes from './pages/Inscricoes';
+import InscricaoDetail from './pages/InscricaoDetail';
 import TopicDetail from './pages/TopicDetail';
 import Calendar from './pages/Calendar';
 import Central from './pages/Central';
@@ -72,6 +74,8 @@ function App() {
                   <Route path="/artigos/:slug" element={<ArtigoDetail />} />
                   <Route path="/noticias" element={<Noticias />} />
                   <Route path="/noticias/:slug" element={<NoticiaDetail />} />
+                  <Route path="/inscricoes" element={<Inscricoes />} />
+                  <Route path="/inscricoes/:id" element={<InscricaoDetail />} />
                   <Route path="/posts" element={<Posts />} />
                   <Route path="/posts/:id" element={<PostDetail />} />
                   <Route path="/calendar" element={<Calendar />} />

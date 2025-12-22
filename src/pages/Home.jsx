@@ -17,6 +17,7 @@ const Home = () => {
   const [courses, setCourses] = useState([]);
   const [articles, setArticles] = useState([]);
   const [news, setNews] = useState([]);
+  const [inscricoes, setInscricoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -130,10 +131,11 @@ const Home = () => {
         const userIsAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
         setIsAdmin(userIsAdmin);
         
-        const [coursesData, articlesData, newsData] = await Promise.all([
+        const [coursesData, articlesData, newsData, inscricoesData] = await Promise.all([
           api.courses.getAll(),
           api.get('/api/content?type=articles').catch(() => ({ articles: [] })),
-          api.get('/api/content?type=news').catch(() => ({ news: [] }))
+          api.get('/api/content?type=news').catch(() => ({ news: [] })),
+          api.registrations.getAll().catch(() => ({ registrations: [] }))
         ]);
         
         // HERO: Combinar cursos E artigos (5 mais recentes no total)
@@ -158,6 +160,15 @@ const Home = () => {
         setCourses(coursesData.courses?.slice(0, 4) || []);
         setArticles(articlesData.articles?.slice(0, 3) || []);
         setNews(newsData.news?.slice(0, 4) || []);
+        
+        // Filtrar inscrições abertas
+        const now = new Date();
+        const openInscricoes = (inscricoesData.registrations || []).filter(reg =>
+          reg.is_active &&
+          new Date(reg.registration_starts) <= now &&
+          new Date(reg.registration_ends) >= now
+        );
+        setInscricoes(openInscricoes.slice(0, 6));
       } catch (err) {
         console.error('Error loading home data:', err);
         setError('Erro ao carregar conteúdo');
@@ -677,6 +688,124 @@ const Home = () => {
               className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Ver todas as notícias
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Inscri\u00e7\u00f5es Abertas Section */}
+      {inscricoes.length > 0 && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-gray-900 dark:to-gray-950">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-10">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Inscri\u00e7\u00f5es Abertas</h2>
+                <p className="text-gray-600 dark:text-gray-400">Participe de grupos e atividades especiais</p>
+              </div>
+              <Link
+                to="/inscricoes"
+                className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+              >
+                Ver todas
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* Carrossel Horizontal */}
+            <div className="relative">
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                {inscricoes.map((inscricao) => (
+                  <Link
+                    key={inscricao.id}
+                    to={`/inscricoes/${inscricao.id}`}
+                    className="flex-none w-80 snap-start group"
+                  >
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 h-full">
+                      {/* Cover Image */}
+                      {inscricao.cover_image_url && (
+                        <div className="h-40 overflow-hidden">
+                          <img
+                            src={inscricao.cover_image_url}
+                            alt={inscricao.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="p-5">
+                        {/* Badges */}
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <span className="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">
+                            Aberta
+                          </span>
+                          {inscricao.approval_type === 'automatic' && (
+                            <span className="px-2 py-1 text-xs font-semibold rounded bg-amber-100 text-amber-700">
+                              Autom\u00e1tica
+                            </span>
+                          )}
+                          {inscricao.role_to_grant_info && (
+                            <span 
+                              className="px-2 py-1 text-xs font-semibold rounded"
+                              style={{ 
+                                backgroundColor: `${inscricao.role_to_grant_info.color}20`,
+                                color: inscricao.role_to_grant_info.color 
+                              }}
+                            >
+                              {inscricao.role_to_grant_info.display_name}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                          {inscricao.title}
+                        </h3>
+
+                        {/* Description Preview */}
+                        <div 
+                          className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2"
+                          dangerouslySetInnerHTML={{ 
+                            __html: inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 100) + '...' 
+                          }}
+                        />
+
+                        {/* Footer Info */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                          <span>
+                            At\u00e9: {new Date(inscricao.registration_ends).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                          </span>
+                          {inscricao.max_participants && (
+                            <span>
+                              {inscricao.participants_count || 0}/{inscricao.max_participants}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-8 text-center sm:hidden">
+              <Link
+                to="/inscricoes"
+                className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+              >
+                Ver todas as inscri\u00e7\u00f5es
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
