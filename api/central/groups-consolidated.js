@@ -6,8 +6,120 @@
 import { authenticate, hasRole } from '../../middleware-api/auth.js';
 import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
+// ============================================
+// 🌐 FUNÇÃO: Inscrições Públicas (SEM autenticação)
+// ============================================
+async function handlePublicRegistrations(req, res) {
+  try {
+    const { id: registrationId } = req.query;
+
+    // Se tem ID, buscar uma específica
+    if (registrationId) {
+      const { data: registration, error } = await supabaseAdmin
+        .from('central_registrations')
+        .select(`
+          *,
+          author:users!central_registrations_author_id_fkey(id, name, avatar_url),
+          role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
+        `)
+        .eq('id', registrationId)
+        .is('group_id', null)
+        .single();
+
+      if (error || !registration) {
+        return res.status(404).json({ error: 'Inscrição não encontrada' });
+      }
+
+      // Contar participantes aprovados
+      const { count } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select('id', { count: 'exact', head: true })
+        .eq('registration_id', registrationId)
+        .eq('status', 'approved');
+
+      registration.participants_count = count || 0;
+
+      // Se tiver token, verificar se usuário já se inscreveu
+      let userParticipation = null;
+      const authHeader = req.headers.authorization;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const { data: userData } = await supabaseAdmin.auth.getUser(token);
+        
+        if (userData?.user) {
+          const { data: participation } = await supabaseAdmin
+            .from('central_registration_participants')
+            .select('*')
+            .eq('registration_id', registrationId)
+            .eq('user_id', userData.user.id)
+            .single();
+
+          userParticipation = participation;
+        }
+      }
+
+      return res.status(200).json({ 
+        registration,
+        user_participation: userParticipation
+      });
+    }
+
+    // Listar todas as inscrições públicas
+    const { data: registrations, error } = await supabaseAdmin
+      .from('central_registrations')
+      .select(`
+        *,
+        author:users!central_registrations_author_id_fkey(id, name, avatar_url),
+        role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
+      `)
+      .is('group_id', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Buscar contagem de participantes
+    const regIds = registrations?.map(r => r.id) || [];
+    
+    if (regIds.length > 0) {
+      const { data: participantCounts } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select('registration_id, status')
+        .in('registration_id', regIds)
+        .eq('status', 'approved');
+
+      const counts = {};
+      participantCounts?.forEach(p => {
+        counts[p.registration_id] = (counts[p.registration_id] || 0) + 1;
+      });
+
+      registrations.forEach(reg => {
+        reg.participants_count = counts[reg.id] || 0;
+      });
+    }
+
+    return res.status(200).json({ registrations });
+
+  } catch (error) {
+    console.error('Public registrations error:', error);
+    return res.status(500).json({ error: 'Erro ao buscar inscrições públicas' });
+  }
+}
+
 export default async function handler(req, res) {
-  // Autenticação obrigatória
+  const { resource } = req.query;
+  
+  // ============================================
+  // 🌐 Endpoint público: Inscrições públicas
+  // ============================================
+  if (resource === 'public-registrations') {
+    // Permite acesso sem autenticação para listar inscrições públicas
+    return handlePublicRegistrations(req, res);
+  }
+  
+  // ============================================
+  // 🔒 Demais endpoints exigem autenticação
+  // ============================================
   await authenticate(req, res);
   
   if (!req.user) {
@@ -15,7 +127,7 @@ export default async function handler(req, res) {
   }
 
   const user = req.user;
-  const { id: groupId, resource, action } = req.query;
+  const { id: groupId, action } = req.query;
   
   // ============================================
   // 1. GET /api/central/groups - Listar grupos
@@ -666,93 +778,5 @@ export default async function handler(req, res) {
     }
   }
 
-  // ============================================
-  // 8. GET ?resource=public-registrations - Listar inscrições públicas (sem grupo)
-  // ============================================
-  if (req.method === 'GET' && resource === 'public-registrations') {
-    try {
-      const { id: registrationId } = req.query;
-
-      // Se tem ID, buscar uma específica
-      if (registrationId) {
-        const { data: registration, error } = await supabaseAdmin
-          .from('central_registrations')
-          .select(`
-            *,
-            author:users!central_registrations_author_id_fkey(id, name, avatar_url),
-            role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
-          `)
-          .eq('id', registrationId)
-          .is('group_id', null)
-          .single();
-
-        if (error || !registration) {
-          return res.status(404).json({ error: 'Inscrição não encontrada' });
-        }
-
-        // Contar participantes aprovados
-        const { count } = await supabaseAdmin
-          .from('central_registration_participants')
-          .select('id', { count: 'exact', head: true })
-          .eq('registration_id', registrationId)
-          .eq('status', 'approved');
-
-        registration.participants_count = count || 0;
-
-        // Verificar se usuário já se inscreveu
-        const { data: participation } = await supabaseAdmin
-          .from('central_registration_participants')
-          .select('*')
-          .eq('registration_id', registrationId)
-          .eq('user_id', req.user.id)
-          .single();
-
-        return res.status(200).json({ 
-          registration,
-          user_participation: participation
-        });
-      }
-
-      // Listar todas as inscrições públicas
-      const { data: registrations, error } = await supabaseAdmin
-        .from('central_registrations')
-        .select(`
-          *,
-          author:users!central_registrations_author_id_fkey(id, name, avatar_url),
-          role_to_grant_info:roles!central_registrations_role_to_grant_fkey(id, name, display_name, color)
-        `)
-        .is('group_id', null)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Buscar contagem de participantes
-      const regIds = registrations?.map(r => r.id) || [];
-      
-      if (regIds.length > 0) {
-        const { data: participantCounts } = await supabaseAdmin
-          .from('central_registration_participants')
-          .select('registration_id, status')
-          .in('registration_id', regIds)
-          .eq('status', 'approved');
-
-        const counts = {};
-        participantCounts?.forEach(p => {
-          counts[p.registration_id] = (counts[p.registration_id] || 0) + 1;
-        });
-
-        registrations.forEach(reg => {
-          reg.participants_count = counts[reg.id] || 0;
-        });
-      }
-
-      return res.status(200).json({ registrations });
-
-    } catch (error) {
-      console.error('Public registrations error:', error);
-      return res.status(500).json({ error: 'Erro ao buscar inscrições públicas' });
-    }
-  }
-  
   return res.status(405).json({ error: 'Método não permitido' });
 }
