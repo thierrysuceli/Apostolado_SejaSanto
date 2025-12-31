@@ -66,6 +66,19 @@ async function handlePublicRegistrations(req, res) {
             userId: userData.user.id
           });
 
+          // Primeiro: listar TODAS as participações para debug
+          const { data: allParticipations, error: allError } = await supabaseAdmin
+            .from('central_registration_participants')
+            .select('id, user_id, registration_id, status')
+            .eq('registration_id', registrationId);
+
+          console.log('[Public Registration Detail] ALL participations for this registration:', {
+            count: allParticipations?.length || 0,
+            participations: allParticipations,
+            error: allError
+          });
+
+          // Segundo: buscar a participação específica do usuário
           const { data: participation, error: partError } = await supabaseAdmin
             .from('central_registration_participants')
             .select('*')
@@ -361,13 +374,10 @@ export default async function handler(req, res) {
       const registrationIds = registrations.map(r => r.id);
       console.log('[Pending Approvals] Registration IDs:', registrationIds);
 
-      // Buscar participantes pendentes
+      // Buscar participantes pendentes (SEM join, fazer manual)
       const { data: participants, error: partError } = await supabaseAdmin
         .from('central_registration_participants')
-        .select(`
-          *,
-          user:users!central_registration_participants_user_id_fkey(id, name, email, avatar_url)
-        `)
+        .select('*')
         .in('registration_id', registrationIds)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -379,15 +389,36 @@ export default async function handler(req, res) {
 
       console.log('[Pending Approvals] Found pending participants:', participants?.length || 0);
 
-      // Adicionar info da inscrição
+      // Buscar dados dos usuários separadamente
+      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+      console.log('[Pending Approvals] User IDs to fetch:', userIds);
+
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .in('id', userIds);
+
+      if (usersError) {
+        console.error('[Pending Approvals] Error fetching users:', usersError);
+        throw usersError;
+      }
+
+      // Montar aprovações com dados completos
       const approvals = (participants || []).map(p => {
         const registration = registrations.find(r => r.id === p.registration_id);
+        const user = users?.find(u => u.id === p.user_id);
+        
         if (!registration) {
           console.warn('[Pending Approvals] Registration not found for participant:', p.id);
         }
+        if (!user) {
+          console.warn('[Pending Approvals] User not found for participant:', p.id);
+        }
+        
         return {
           ...p,
-          registration
+          registration,
+          user
         };
       });
 
