@@ -294,7 +294,7 @@ const InscricaoDetail = () => {
 
             {/* Description */}
             <div 
-              className="prose prose-lg dark:prose-invert max-w-none mb-8"
+              className="prose prose-lg dark:prose-invert max-w-none mb-8 [&>*]:text-gray-900 dark:[&>*]:text-gray-100"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inscricao.description) }}
             />
 
