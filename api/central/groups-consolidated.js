@@ -380,7 +380,7 @@ export default async function handler(req, res) {
         .select('*')
         .in('registration_id', registrationIds)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .order('registered_at', { ascending: false });
 
       if (partError) {
         console.error('[Pending Approvals] Error fetching participants:', partError);
