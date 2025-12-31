@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useApi } from '../../contexts/ApiContext';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import FormQuestionsManager from '../../components/FormQuestionsManager';
 
 const CreateInscricao = () => {
   const navigate = useNavigate();
@@ -572,6 +573,11 @@ const CreateInscricao = () => {
                   Inscrição ativa (visível para usuários)
                 </label>
               </div>
+
+              {/* Formulário de Perguntas - Apenas em modo de edição */}
+              {inscricaoId && (
+                <FormQuestionsManager registrationId={inscricaoId} />
+              )}
 
               {/* Botões */}
               <div className="flex gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">

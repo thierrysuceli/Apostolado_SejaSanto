@@ -53,7 +53,9 @@ const InscricaoDetail = () => {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
   const [userParticipation, setUserParticipation] = useState(null);
+  const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
     loadInscricao();
@@ -73,6 +75,15 @@ const InscricaoDetail = () => {
       
       setInscricao(data.registration);
       setUserParticipation(data.user_participation || null);
+      
+      // Carregar perguntas do formulário
+      try {
+        const questionsData = await api.registrations.getQuestions(id);
+        setQuestions(questionsData.questions || []);
+      } catch (err) {
+        console.error('Error loading questions:', err);
+        setQuestions([]);
+      }
     } catch (err) {
       console.error('Error loading inscricao:', err);
       setError('Erro ao carregar inscrição');
@@ -88,14 +99,20 @@ const InscricaoDetail = () => {
       return;
     }
 
-    setShowConfirmModal(true);
+    // Se tem perguntas, mostrar formulário
+    if (questions.length > 0) {
+      setShowFormModal(true);
+    } else {
+      setShowConfirmModal(true);
+    }
   };
   
-  const confirmSubscribe = async () => {
+  const confirmSubscribe = async (formResponses = {}) => {
     try {
       setSubmitting(true);
-      const result = await api.registrations.subscribe(id);
+      const result = await api.registrations.subscribe(id, formResponses);
       setShowConfirmModal(false);
+      setShowFormModal(false);
       alert(result.message);
       
       // Pequeno delay para garantir que o banco atualizou
@@ -355,6 +372,34 @@ const InscricaoDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Formulário */}
+      {showFormModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Complete sua Inscrição
+              </h3>
+              <button
+                onClick={() => setShowFormModal(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <RegistrationForm
+                questions={questions}
+                onSubmit={confirmSubscribe}
+                submitting={submitting}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useApi } from '../contexts/ApiContext';
 import { useAuth } from '../contexts/AuthContext';
+import ParticipantsModal from '../components/ParticipantsModal';
 
 const Inscricoes = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const Inscricoes = () => {
   const [filter, setFilter] = useState('active'); // active, all, closed
   const [showApprovals, setShowApprovals] = useState(false);
   const [showAdminView, setShowAdminView] = useState(true); // 🔧 Inicia como TRUE para admins verem controles
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState(null);
 
   const isUserAdmin = isAdmin && isAdmin();
 
@@ -117,6 +120,28 @@ const Inscricoes = () => {
       console.error('Error deleting:', err);
       alert('Erro ao deletar: ' + (err.response?.data?.error || err.message));
     }
+  };
+
+  const handleCancelParticipant = async (participantId) => {
+    try {
+      await api.registrations.cancel(participantId);
+      alert('✅ Inscrição cancelada com sucesso!');
+      // Recarregar modal se estiver aberto
+      if (showParticipantsModal) {
+        setShowParticipantsModal(false);
+        setTimeout(() => {
+          setShowParticipantsModal(true);
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Error canceling:', err);
+      alert('Erro ao cancelar: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleViewParticipants = (inscricaoId) => {
+    setSelectedRegistrationId(inscricaoId);
+    setShowParticipantsModal(true);
   };
 
   const getStatusBadge = (inscricao) => {
@@ -334,6 +359,16 @@ const Inscricoes = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          handleViewParticipants(inscricao.id);
+                        }}
+                        className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition"
+                        title="Ver Participantes"
+                      >
+                        👥 Inscritos
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigate(`/admin/inscricoes/edit/${inscricao.id}`);
                         }}
                         className="flex-1 px-3 py-2 bg-purple-600 text-white text-xs font-semibold rounded hover:bg-purple-700 transition"
@@ -438,6 +473,18 @@ const Inscricoes = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de Participantes */}
+      {showParticipantsModal && selectedRegistrationId && (
+        <ParticipantsModal
+          registrationId={selectedRegistrationId}
+          onClose={() => {
+            setShowParticipantsModal(false);
+            setSelectedRegistrationId(null);
+          }}
+          onCancel={handleCancelParticipant}
+        />
+      )}
     </>
   );
 };
