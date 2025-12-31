@@ -198,8 +198,12 @@ const CreateInscricao = () => {
         alert('✅ Inscrição atualizada com sucesso!');
       } else {
         // Criar
-        await api.registrations.adminCreate(payload);
-        alert('✅ Inscrição criada com sucesso!');
+        const result = await api.registrations.adminCreate(payload);
+        alert('✅ Inscrição criada com sucesso! Agora você pode adicionar perguntas ao formulário.');
+        
+        // Redirecionar para edição para poder adicionar perguntas
+        navigate(`/admin/inscricoes/edit/${result.registration.id}`);
+        return;
       }
       
       navigate('/admin#inscricoes');
