@@ -6,6 +6,7 @@ import { useApi } from '../../contexts/ApiContext';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import FormQuestionsManager from '../../components/FormQuestionsManager';
+import LocalFormQuestionsManager from '../../components/LocalFormQuestionsManager';
 
 const CreateInscricao = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const CreateInscricao = () => {
   const [error, setError] = useState('');
   const [showNewRole, setShowNewRole] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [localQuestions, setLocalQuestions] = useState([]); // Perguntas criadas antes de salvar
   const [newRole, setNewRole] = useState({
     name: '',
     display_name: '',
@@ -199,10 +201,17 @@ const CreateInscricao = () => {
       } else {
         // Criar
         const result = await api.registrations.adminCreate(payload);
-        alert('✅ Inscrição criada com sucesso! Agora você pode adicionar perguntas ao formulário.');
+        const newInscricaoId = result.registration.id;
         
-        // Redirecionar para edição para poder adicionar perguntas
-        navigate(`/admin/inscricoes/edit/${result.registration.id}`);
+        // Se tem perguntas locais, criar todas
+        if (localQuestions.length > 0) {
+          for (const question of localQuestions) {
+            await api.registrations.createQuestion(newInscricaoId, question);
+          }
+        }
+        
+        alert('✅ Inscrição criada com sucesso!');
+        navigate('/admin#inscricoes');
         return;
       }
       
@@ -578,9 +587,16 @@ const CreateInscricao = () => {
                 </label>
               </div>
 
-              {/* Formulário de Perguntas - Apenas em modo de edição */}
-              {inscricaoId && (
+              {/* Formulário de Perguntas */}
+              {inscricaoId ? (
+                /* Modo edição: usa API diretamente */
                 <FormQuestionsManager registrationId={inscricaoId} />
+              ) : (
+                /* Modo criação: guarda perguntas localmente */
+                <LocalFormQuestionsManager 
+                  questions={localQuestions} 
+                  onChange={setLocalQuestions} 
+                />
               )}
 
               {/* Botões */}
