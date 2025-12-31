@@ -547,10 +547,9 @@ const Home = () => {
                               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-tight line-clamp-2">
                                 {item.title}
                               </h3>
-                              <div 
-                                className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
-                                dangerouslySetInnerHTML={{ __html: item.content?.replace(/<[^>]*>/g, '') || '' }}
-                              />
+                              <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
+                                {item.content?.replace(/<[^>]*>/g, '') || ''}
+                              </p>
                             </div>
                           </div>
                         </Link>
@@ -707,13 +706,13 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Inscri\u00e7\u00f5es Abertas Section */}
+      {/* Inscrições Abertas Section */}
       {inscricoes.length > 0 && (
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-gray-900 dark:to-gray-950">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-10">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Inscri\u00e7\u00f5es Abertas</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Inscrições Abertas</h2>
                 <p className="text-gray-600 dark:text-gray-400">Participe de grupos e atividades especiais</p>
               </div>
               <Link
@@ -756,7 +755,7 @@ const Home = () => {
                           </span>
                           {inscricao.approval_type === 'automatic' && (
                             <span className="px-2 py-1 text-xs font-semibold rounded bg-amber-100 text-amber-700">
-                              Autom\u00e1tica
+                              Automática
                             </span>
                           )}
                           {inscricao.role_to_grant_info && (
@@ -778,9 +777,9 @@ const Home = () => {
                         </h3>
 
                         {/* Description Preview */}
-                        <div className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
                           {inscricao.description?.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                        </div>
+                        </p>
 
                         {/* Footer Info */}
                         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
