@@ -726,8 +726,9 @@ export default async function handler(req, res) {
   
   // ==============================================================
   // 🔒 Verificar acesso ao grupo (para TODAS as rotas com groupId)
+  // EXCETO para resource=questions (perguntas são de inscrições, não grupos)
   // ==============================================================
-  if (groupId) {
+  if (groupId && resource !== 'questions') {
     try {
       const accessCheck = await verifyGroupAccess(groupId, user.id);
       
