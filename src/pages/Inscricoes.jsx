@@ -411,7 +411,7 @@ const Inscricoes = () => {
                               📋 {approval.registration?.title}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                              Solicitado em {new Date(approval.created_at).toLocaleString('pt-BR')}
+                              Solicitado em {new Date(approval.registered_at).toLocaleString('pt-BR')}
                             </p>
                           </div>
                           <div className="flex gap-2">

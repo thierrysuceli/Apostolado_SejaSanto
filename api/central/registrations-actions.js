@@ -13,16 +13,18 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Autenticação necessária' });
   }
 
-  const { id: registrationId, action } = req.query;
+  const { id: registrationId, action, participant_id } = req.query;
   
   console.log('[registrations-actions] Request:', { 
     method: req.method, 
     registrationId, 
     action,
+    participant_id,
     userId: req.user?.id 
   });
   
-  if (!registrationId) {
+  // Validação: id é obrigatório exceto para approve/reject que usam participant_id
+  if (!registrationId && !['approve', 'reject'].includes(action)) {
     return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
   }
 
