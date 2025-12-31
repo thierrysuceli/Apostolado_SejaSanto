@@ -348,7 +348,7 @@ export const ApiProvider = ({ children }) => {
     },
     
     // Inscrever-se (usa endpoint existente de actions)
-    subscribe: (registrationId) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, {}),
+    subscribe: (registrationId, formResponses = {}) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, { form_responses: formResponses }),
     
     // 🔐 ADMIN - Criar inscrição pública
     adminCreate: (data) => post('/api/central/groups?resource=admin-registrations', data),
@@ -366,7 +366,27 @@ export const ApiProvider = ({ children }) => {
     approve: (participantId) => post(`/api/central/registrations-actions?action=approve&participant_id=${participantId}`, {}),
     
     // 🔐 ADMIN - Rejeitar inscrição (usa endpoint registrations-actions)
-    reject: (participantId) => post(`/api/central/registrations-actions?action=reject&participant_id=${participantId}`, {})
+    reject: (participantId) => post(`/api/central/registrations-actions?action=reject&participant_id=${participantId}`, {}),
+    
+    // 🔐 ADMIN - Cancelar inscrição
+    cancel: (participantId) => post(`/api/central/registrations-actions?action=cancel&participant_id=${participantId}`, {}),
+    
+    // 🔐 ADMIN - Listar todos os participantes (com respostas)
+    getParticipants: (registrationId) => get(`/api/central/groups?resource=registration-participants&id=${registrationId}`),
+    
+    // === PERGUNTAS DO FORMULÁRIO ===
+    
+    // Buscar perguntas de uma inscrição
+    getQuestions: (registrationId) => get(`/api/central/groups?resource=questions&id=${registrationId}`),
+    
+    // 🔐 ADMIN - Criar pergunta
+    createQuestion: (registrationId, data) => post(`/api/central/groups?resource=questions&id=${registrationId}`, data),
+    
+    // 🔐 ADMIN - Atualizar pergunta
+    updateQuestion: (data) => put(`/api/central/groups?resource=questions`, data),
+    
+    // 🔐 ADMIN - Deletar pergunta
+    deleteQuestion: (questionId) => del(`/api/central/groups?resource=questions&question_id=${questionId}`)
   };
 
   // ==================== BIBLE NOTES ====================

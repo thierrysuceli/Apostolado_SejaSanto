@@ -136,6 +136,9 @@ export default async function handler(req, res) {
         }
       }
       
+      // Obter respostas do formulário (se houver)
+      const { form_responses } = req.body || {};
+      
       // Criar participação
       const status = registration.approval_type === 'automatic' ? 'approved' : 'pending';
       
@@ -145,6 +148,7 @@ export default async function handler(req, res) {
           registration_id: registrationId,
           user_id: req.user.id,
           status,
+          form_responses: form_responses || {},
           approved_by: registration.approval_type === 'automatic' ? registration.author_id : null,
           approved_at: registration.approval_type === 'automatic' ? new Date().toISOString() : null
         });
@@ -394,6 +398,55 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ 
         message: 'Inscrição rejeitada com sucesso'
+      });
+    }
+
+    // ============================================
+    // 6. POST ?action=cancel&participant_id=X - Cancelar inscrição (ADMIN)
+    // ============================================
+    if (req.method === 'POST' && action === 'cancel') {
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Apenas admins podem cancelar inscrições' });
+      }
+
+      const { participant_id } = req.query;
+      if (!participant_id) {
+        return res.status(400).json({ error: 'ID do participante é obrigatório' });
+      }
+
+      // Buscar participante e remover role se tiver
+      const { data: participant, error: participantError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select(`
+          *,
+          registration:central_registrations(role_to_grant)
+        `)
+        .eq('id', participant_id)
+        .single();
+
+      if (participantError || !participant) {
+        return res.status(404).json({ error: 'Participante não encontrado' });
+      }
+
+      // Remover role do usuário (se tiver)
+      if (participant.status === 'approved' && participant.registration?.role_to_grant) {
+        await supabaseAdmin
+          .from('user_roles')
+          .delete()
+          .eq('user_id', participant.user_id)
+          .eq('role_id', participant.registration.role_to_grant);
+      }
+
+      // Deletar participação
+      const { error: deleteError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .delete()
+        .eq('id', participant_id);
+
+      if (deleteError) throw deleteError;
+
+      return res.status(200).json({ 
+        message: 'Inscrição cancelada com sucesso'
       });
     }
     

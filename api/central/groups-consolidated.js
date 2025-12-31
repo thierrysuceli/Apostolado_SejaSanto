@@ -433,6 +433,70 @@ export default async function handler(req, res) {
       });
     }
   }
+
+  // ============================================
+  // ADMIN ONLY: Listar TODOS os Participantes de uma Inscrição (com respostas)
+  // ============================================
+  if (req.method === 'GET' && resource === 'registration-participants' && groupId) {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores' });
+    }
+
+    try {
+      console.log('[Registration Participants] Fetching for registration:', groupId);
+
+      // Buscar TODOS os participantes (pending + approved)
+      const { data: participants, error: partError } = await supabaseAdmin
+        .from('central_registration_participants')
+        .select('*')
+        .eq('registration_id', groupId)
+        .in('status', ['pending', 'approved'])
+        .order('registered_at', { ascending: false });
+
+      if (partError) {
+        console.error('[Registration Participants] Error:', partError);
+        throw partError;
+      }
+
+      console.log('[Registration Participants] Found', participants?.length || 0, 'participants');
+
+      // Buscar usuários
+      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      // Buscar perguntas do formulário
+      const { data: questions, error: questionsError } = await supabaseAdmin
+        .from('central_registration_questions')
+        .select('*')
+        .eq('registration_id', groupId)
+        .order('order_index', { ascending: true });
+
+      if (questionsError) throw questionsError;
+
+      // Montar resultado
+      const result = (participants || []).map(p => {
+        const user = users?.find(u => u.id === p.user_id);
+        return {
+          ...p,
+          user
+        };
+      });
+
+      return res.status(200).json({ 
+        participants: result,
+        questions: questions || []
+      });
+    } catch (error) {
+      console.error('[Registration Participants] Error:', error);
+      return res.status(500).json({ error: 'Erro ao buscar participantes' });
+    }
+  }
   
   // ============================================
   // 1. GET /api/central/groups - Listar grupos
@@ -1080,6 +1144,123 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Group resource error:', error);
       return res.status(500).json({ error: 'Erro ao processar requisição' });
+    }
+  }
+
+  // ============================================
+  // CRUD DE PERGUNTAS DO FORMULÁRIO
+  // ============================================
+  
+  // GET perguntas de uma inscrição
+  if (req.method === 'GET' && resource === 'questions' && groupId) {
+    try {
+      const { data: questions, error } = await supabaseAdmin
+        .from('central_registration_questions')
+        .select('*')
+        .eq('registration_id', groupId)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      return res.status(200).json({ questions: questions || [] });
+    } catch (error) {
+      console.error('Get questions error:', error);
+      return res.status(500).json({ error: 'Erro ao buscar perguntas' });
+    }
+  }
+
+  // POST criar pergunta
+  if (req.method === 'POST' && resource === 'questions' && groupId) {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores' });
+    }
+
+    try {
+      const { question_text, question_type, options, required } = req.body;
+
+      // Buscar último order_index
+      const { data: existing } = await supabaseAdmin
+        .from('central_registration_questions')
+        .select('order_index')
+        .eq('registration_id', groupId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+
+      const nextOrder = existing && existing.length > 0 ? existing[0].order_index + 1 : 0;
+
+      const { data: question, error } = await supabaseAdmin
+        .from('central_registration_questions')
+        .insert({
+          registration_id: groupId,
+          question_text,
+          question_type,
+          options: options || null,
+          required: required || false,
+          order_index: nextOrder
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.status(201).json({ question });
+    } catch (error) {
+      console.error('Create question error:', error);
+      return res.status(500).json({ error: 'Erro ao criar pergunta' });
+    }
+  }
+
+  // PUT atualizar pergunta
+  if (req.method === 'PUT' && resource === 'questions') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores' });
+    }
+
+    try {
+      const { question_id, question_text, question_type, options, required, order_index } = req.body;
+
+      const updateData = {};
+      if (question_text !== undefined) updateData.question_text = question_text;
+      if (question_type !== undefined) updateData.question_type = question_type;
+      if (options !== undefined) updateData.options = options;
+      if (required !== undefined) updateData.required = required;
+      if (order_index !== undefined) updateData.order_index = order_index;
+
+      const { data: question, error } = await supabaseAdmin
+        .from('central_registration_questions')
+        .update(updateData)
+        .eq('id', question_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.status(200).json({ question });
+    } catch (error) {
+      console.error('Update question error:', error);
+      return res.status(500).json({ error: 'Erro ao atualizar pergunta' });
+    }
+  }
+
+  // DELETE remover pergunta
+  if (req.method === 'DELETE' && resource === 'questions') {
+    const isAdmin = await hasRole(user.id, 'ADMIN');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Apenas administradores' });
+    }
+
+    try {
+      const { question_id } = req.query;
+      
+      const { error } = await supabaseAdmin
+        .from('central_registration_questions')
+        .delete()
+        .eq('id', question_id);
+
+      if (error) throw error;
+      return res.status(200).json({ message: 'Pergunta deletada com sucesso' });
+    } catch (error) {
+      console.error('Delete question error:', error);
+      return res.status(500).json({ error: 'Erro ao deletar pergunta' });
     }
   }
 
