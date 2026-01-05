@@ -3,10 +3,13 @@
 // =====================================================
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function RegistrationForm({ questions, onSubmit, submitting }) {
+export default function RegistrationForm({ questions, onSubmit, submitting, allowGuest = false }) {
+  const { user } = useAuth();
   const [responses, setResponses] = useState({});
   const [errors, setErrors] = useState({});
+  const [guestName, setGuestName] = useState(''); // 🆕 Nome do visitante
 
   const handleResponseChange = (questionId, value) => {
     setResponses(prev => ({
@@ -47,6 +50,11 @@ export default function RegistrationForm({ questions, onSubmit, submitting }) {
   const validateAndSubmit = () => {
     const newErrors = {};
     
+    // 🆕 Validar nome do visitante se necessário
+    if (!user && allowGuest && !guestName.trim()) {
+      newErrors.guestName = 'Nome é obrigatório';
+    }
+    
     // Validar perguntas obrigatórias
     questions.forEach(q => {
       if (q.required) {
@@ -62,7 +70,7 @@ export default function RegistrationForm({ questions, onSubmit, submitting }) {
       return;
     }
 
-    onSubmit(responses);
+    onSubmit({ form_responses: responses, guest_name: !user ? guestName : undefined }); // 🆕 Passar guest_name
   };
 
   if (!questions || questions.length === 0) {
@@ -79,6 +87,34 @@ export default function RegistrationForm({ questions, onSubmit, submitting }) {
       </p>
 
       <div className="space-y-6">
+        {/* 🆕 Campo de Nome para Visitantes */}
+        {!user && allowGuest && (
+          <div className="space-y-2 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <label className="block text-sm font-semibold text-gray-900 dark:text-white">
+              Seu Nome <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={guestName}
+              onChange={(e) => {
+                setGuestName(e.target.value);
+                if (errors.guestName) {
+                  setErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.guestName;
+                    return newErrors;
+                  });
+                }
+              }}
+              className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500"
+              placeholder="Digite seu nome completo"
+            />
+            {errors.guestName && (
+              <p className="text-sm text-red-500">{errors.guestName}</p>
+            )}
+          </div>
+        )}
+
         {questions.map((question, index) => (
           <div key={question.id} className="space-y-2">
             <label className="block text-sm font-semibold text-gray-900 dark:text-white">

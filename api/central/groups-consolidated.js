@@ -176,7 +176,8 @@ export default async function handler(req, res) {
         registration_starts,
         registration_ends,
         is_active,
-        welcome_message
+        welcome_message,
+        allow_guest_registration
       } = req.body;
 
       if (!title || !description || !role_to_grant) {
@@ -209,7 +210,8 @@ export default async function handler(req, res) {
           registration_starts: startsAt,
           registration_ends: endsAt,
           is_active: is_active !== false,
-          welcome_message: welcome_message || null
+          welcome_message: welcome_message || null,
+          allow_guest_registration: allow_guest_registration || false
         })
         .select(`
           *,
@@ -252,7 +254,8 @@ export default async function handler(req, res) {
         registration_starts,
         registration_ends,
         is_active,
-        welcome_message
+        welcome_message,
+        allow_guest_registration
       } = req.body;
 
       const updates = {};
@@ -274,6 +277,7 @@ export default async function handler(req, res) {
       if (registration_ends !== undefined) updates.registration_ends = registration_ends;
       if (is_active !== undefined) updates.is_active = is_active;
       if (welcome_message !== undefined) updates.welcome_message = welcome_message;
+      if (allow_guest_registration !== undefined) updates.allow_guest_registration = allow_guest_registration;
 
       const { data: registration, error } = await supabaseAdmin
         .from('central_registrations')

@@ -25,7 +25,8 @@ const CreateInscricao = () => {
     registration_ends: '',
     is_active: true,
     visible_to_roles: [], // 🆕 Array de role IDs que podem ver a inscrição
-    welcome_message: '' // 🆕 Mensagem de boas-vindas
+    welcome_message: '', // 🆕 Mensagem de boas-vindas
+    allow_guest_registration: false // 🆕 Permitir inscrições sem login
   });
   
   const [roles, setRoles] = useState([]);
@@ -71,7 +72,8 @@ const CreateInscricao = () => {
         registration_ends: inscricao.registration_ends ? new Date(inscricao.registration_ends).toISOString().slice(0, 16) : '',
         is_active: inscricao.is_active !== false,
         visible_to_roles: inscricao.visible_to_roles || [], // 🆕 Carregar visibilidade
-        welcome_message: inscricao.welcome_message || '' // 🆕 Carregar mensagem
+        welcome_message: inscricao.welcome_message || '', // 🆕 Carregar mensagem
+        allow_guest_registration: inscricao.allow_guest_registration || false // 🆕 Carregar opção guest
       });
     } catch (err) {
       console.error('Error loading inscricao:', err);
@@ -544,6 +546,26 @@ const CreateInscricao = () => {
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500"
                   placeholder="Deixe em branco para sem limite"
                 />
+              </div>
+
+              {/* 🆕 Permitir Inscrições Sem Login */}
+              <div className="bg-beige-50 dark:bg-gray-800 border border-beige-200 dark:border-gray-700 rounded-lg p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.allow_guest_registration}
+                    onChange={(e) => setFormData({ ...formData, allow_guest_registration: e.target.checked })}
+                    className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+                  />
+                  <div>
+                    <span className="text-sm font-semibold text-secondary-700 dark:text-gray-200 block">
+                      🌍 Permitir inscrições sem login
+                    </span>
+                    <span className="text-xs text-secondary-600 dark:text-gray-400">
+                      Se marcado, visitantes não logados podem se inscrever informando apenas o nome. Eles não receberão cargo automaticamente.
+                    </span>
+                  </div>
+                </label>
               </div>
 
               {/* Datas */}

@@ -7,20 +7,39 @@ import { authenticate } from '../../middleware-api/auth.js';
 import { supabaseAdmin } from '../../lib-api/supabaseServer.js';
 
 export default async function handler(req, res) {
-  await authenticate(req, res);
-  
-  if (!req.user) {
-    return res.status(401).json({ error: 'Autenticação necessária' });
-  }
-
   const { id: registrationId, action, participant_id } = req.query;
+  
+  // Para action=subscribe, auth é OPCIONAL se allow_guest_registration=true
+  if (req.method === 'POST' && action === 'subscribe') {
+    await authenticate(req, res);
+    
+    // Buscar inscrição para ver se permite guests
+    const { data: registration, error: regError } = await supabaseAdmin
+      .from('central_registrations')
+      .select('allow_guest_registration')
+      .eq('id', registrationId)
+      .single();
+    
+    // Se não permite guests E não tem user, bloquear
+    if (!registration?.allow_guest_registration && !req.user) {
+      return res.status(401).json({ error: 'Autenticação necessária' });
+    }
+  } else {
+    // Outras actions requerem auth obrigatória
+    await authenticate(req, res);
+    
+    if (!req.user) {
+      return res.status(401).json({ error: 'Autenticação necessária' });
+    }
+  }
   
   console.log('[registrations-actions] Request:', { 
     method: req.method, 
     registrationId, 
     action,
     participant_id,
-    userId: req.user?.id 
+    userId: req.user?.id,
+    isGuest: !req.user
   });
   
   // Validação: id é obrigatório exceto para approve/reject que usam participant_id
@@ -96,18 +115,23 @@ export default async function handler(req, res) {
       }
       
       // Verificar se já está inscrito (ignora se foi rejeitado)
-      const { data: existing, error: existError } = await supabaseAdmin
-        .from('central_registration_participants')
-        .select('id, status')
-        .eq('registration_id', registrationId)
-        .eq('user_id', req.user.id)
-        .maybeSingle(); // 🔧 Usa maybeSingle para não dar erro se não existir
+      // Para guests, verificar por guest_name; para users, por user_id
+      let existing = null;
       
-      console.log('[Subscribe] Existing participation check:', { 
-        hasExisting: !!existing, 
-        status: existing?.status,
-        existError: existError?.code 
-      });
+      if (req.user) {
+        const { data, error } = await supabaseAdmin
+          .from('central_registration_participants')
+          .select('id, status')
+          .eq('registration_id', registrationId)
+          .eq('user_id', req.user.id)
+          .maybeSingle();
+        existing = data;
+        
+        console.log('[Subscribe] Existing participation check (user):', { 
+          hasExisting: !!existing, 
+          status: existing?.status 
+        });
+      }
       
       if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
         console.log('[Subscribe] User already has active participation:', existing.status);
@@ -136,27 +160,35 @@ export default async function handler(req, res) {
         }
       }
       
-      // Obter respostas do formulário (se houver)
-      const { form_responses } = req.body || {};
+      // Obter respostas do formulário e nome do guest (se houver)
+      const { form_responses, guest_name } = req.body || {};
+      
+      // Validar guest_name se for guest
+      if (!req.user && !guest_name) {
+        return res.status(400).json({ error: 'Nome é obrigatório para inscrições sem login' });
+      }
       
       // Criar participação
       const status = registration.approval_type === 'automatic' ? 'approved' : 'pending';
       
+      const participantData = {
+        registration_id: registrationId,
+        user_id: req.user?.id || null,
+        guest_name: !req.user ? guest_name : null,
+        status,
+        form_responses: form_responses || {},
+        approved_by: registration.approval_type === 'automatic' ? registration.author_id : null,
+        approved_at: registration.approval_type === 'automatic' ? new Date().toISOString() : null
+      };
+      
       const { error: insertError } = await supabaseAdmin
         .from('central_registration_participants')
-        .insert({
-          registration_id: registrationId,
-          user_id: req.user.id,
-          status,
-          form_responses: form_responses || {},
-          approved_by: registration.approval_type === 'automatic' ? registration.author_id : null,
-          approved_at: registration.approval_type === 'automatic' ? new Date().toISOString() : null
-        });
+        .insert(participantData);
       
       if (insertError) throw insertError;
       
-      // Se aprovação automática, dar a role
-      if (registration.approval_type === 'automatic') {
+      // Se aprovação automática E usuário logado, dar a role
+      if (registration.approval_type === 'automatic' && req.user) {
         // Verificar se usuário já tem a role
         const { data: hasRole } = await supabaseAdmin
           .from('user_roles')

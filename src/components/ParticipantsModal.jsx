@@ -189,10 +189,15 @@ export default function ParticipantsModal({ registrationId, onClose, onCancel, o
                       )}
                       <div>
                         <h4 className="font-bold text-gray-900 dark:text-white">
-                          {participant.user?.name || 'Usuário Desconhecido'}
+                          {participant.guest_name || participant.user?.name || 'Usuário Desconhecido'}
+                          {participant.guest_name && (
+                            <span className="ml-2 text-xs font-normal text-amber-600 dark:text-amber-400">
+                              (Visitante)
+                            </span>
+                          )}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {participant.user?.email}
+                          {participant.user?.email || 'Sem cadastro'}
                         </p>
                       </div>
                     </div>

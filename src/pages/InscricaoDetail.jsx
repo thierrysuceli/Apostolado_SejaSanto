@@ -106,7 +106,8 @@ const InscricaoDetail = () => {
   };
 
   const handleSubscribe = async () => {
-    if (!user) {
+    // 🆕 Se permite guest e não está logado, mostrar formulário sempre (que inclui campo de nome)
+    if (!user && !inscricao?.allow_guest_registration) {
       alert('Você precisa estar logado para se inscrever');
       navigate('/login');
       return;
@@ -120,10 +121,11 @@ const InscricaoDetail = () => {
     }
   };
   
-  const confirmSubscribe = async (formResponses = {}) => {
+  const confirmSubscribe = async (payload = {}) => {
     try {
       setSubmitting(true);
-      const result = await api.registrations.subscribe(id, formResponses);
+      // payload agora pode conter { form_responses, guest_name }
+      const result = await api.registrations.subscribe(id, payload.form_responses || payload, payload.guest_name);
       setShowConfirmModal(false);
       setShowFormModal(false);
       
@@ -449,6 +451,7 @@ const InscricaoDetail = () => {
                 questions={questions}
                 onSubmit={confirmSubscribe}
                 submitting={submitting}
+                allowGuest={inscricao?.allow_guest_registration || false}
               />
             </div>
           </div>

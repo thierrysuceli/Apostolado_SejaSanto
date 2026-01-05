@@ -377,7 +377,10 @@ export const ApiProvider = ({ children }) => {
     getById: (id) => getPublicWithOptionalAuth(`/api/central/groups?resource=public-registrations&id=${id}`),
     
     // Inscrever-se (usa endpoint existente de actions)
-    subscribe: (registrationId, formResponses = {}) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, { form_responses: formResponses }),
+    subscribe: (registrationId, formResponses = {}, guestName = undefined) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, { 
+      form_responses: formResponses, 
+      guest_name: guestName 
+    }),
     
     // 🔐 ADMIN - Criar inscrição pública
     adminCreate: (data) => post('/api/central/groups?resource=admin-registrations', data),
