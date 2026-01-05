@@ -95,6 +95,13 @@ export const ApiProvider = ({ children }) => {
       // Sempre tenta adicionar token se disponível
       const headers = { 'Content-Type': 'application/json' };
       const token = getToken();
+      
+      console.log('[getPublicWithOptionalAuth] Token check:', {
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 20) + '...' : null,
+        url: url.substring(0, 80)
+      });
+      
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
