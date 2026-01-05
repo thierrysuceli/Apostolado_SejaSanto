@@ -107,6 +107,7 @@ export default function LocalFormQuestionsManager({ questions, onChange }) {
                     )}
                   </div>
                   <button
+                    type="button"
                     onClick={() => handleDeleteQuestion(q.id)}
                     className="ml-4 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
                   >
@@ -163,6 +164,7 @@ export default function LocalFormQuestionsManager({ questions, onChange }) {
                       {option}
                     </span>
                     <button
+                      type="button"
                       onClick={() => handleRemoveOption(index)}
                       className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     >
@@ -182,6 +184,7 @@ export default function LocalFormQuestionsManager({ questions, onChange }) {
                     className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                   />
                   <button
+                    type="button"
                     onClick={handleAddOption}
                     className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
                   >
@@ -206,6 +209,7 @@ export default function LocalFormQuestionsManager({ questions, onChange }) {
           </div>
 
           <button
+            type="button"
             onClick={handleCreateQuestion}
             className="w-full px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition font-semibold"
           >
