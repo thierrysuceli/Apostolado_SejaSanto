@@ -689,6 +689,7 @@ const Calendar = () => {
           onCategoryCreated={loadData}
         />
       </div>
+      </div>
     </>
   );
 };
