@@ -47,20 +47,23 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
   }
 
-  // Verificar se é admin
-  const { data: adminRole } = await supabaseAdmin
-    .from('roles')
-    .select('id')
-    .eq('name', 'ADMIN')
-    .single();
-  
-  const { data: userRoles } = await supabaseAdmin
-    .from('user_roles')
-    .select('role_id')
-    .eq('user_id', req.user.id);
-  
-  const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
-  const isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+  // Verificar se é admin (só se tiver user logado)
+  let isAdmin = false;
+  if (req.user) {
+    const { data: adminRole } = await supabaseAdmin
+      .from('roles')
+      .select('id')
+      .eq('name', 'ADMIN')
+      .single();
+    
+    const { data: userRoles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role_id')
+      .eq('user_id', req.user.id);
+    
+    const userRoleIds = userRoles?.map(ur => ur.role_id) || [];
+    isAdmin = adminRole && userRoleIds.includes(adminRole.id);
+  }
 
   try {
     // ============================================
