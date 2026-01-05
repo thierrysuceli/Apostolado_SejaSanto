@@ -86,6 +86,31 @@ export const ApiProvider = ({ children }) => {
     }
   };
 
+  // 🌐 GET especial para endpoints públicos que aceitam token opcional
+  const getPublicWithOptionalAuth = async (url) => {
+    try {
+      const separator = url.includes('?') ? '&' : '?';
+      const cacheBustedUrl = `${url}${separator}_t=${Date.now()}`;
+      
+      // Sempre tenta adicionar token se disponível
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${API_URL}${cacheBustedUrl}`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store'
+      });
+
+      return await handleResponse(response);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   // Helper para salvar no cache
   const saveToCacheIfApplicable = async (url, data) => {
     try {
@@ -341,11 +366,8 @@ export const ApiProvider = ({ children }) => {
     // Listar todas as inscrições públicas (público)
     getAll: () => get('/api/central/groups?resource=public-registrations', false),
     
-    // Buscar uma inscrição específica (público)
-    getById: (id) => {
-      const token = getToken();
-      return get(`/api/central/groups?resource=public-registrations&id=${id}`, !!token);
-    },
+    // Buscar uma inscrição específica (público, mas envia token se disponível)
+    getById: (id) => getPublicWithOptionalAuth(`/api/central/groups?resource=public-registrations&id=${id}`),
     
     // Inscrever-se (usa endpoint existente de actions)
     subscribe: (registrationId, formResponses = {}) => post(`/api/central/registrations-actions?id=${registrationId}&action=subscribe`, { form_responses: formResponses }),
