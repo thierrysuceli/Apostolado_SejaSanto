@@ -451,14 +451,19 @@ export default async function handler(req, res) {
 
       console.log('[Registration Participants] Found', participants?.length || 0, 'participants');
 
-      // Buscar usuários
-      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
-      const { data: users, error: usersError } = await supabaseAdmin
-        .from('users')
-        .select('id, name, email, avatar_url')
-        .in('id', userIds);
+      // Buscar usuários (filtrar nulls para guests)
+      const userIds = [...new Set(participants?.map(p => p.user_id).filter(id => id !== null) || [])];
+      
+      let users = [];
+      if (userIds.length > 0) {
+        const { data: usersData, error: usersError } = await supabaseAdmin
+          .from('users')
+          .select('id, name, email, avatar_url')
+          .in('id', userIds);
 
-      if (usersError) throw usersError;
+        if (usersError) throw usersError;
+        users = usersData || [];
+      }
 
       // Buscar perguntas do formulário
       const { data: questions, error: questionsError } = await supabaseAdmin
