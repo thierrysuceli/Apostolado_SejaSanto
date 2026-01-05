@@ -100,7 +100,7 @@ export default function RegistrationForm({ questions, onSubmit, submitting }) {
             )}
 
             {/* Múltipla escolha - única */}
-            {question.question_type === 'single' && question.options && (
+            {question.question_type === 'single_choice' && question.options && (
               <div className="space-y-2">
                 {question.options.map((option) => (
                   <label key={option} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-amber-500 dark:hover:border-amber-500 transition">
@@ -119,7 +119,7 @@ export default function RegistrationForm({ questions, onSubmit, submitting }) {
             )}
 
             {/* Múltipla escolha - várias */}
-            {question.question_type === 'multiple' && question.options && (
+            {question.question_type === 'multiple_choice' && question.options && (
               <div className="space-y-2">
                 {question.options.map((option) => (
                   <label key={option} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-amber-500 dark:hover:border-amber-500 transition">

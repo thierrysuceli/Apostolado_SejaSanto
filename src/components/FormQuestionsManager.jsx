@@ -63,7 +63,7 @@ export default function FormQuestionsManager({ registrationId }) {
       return;
     }
 
-    if ((newQuestion.question_type === 'single' || newQuestion.question_type === 'multiple') && newQuestion.options.length < 2) {
+    if ((newQuestion.question_type === 'single_choice' || newQuestion.question_type === 'multiple_choice') && newQuestion.options.length < 2) {
       alert('Adicione pelo menos 2 opções');
       return;
     }
@@ -71,7 +71,7 @@ export default function FormQuestionsManager({ registrationId }) {
     try {
       await api.registrations.createQuestion(registrationId, {
         ...newQuestion,
-        options: ['single', 'multiple'].includes(newQuestion.question_type) ? newQuestion.options : null
+        options: ['single_choice', 'multiple_choice'].includes(newQuestion.question_type) ? newQuestion.options : null
       });
       
       setNewQuestion({
@@ -102,8 +102,8 @@ export default function FormQuestionsManager({ registrationId }) {
 
   const questionTypeLabels = {
     text: 'Texto',
-    single: 'Múltipla Escolha (única)',
-    multiple: 'Múltipla Escolha (várias)'
+    single_choice: 'Múltipla Escolha (única)',
+    multiple_choice: 'Múltipla Escolha (várias)'
   };
 
   return (
@@ -181,13 +181,13 @@ export default function FormQuestionsManager({ registrationId }) {
               className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
             >
               <option value="text">Texto (resposta livre)</option>
-              <option value="single">Múltipla Escolha (escolher 1)</option>
-              <option value="multiple">Múltipla Escolha (escolher várias)</option>
+              <option value="single_choice">Múltipla Escolha (escolher 1)</option>
+              <option value="multiple_choice">Múltipla Escolha (escolher várias)</option>
             </select>
           </div>
 
           {/* Opções para múltipla escolha */}
-          {(newQuestion.question_type === 'single' || newQuestion.question_type === 'multiple') && (
+          {(newQuestion.question_type === 'single_choice' || newQuestion.question_type === 'multiple_choice') && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Opções
