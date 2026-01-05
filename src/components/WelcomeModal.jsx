@@ -3,6 +3,7 @@
 // =====================================================
 
 import { useEffect, useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 
 export default function WelcomeModal({ message, onClose, autoShow = false }) {
   const [show, setShow] = useState(autoShow);
@@ -36,11 +37,10 @@ export default function WelcomeModal({ message, onClose, autoShow = false }) {
 
         {/* Content */}
         <div className="p-6">
-          <div className="prose prose-invert max-w-none">
-            <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-              {message}
-            </div>
-          </div>
+          <div 
+            className="prose prose-invert max-w-none [&>*]:text-gray-300"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message) }}
+          />
         </div>
 
         {/* Footer */}

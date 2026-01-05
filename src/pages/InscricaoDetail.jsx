@@ -140,7 +140,14 @@ const InscricaoDetail = () => {
       await loadInscricao(); // Recarregar para atualizar status
       
       // 🎉 Mostrar modal de boas-vindas se aprovação automática e tiver mensagem
+      console.log('[InscricaoDetail] Welcome check:', {
+        approvalType: inscricao?.approval_type,
+        hasWelcomeMessage: !!inscricao?.welcome_message,
+        welcomeMessage: inscricao?.welcome_message
+      });
+      
       if (inscricao?.approval_type === 'automatic' && inscricao?.welcome_message) {
+        console.log('[InscricaoDetail] Showing welcome modal!');
         setShowWelcome(true);
       } else if (result.message) {
         alert(result.message);

@@ -596,13 +596,14 @@ const CreateInscricao = () => {
                 <label className="block text-sm font-semibold text-secondary-700 dark:text-gray-200 mb-2">
                   📝 Mensagem de Boas-Vindas (opcional)
                 </label>
-                <textarea
+                <ReactQuill
+                  theme="snow"
                   value={formData.welcome_message}
-                  onChange={(e) => setFormData({ ...formData, welcome_message: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-secondary-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 min-h-[120px]"
-                  placeholder="Mensagem exibida após inscrição aprovada (automática ou manual)..."
+                  onChange={(value) => setFormData({ ...formData, welcome_message: value })}
+                  className="bg-white dark:bg-gray-800 rounded-lg [&_.ql-container]:min-h-[200px]"
+                  placeholder="Digite a mensagem que será exibida após a inscrição..."
                 />
-                <p className="text-xs text-secondary-600 dark:text-gray-400 mt-1">
+                <p className="text-xs text-secondary-600 dark:text-gray-400 mt-2">
                   💡 Aparece automaticamente após aprovação automática, ou via botão "Ver Descrição" para aprovações manuais
                 </p>
               </div>
