@@ -5,13 +5,14 @@
 import { useState, useEffect } from 'react';
 import { useApi } from '../contexts/ApiContext';
 
-export default function ParticipantsModal({ registrationId, onClose, onCancel }) {
+export default function ParticipantsModal({ registrationId, onClose, onCancel, onApprove, onReject }) {
   const api = useApi();
   const [participants, setParticipants] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [filter, setFilter] = useState('all'); // all, pending, approved
+  const [actionLoading, setActionLoading] = useState(null); // ID do participante sendo processado
 
   useEffect(() => {
     loadParticipants();
@@ -35,10 +36,41 @@ export default function ParticipantsModal({ registrationId, onClose, onCancel })
     if (!confirm('Tem certeza que deseja cancelar esta inscrição?')) return;
 
     try {
+      setActionLoading(participantId);
       await onCancel(participantId);
       await loadParticipants();
     } catch (error) {
       console.error('Error canceling:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApprove = async (participantId) => {
+    try {
+      setActionLoading(participantId);
+      await onApprove(participantId);
+      await loadParticipants();
+    } catch (error) {
+      console.error('Error approving:', error);
+      alert('Erro ao aprovar inscrição');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async (participantId) => {
+    if (!confirm('Tem certeza que deseja rejeitar esta inscrição?')) return;
+
+    try {
+      setActionLoading(participantId);
+      await onReject(participantId);
+      await loadParticipants();
+    } catch (error) {
+      console.error('Error rejecting:', error);
+      alert('Erro ao rejeitar inscrição');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -166,13 +198,41 @@ export default function ParticipantsModal({ registrationId, onClose, onCancel })
                     </div>
                     <div className="flex items-center gap-2">
                       {statusBadge(participant.status)}
+                      
+                      {/* Botões de ação */}
+                      {participant.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(participant.id)}
+                            disabled={actionLoading === participant.id}
+                            className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition disabled:opacity-50"
+                            title="Aprovar inscrição"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleReject(participant.id)}
+                            disabled={actionLoading === participant.id}
+                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition disabled:opacity-50"
+                            title="Rejeitar inscrição"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                      
                       <button
                         onClick={() => handleCancel(participant.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                        disabled={actionLoading === participant.id}
+                        className="p-2 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition disabled:opacity-50"
                         title="Cancelar inscrição"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>

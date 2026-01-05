@@ -317,7 +317,7 @@ const InscricaoDetail = () => {
             />
 
             {/* Subscribe Button ou Status Badge */}
-            {statusInfo.canSubscribe ? (
+            {statusInfo.canSubscribe && !userParticipation ? (
               <button
                 onClick={handleSubscribe}
                 disabled={submitting}
@@ -325,20 +325,30 @@ const InscricaoDetail = () => {
               >
                 {submitting ? 'Inscrevendo...' : 'Inscrever-se Agora'}
               </button>
+            ) : userParticipation ? (
+              <div>
+                <div className={`w-full py-4 rounded-xl text-center font-bold ${
+                  userParticipation.status === 'approved' 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-500 text-green-700 dark:text-green-400'
+                    : userParticipation.status === 'pending'
+                    ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 text-yellow-700 dark:text-yellow-400'
+                    : 'bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-700 dark:text-red-400'
+                }`}>
+                  {userParticipation.status === 'approved' && '✓ Você já está inscrito!'}
+                  {userParticipation.status === 'pending' && '⏳ Aguardando Aprovação'}
+                  {userParticipation.status === 'rejected' && '✕ Inscrição Recusada'}
+                </div>
+                
+                {/* Recadinho para pendentes */}
+                {userParticipation.status === 'pending' && (
+                  <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Volte mais tarde para verificar o status da sua inscrição
+                  </p>
+                )}
+              </div>
             ) : (
-              <div className={`w-full py-4 rounded-xl text-center font-bold ${
-                userParticipation?.status === 'approved' 
-                  ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-500 text-green-700 dark:text-green-400'
-                  : userParticipation?.status === 'pending'
-                  ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 text-yellow-700 dark:text-yellow-400'
-                  : userParticipation?.status === 'rejected'
-                  ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-700 dark:text-red-400'
-                  : 'bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                {userParticipation?.status === 'approved' && '✓ Você já está inscrito!'}
-                {userParticipation?.status === 'pending' && '⏳ Aguardando Aprovação'}
-                {userParticipation?.status === 'rejected' && '✕ Inscrição Recusada'}
-                {!userParticipation && statusInfo.label}
+              <div className="w-full py-4 rounded-xl text-center font-bold bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                {statusInfo.label}
               </div>
             )}
             

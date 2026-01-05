@@ -483,6 +483,8 @@ const Inscricoes = () => {
             setSelectedRegistrationId(null);
           }}
           onCancel={handleCancelParticipant}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
       )}
     </>
