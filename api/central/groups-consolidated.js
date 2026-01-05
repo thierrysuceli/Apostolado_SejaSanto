@@ -191,7 +191,7 @@ export default async function handler(req, res) {
   }
 
   const user = req.user;
-  const { id: groupId, action } = req.query;
+  const { action } = req.query; // groupId já foi declarado no início
   
   // ============================================
   // ADMIN ONLY: Criar Inscrição Pública
