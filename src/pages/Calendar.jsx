@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -426,7 +427,14 @@ const Calendar = () => {
   }
 
   return (
-    <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        <title>Calendário de Eventos - Apostolado Seja Santo</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="description" content="Calendário interno de eventos do Apostolado Seja Santo" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-beige-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -681,7 +689,7 @@ const Calendar = () => {
           onCategoryCreated={loadData}
         />
       </div>
-    </div>
+    </>
   );
 };
 

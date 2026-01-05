@@ -9,6 +9,8 @@ Allow: /
 Disallow: /admin
 Disallow: /perfil
 Disallow: /historico
+Disallow: /calendar
+Disallow: /eventos
 
 # === APIs PÚBLICAS (permitir para renderização) ===
 # Google precisa acessar APIs que carregam conteúdo dinâmico

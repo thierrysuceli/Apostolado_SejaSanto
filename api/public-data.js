@@ -1633,23 +1633,18 @@ export default async function handler(req, res) {
       ];
 
       // Buscar conteúdo publicado
-      const [articlesRes, newsRes, coursesRes, eventsRes] = await Promise.all([
+      const [articlesRes, newsRes, coursesRes] = await Promise.all([
         supabaseAdmin.from('articles').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
         supabaseAdmin.from('news').select('slug, updated_at, published_at').eq('status', 'published').order('published_at', { ascending: false }),
-        supabaseAdmin.from('courses').select('slug, updated_at, created_at').eq('status', 'published').order('created_at', { ascending: false }),
-        supabaseAdmin.from('events').select('slug, updated_at, start_date').eq('status', 'published').gte('end_date', new Date().toISOString()).order('start_date', { ascending: true })
+        supabaseAdmin.from('courses').select('slug, updated_at, created_at').eq('status', 'published').order('created_at', { ascending: false })
       ]);
 
       // Debug log
       console.log('[SITEMAP] Content count:', {
         articles: articlesRes.data?.length || 0,
         news: newsRes.data?.length || 0,
-        courses: coursesRes.data?.length || 0,
-        events: eventsRes.data?.length || 0
+        courses: coursesRes.data?.length || 0
       });
-      
-      if (coursesRes.error) console.error('[SITEMAP] Courses error:', coursesRes.error);
-      if (eventsRes.error) console.error('[SITEMAP] Events error:', eventsRes.error);
 
       // Gerar XML
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -1680,14 +1675,6 @@ export default async function handler(req, res) {
         coursesRes.data.forEach(course => {
           const lastmod = course.updated_at || course.created_at;
           xml += `  <url>\n    <loc>${baseUrl}/cursos/${course.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
-        });
-      }
-
-      // Eventos
-      if (eventsRes.data) {
-        eventsRes.data.forEach(event => {
-          const lastmod = event.updated_at || event.start_date;
-          xml += `  <url>\n    <loc>${baseUrl}/eventos/${event.slug}</loc>\n    <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
         });
       }
 
