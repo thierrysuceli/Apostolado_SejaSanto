@@ -46,7 +46,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, loading }) =
 const InscricaoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loadUser } = useAuth();
   const api = useApi();
   
   const [inscricao, setInscricao] = useState(null);
@@ -76,6 +76,8 @@ const InscricaoDetail = () => {
       
       setInscricao(data.registration);
       setUserParticipation(data.user_participation || null);
+      
+      console.log('[InscricaoDetail] UserParticipation set to:', data.user_participation);
       
       // Carregar perguntas do formulário
       try {
@@ -116,8 +118,16 @@ const InscricaoDetail = () => {
       setShowFormModal(false);
       alert(result.message);
       
+      // Recarregar user para atualizar roles ANTES de recarregar inscrição
+      if (user && loadUser) {
+        console.log('[InscricaoDetail] Reloading user to update roles...');
+        await loadUser();
+      }
+      
       // Pequeno delay para garantir que o banco atualizou
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      console.log('[InscricaoDetail] Reloading inscription to update status...');
       await loadInscricao(); // Recarregar para atualizar status
     } catch (err) {
       console.error('Error subscribing:', err);

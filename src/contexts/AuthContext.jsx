@@ -141,6 +141,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        loadUser, // Exportar para forçar reload de roles
         hasPermission,
         hasRole,
         isAdmin,
