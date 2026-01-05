@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import DOMPurify from 'isomorphic-dompurify';
+import RegistrationForm from '../components/RegistrationForm';
 
 // 🎨 Modal de Confirmação Customizado
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, loading }) => {

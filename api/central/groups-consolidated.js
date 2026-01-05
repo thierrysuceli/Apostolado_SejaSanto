@@ -152,7 +152,7 @@ async function handlePublicRegistrations(req, res) {
 }
 
 export default async function handler(req, res) {
-  const { resource } = req.query;
+  const { resource, id: groupId } = req.query;
   
   // ============================================
   // 🌐 Endpoint público: Inscrições públicas
@@ -160,6 +160,25 @@ export default async function handler(req, res) {
   if (resource === 'public-registrations') {
     // Permite acesso sem autenticação para listar inscrições públicas
     return handlePublicRegistrations(req, res);
+  }
+  
+  // ============================================
+  // 🌐 Endpoint público: Perguntas de inscrição
+  // ============================================
+  if (req.method === 'GET' && resource === 'questions' && groupId) {
+    try {
+      const { data: questions, error } = await supabaseAdmin
+        .from('central_registration_questions')
+        .select('*')
+        .eq('registration_id', groupId)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      return res.status(200).json({ questions: questions || [] });
+    } catch (error) {
+      console.error('Get questions error:', error);
+      return res.status(500).json({ error: 'Erro ao buscar perguntas' });
+    }
   }
   
   // ============================================
@@ -1149,27 +1168,10 @@ export default async function handler(req, res) {
   }
 
   // ============================================
-  // CRUD DE PERGUNTAS DO FORMULÁRIO
+  // CRUD DE PERGUNTAS DO FORMULÁRIO (admin only)
   // ============================================
   
-  // GET perguntas de uma inscrição
-  if (req.method === 'GET' && resource === 'questions' && groupId) {
-    try {
-      const { data: questions, error } = await supabaseAdmin
-        .from('central_registration_questions')
-        .select('*')
-        .eq('registration_id', groupId)
-        .order('order_index', { ascending: true });
-
-      if (error) throw error;
-      return res.status(200).json({ questions: questions || [] });
-    } catch (error) {
-      console.error('Get questions error:', error);
-      return res.status(500).json({ error: 'Erro ao buscar perguntas' });
-    }
-  }
-
-  // POST criar pergunta
+  // POST criar pergunta (admin only)
   if (req.method === 'POST' && resource === 'questions' && groupId) {
     const isAdmin = await hasRole(user.id, 'ADMIN');
     if (!isAdmin) {
