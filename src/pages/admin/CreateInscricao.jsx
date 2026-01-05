@@ -206,7 +206,9 @@ const CreateInscricao = () => {
         // Se tem perguntas locais, criar todas
         if (localQuestions.length > 0) {
           for (const question of localQuestions) {
-            await api.registrations.createQuestion(newInscricaoId, question);
+            // Remover o ID temporário antes de enviar
+            const { id, ...questionData } = question;
+            await api.registrations.createQuestion(newInscricaoId, questionData);
           }
         }
         

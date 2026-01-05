@@ -1179,6 +1179,15 @@ export default async function handler(req, res) {
     try {
       const { question_text, question_type, options, required } = req.body;
 
+      console.log('[Create Question] Data received:', {
+        registration_id: groupId,
+        question_text,
+        question_type,
+        options,
+        required,
+        bodyKeys: Object.keys(req.body)
+      });
+
       // Buscar último order_index
       const { data: existing } = await supabaseAdmin
         .from('central_registration_questions')
@@ -1202,11 +1211,16 @@ export default async function handler(req, res) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Create Question] Database error:', error);
+        throw error;
+      }
+      
+      console.log('[Create Question] Success:', question);
       return res.status(201).json({ question });
     } catch (error) {
       console.error('Create question error:', error);
-      return res.status(500).json({ error: 'Erro ao criar pergunta' });
+      return res.status(500).json({ error: 'Erro ao criar pergunta', details: error.message });
     }
   }
 
