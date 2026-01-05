@@ -80,6 +80,7 @@ const InscricaoDetail = () => {
       const data = await api.registrations.getById(id);
       console.log('[InscricaoDetail] Loaded data:', {
         registration: data.registration?.title,
+        allow_guest_registration: data.registration?.allow_guest_registration, // 🔍 DEBUG
         userParticipation: data.user_participation,
         hasToken: !!localStorage.getItem('token')
       });
@@ -110,6 +111,12 @@ const InscricaoDetail = () => {
     if (!user && !inscricao?.allow_guest_registration) {
       alert('Você precisa estar logado para se inscrever');
       navigate('/login');
+      return;
+    }
+
+    // 🆕 Se é guest E não tem perguntas, ainda assim mostrar formulário (só com campo de nome)
+    if (!user && inscricao?.allow_guest_registration) {
+      setShowFormModal(true);
       return;
     }
 

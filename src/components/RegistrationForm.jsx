@@ -73,18 +73,21 @@ export default function RegistrationForm({ questions, onSubmit, submitting, allo
     onSubmit({ form_responses: responses, guest_name: !user ? guestName : undefined }); // 🆕 Passar guest_name
   };
 
-  if (!questions || questions.length === 0) {
+  // 🆕 Mostrar sempre se for guest (mesmo sem perguntas, precisa do campo nome)
+  if ((!questions || questions.length === 0) && !(allowGuest && !user)) {
     return null;
   }
 
   return (
     <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-        📝 Formulário de Inscrição
+        📝 {!user && allowGuest ? 'Complete sua Inscrição' : 'Formulário de Inscrição'}
       </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        Responda as perguntas abaixo para completar sua inscrição
-      </p>
+      {questions?.length > 0 && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+          Responda as perguntas abaixo para completar sua inscrição
+        </p>
+      )}
 
       <div className="space-y-6">
         {/* 🆕 Campo de Nome para Visitantes */}
@@ -115,7 +118,7 @@ export default function RegistrationForm({ questions, onSubmit, submitting, allo
           </div>
         )}
 
-        {questions.map((question, index) => (
+        {questions?.map((question, index) => (
           <div key={question.id} className="space-y-2">
             <label className="block text-sm font-semibold text-gray-900 dark:text-white">
               {index + 1}. {question.question_text}
