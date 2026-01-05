@@ -66,27 +66,44 @@ async function handlePublicRegistrations(req, res) {
             userId: userData.user.id
           });
 
-          // Primeiro: listar TODAS as participações para debug
+          // 🔍 DEBUG MASSIVO: Verificar TUDO sobre participações
+          console.log('[🔍 DEBUG] Buscando participações...');
+          console.log('[🔍 DEBUG] registrationId:', registrationId);
+          console.log('[🔍 DEBUG] userId:', userData.user.id);
+          
+          // Primeiro: listar TODAS as participações DESSA INSCRIÇÃO
           const { data: allParticipations, error: allError } = await supabaseAdmin
             .from('central_registration_participants')
             .select('id, user_id, registration_id, status')
             .eq('registration_id', registrationId);
 
-          console.log('[Public Registration Detail] ALL participations for this registration:', {
+          console.log('[🔍 DEBUG] ALL participations for this registration:', {
             count: allParticipations?.length || 0,
             participations: allParticipations,
             error: allError
           });
+          
+          // Segundo: listar TODAS as participações DESTE USUÁRIO
+          const { data: userAllParts, error: userError } = await supabaseAdmin
+            .from('central_registration_participants')
+            .select('id, user_id, registration_id, status')
+            .eq('user_id', userData.user.id);
 
-          // Segundo: buscar a participação específica do usuário
+          console.log('[🔍 DEBUG] ALL participations for this user:', {
+            count: userAllParts?.length || 0,
+            participations: userAllParts,
+            error: userError
+          });
+
+          // Terceiro: buscar a participação específica do usuário NESTA inscrição
           const { data: participation, error: partError } = await supabaseAdmin
             .from('central_registration_participants')
             .select('*')
             .eq('registration_id', registrationId)
             .eq('user_id', userData.user.id)
-            .maybeSingle(); // 🔧 Usa maybeSingle para não dar erro se não existir
+            .maybeSingle();
 
-          console.log('[Public Registration Detail] Participation check:', {
+          console.log('[🔍 DEBUG] Specific participation check:', {
             hasParticipation: !!participation,
             status: participation?.status,
             participationData: participation,
