@@ -42,8 +42,8 @@ export default async function handler(req, res) {
     isGuest: !req.user
   });
   
-  // Validação: id é obrigatório exceto para approve/reject que usam participant_id
-  if (!registrationId && !['approve', 'reject'].includes(action)) {
+  // Validação: id é obrigatório exceto para approve/reject/cancel que usam participant_id
+  if (!registrationId && !['approve', 'reject', 'cancel'].includes(action)) {
     return res.status(400).json({ error: 'ID da inscrição é obrigatório' });
   }
 
