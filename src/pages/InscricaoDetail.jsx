@@ -62,6 +62,14 @@ const InscricaoDetail = () => {
     loadInscricao();
   }, [id]);
 
+  // 🔄 RECARREGAR quando user logar/deslogar
+  useEffect(() => {
+    if (!loading) {
+      console.log('[InscricaoDetail] User changed, reloading...', { hasUser: !!user });
+      loadInscricao();
+    }
+  }, [user]);
+
   const loadInscricao = async () => {
     try {
       setLoading(true);
