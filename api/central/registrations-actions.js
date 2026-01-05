@@ -176,7 +176,7 @@ export default async function handler(req, res) {
       
       const participantData = {
         registration_id: registrationId,
-        user_id: req.user?.id || 'guest', // 🆕 Usar 'guest' ao invés de null
+        user_id: req.user?.id || null, // NULL para guests (não pode ser string em campo UUID)
         guest_name: !req.user ? guest_name : null,
         status,
         form_responses: form_responses || {},

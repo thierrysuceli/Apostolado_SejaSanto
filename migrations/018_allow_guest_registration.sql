@@ -10,8 +10,7 @@ ADD COLUMN IF NOT EXISTS allow_guest_registration BOOLEAN DEFAULT FALSE;
 ALTER TABLE central_registration_participants
 ADD COLUMN IF NOT EXISTS guest_name TEXT;
 
--- Permitir user_id ser 'guest' para visitantes (ao invés de NULL)
--- Não precisa alterar constraint, apenas usar 'guest' como valor padrão no código
-
 COMMENT ON COLUMN central_registrations.allow_guest_registration IS 'Permite inscrições de pessoas não logadas';
-COMMENT ON COLUMN central_registration_participants.guest_name IS 'Nome do convidado (quando user_id é "guest")';
+COMMENT ON COLUMN central_registration_participants.guest_name IS 'Nome do convidado (quando user_id é NULL)';
+
+-- NOTA: Execute também a migration 018_fix_user_id_nullable.sql para remover NOT NULL de user_id
