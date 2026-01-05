@@ -180,7 +180,7 @@ export default function ParticipantsModal({ registrationId, onClose, onCancel, o
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      {participant.user?.avatar_url && (
+                      {participant.user?.avatar_url && participant.user_id !== 'guest' && (
                         <img
                           src={participant.user.avatar_url}
                           alt={participant.user.name}
@@ -189,15 +189,15 @@ export default function ParticipantsModal({ registrationId, onClose, onCancel, o
                       )}
                       <div>
                         <h4 className="font-bold text-gray-900 dark:text-white">
-                          {participant.guest_name || participant.user?.name || 'Usuário Desconhecido'}
-                          {participant.guest_name && (
+                          {participant.user_id === 'guest' ? participant.guest_name : (participant.user?.name || 'Usuário Desconhecido')}
+                          {participant.user_id === 'guest' && (
                             <span className="ml-2 text-xs font-normal text-amber-600 dark:text-amber-400">
                               (Visitante)
                             </span>
                           )}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {participant.user?.email || 'Sem cadastro'}
+                          {participant.user_id === 'guest' ? 'Sem cadastro' : (participant.user?.email || 'Email não disponível')}
                         </p>
                       </div>
                     </div>
