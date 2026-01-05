@@ -175,7 +175,8 @@ export default async function handler(req, res) {
         approval_type,
         registration_starts,
         registration_ends,
-        is_active
+        is_active,
+        welcome_message
       } = req.body;
 
       if (!title || !description || !role_to_grant) {
@@ -207,7 +208,8 @@ export default async function handler(req, res) {
           approval_type: approval_type || 'automatic',
           registration_starts: startsAt,
           registration_ends: endsAt,
-          is_active: is_active !== false
+          is_active: is_active !== false,
+          welcome_message: welcome_message || null
         })
         .select(`
           *,
@@ -249,7 +251,8 @@ export default async function handler(req, res) {
         approval_type,
         registration_starts,
         registration_ends,
-        is_active
+        is_active,
+        welcome_message
       } = req.body;
 
       const updates = {};
@@ -270,6 +273,7 @@ export default async function handler(req, res) {
       if (registration_starts !== undefined) updates.registration_starts = registration_starts;
       if (registration_ends !== undefined) updates.registration_ends = registration_ends;
       if (is_active !== undefined) updates.is_active = is_active;
+      if (welcome_message !== undefined) updates.welcome_message = welcome_message;
 
       const { data: registration, error } = await supabaseAdmin
         .from('central_registrations')

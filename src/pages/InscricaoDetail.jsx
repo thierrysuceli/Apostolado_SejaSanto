@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import DOMPurify from 'isomorphic-dompurify';
 import RegistrationForm from '../components/RegistrationForm';
+import WelcomeModal from '../components/WelcomeModal';
 
 // 🎨 Modal de Confirmação Customizado
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, loading }) => {
@@ -57,6 +58,7 @@ const InscricaoDetail = () => {
   const [showFormModal, setShowFormModal] = useState(false);
   const [userParticipation, setUserParticipation] = useState(null);
   const [questions, setQuestions] = useState([]);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     loadInscricao();
@@ -124,7 +126,6 @@ const InscricaoDetail = () => {
       const result = await api.registrations.subscribe(id, formResponses);
       setShowConfirmModal(false);
       setShowFormModal(false);
-      alert(result.message);
       
       // Recarregar user para atualizar roles ANTES de recarregar inscrição
       if (user && loadUser) {
@@ -137,6 +138,13 @@ const InscricaoDetail = () => {
       
       console.log('[InscricaoDetail] Reloading inscription to update status...');
       await loadInscricao(); // Recarregar para atualizar status
+      
+      // 🎉 Mostrar modal de boas-vindas se aprovação automática e tiver mensagem
+      if (inscricao?.approval_type === 'automatic' && inscricao?.welcome_message) {
+        setShowWelcome(true);
+      } else if (result.message) {
+        alert(result.message);
+      }
     } catch (err) {
       console.error('Error subscribing:', err);
       alert(err.response?.data?.error || 'Erro ao se inscrever');
@@ -357,6 +365,16 @@ const InscricaoDetail = () => {
                   {userParticipation.status === 'rejected' && '✕ Inscrição Recusada'}
                 </div>
                 
+                {/* Botão Descrição (para aprovados e pendentes) */}
+                {inscricao?.welcome_message && (userParticipation.status === 'approved' || userParticipation.status === 'pending') && (
+                  <button
+                    onClick={() => setShowWelcome(true)}
+                    className="mt-3 w-full py-2 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors underline"
+                  >
+                    📖 Ver Descrição
+                  </button>
+                )}
+                
                 {/* Recadinho para pendentes */}
                 {userParticipation.status === 'pending' && (
                   <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
@@ -429,6 +447,13 @@ const InscricaoDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Boas-Vindas */}
+      <WelcomeModal 
+        message={inscricao?.welcome_message}
+        onClose={() => setShowWelcome(false)}
+        autoShow={showWelcome}
+      />
     </>
   );
 };
