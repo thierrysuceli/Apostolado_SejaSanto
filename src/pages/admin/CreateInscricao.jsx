@@ -193,7 +193,8 @@ const CreateInscricao = () => {
         approval_type: formData.approval_type,
         registration_starts: formData.registration_starts || null,
         registration_ends: formData.registration_ends || null,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        welcome_message: formData.welcome_message || null
       };
 
       if (inscricaoId) {
