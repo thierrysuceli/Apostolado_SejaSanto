@@ -5,6 +5,12 @@ User-agent: *
 # Permite tudo por padrão (JS, CSS, JSON necessários para renderização)
 Allow: /
 
+# === RECURSOS IMPORTANTES (garantir acesso) ===
+# Logo/Favicon para Google Search Results
+Allow: /Apostolado_PNG.png
+Allow: /favicon.ico
+Allow: /manifest.json
+
 # === ÁREAS PRIVADAS (bloquear) ===
 Disallow: /admin
 Disallow: /perfil
@@ -28,6 +34,9 @@ Disallow: /api/central*
 # Google precisa deles para:
 # - Renderizar React/SPA corretamente
 # - Medir Core Web Vitals (LCP, CLS, FID)
+
+# Sitemap
+Sitemap: https://www.apostoladosejasanto.com.br/sitemap.xml
 # - Avaliar Mobile-First Indexing
 # - Processar structured data
 
