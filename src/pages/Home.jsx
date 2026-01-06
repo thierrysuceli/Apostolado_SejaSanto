@@ -138,16 +138,17 @@ const Home = () => {
           api.registrations.getAll().catch(() => ({ registrations: [] }))
         ]);
         
-        // HERO: Combinar cursos E artigos (5 mais recentes no total)
+        // HERO: Combinar cursos, artigos E inscrições (5 mais recentes no total)
         const heroContent = [
           ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
-          ...(articlesData.articles || []).map(a => ({ ...a, type: 'article' }))
+          ...(articlesData.articles || []).map(a => ({ ...a, type: 'article' })),
+          ...(inscricoesData.registrations || []).map(r => ({ ...r, type: 'registration' }))
         ];
         
         // Ordenar por data mais recente
         heroContent.sort((a, b) => {
-          const dateA = new Date(a.published_at || a.created_at || a.date);
-          const dateB = new Date(b.published_at || b.created_at || b.date);
+          const dateA = new Date(a.published_at || a.created_at || a.registration_starts || a.date);
+          const dateB = new Date(b.published_at || b.created_at || b.registration_starts || b.date);
           return dateB - dateA;
         });
         
@@ -420,13 +421,19 @@ const Home = () => {
                     navigate(`/cursos/${currentHero?.slug || currentHero?.id}`);
                   } else if (currentHero?.type === 'article') {
                     navigate(`/artigos/${currentHero?.slug || currentHero?.id}`);
+                  } else if (currentHero?.type === 'registration') {
+                    navigate(`/inscricoes/${currentHero?.id}`);
                   } else {
                     navigate(`/posts/${currentHero?.id}`);
                   }
                 }}
                 className="bg-gradient-to-r from-amber-500 to-amber-600 text-black px-8 py-4 rounded-xl font-bold text-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-amber-500/50 inline-flex items-center gap-3"
               >
-                <span>{currentHero?.type === 'course' ? 'Assistir Agora' : 'Ler Artigo'}</span>
+                <span>
+                  {currentHero?.type === 'course' ? 'Assistir Agora' : 
+                   currentHero?.type === 'registration' ? 'Inscrever-se' : 
+                   'Ler Artigo'}
+                </span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
