@@ -14,6 +14,8 @@ import Posts from './pages/Posts';
 import PostDetail from './pages/PostDetail';
 import Artigos from './pages/Artigos';
 import ArtigoDetail from './pages/ArtigoDetail';
+import Novenas from './pages/Novenas';
+import NovenaDetail from './pages/NovenaDetail';
 import Noticias from './pages/Noticias';
 import NoticiaDetail from './pages/NoticiaDetail';
 import Inscricoes from './pages/Inscricoes';
@@ -28,6 +30,7 @@ import AdminContentEditor from './pages/AdminContentEditor';
 import AdminCourseCreate from './pages/AdminCourseCreate';
 import AdminPostCreate from './pages/AdminPostCreate';
 import AdminArticleCreate from './pages/AdminArticleCreate';
+import AdminNovenaCreate from './pages/AdminNovenaCreate';
 import AdminNewsCreate from './pages/AdminNewsCreate';
 import AdminEventCreate from './pages/AdminEventCreate';
 import AdminCourseEdit from './pages/AdminCourseEdit';
@@ -73,6 +76,8 @@ function App() {
                   <Route path="/cursos/:courseId/modules/:moduleId/topics/:topicId" element={<TopicDetail />} />
                   <Route path="/artigos" element={<Artigos />} />
                   <Route path="/artigos/:slug" element={<ArtigoDetail />} />
+                  <Route path="/novenas" element={<Novenas />} />
+                  <Route path="/novenas/:slug" element={<NovenaDetail />} />
                   <Route path="/noticias" element={<Noticias />} />
                   <Route path="/noticias/:slug" element={<NoticiaDetail />} />
                   <Route path="/inscricoes" element={<Inscricoes />} />
@@ -91,6 +96,9 @@ function App() {
                   <Route path="/admin/articles/create" element={<AdminArticleCreate />} />
                   <Route path="/admin/articles/:id/edit" element={<AdminArticleEdit />} />
                   <Route path="/admin/articles/edit/:id" element={<AdminArticleEdit />} />
+                  <Route path="/admin/novenas/create" element={<AdminNovenaCreate />} />
+                  <Route path="/admin/novenas/:id/edit" element={<AdminNovenaCreate />} />
+                  <Route path="/admin/novenas/edit/:id" element={<AdminNovenaCreate />} />
                   <Route path="/admin/news/create" element={<AdminNewsCreate />} />
                   <Route path="/admin/news/:id/edit" element={<AdminNewsEdit />} />
                   <Route path="/admin/news/edit/:id" element={<AdminNewsEdit />} />
