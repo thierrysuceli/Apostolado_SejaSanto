@@ -6,14 +6,15 @@ import { sanitizeHTML, sanitizeText, generateSlug } from '../lib-api/sanitize.js
 export default async function handler(req, res) {
   const { type, id, resource } = req.query;
   
-  if (!type) return res.status(400).json({ error: 'Tipo é obrigatório (courses, posts, events, articles ou news)' });
+  if (!type) return res.status(400).json({ error: 'Tipo é obrigatório (courses, posts, events, articles, news ou novenas)' });
   
   const tableMap = {
     courses: 'courses',
     posts: 'posts',
     events: 'events',
     articles: 'articles',
-    news: 'news'
+    news: 'news',
+    novenas: 'novenas'
   };
   
   const singularMap = {
@@ -21,7 +22,8 @@ export default async function handler(req, res) {
     posts: 'post',
     events: 'event',
     articles: 'article',
-    news: 'news'
+    news: 'news',
+    novenas: 'novena'
   };
   
   const roleRelationMap = {
@@ -29,7 +31,8 @@ export default async function handler(req, res) {
     posts: 'post_tags',
     events: 'event_tags',
     articles: 'article_tags',
-    news: 'news_visibility'
+    news: 'news_visibility',
+    novenas: 'novena_tags'
   };
   
   const roleIdColumnMap = {
@@ -37,7 +40,8 @@ export default async function handler(req, res) {
     posts: 'post_id',
     events: 'event_id',
     articles: 'article_id',
-    news: 'news_id'
+    news: 'news_id',
+    novenas: 'novena_id'
   };
   
   const table = tableMap[type];
@@ -51,7 +55,7 @@ export default async function handler(req, res) {
   
   try {
     let effectiveId = id;
-    if ((type === 'articles' || type === 'news' || type === 'courses') && effectiveId && !isUuid && req.method !== 'POST') {
+    if ((type === 'articles' || type === 'news' || type === 'courses' || type === 'novenas') && effectiveId && !isUuid && req.method !== 'POST') {
       const { data: slugRecord, error: slugError } = await supabaseAdmin
         .from(table)
         .select('id')
@@ -109,6 +113,13 @@ export default async function handler(req, res) {
           users!author_id(id, name, avatar_url),
           news_visibility(role_id, roles(id, name, display_name, color)),
           news_tag_assignments(tag:news_tags(id, name, slug, color))
+        `;
+      } else if (type === 'novenas') {
+        baseSelect = `
+          id, title, slug, content, excerpt, cover_image_url, author_id, status, published_at, created_at, updated_at, is_featured, views_count,
+          editorial_column:editorial_columns(id, name, slug, color, description),
+          users!author_id(id, name, avatar_url),
+          novena_tags(role_id, roles(id, name, display_name, color))
         `;
       }
       
@@ -222,7 +233,7 @@ export default async function handler(req, res) {
       
       // Formatar dados
       const formattedData = (data || []).map(item => {
-        if ((type === 'posts' || type === 'articles' || type === 'news') && item.users) {
+        if ((type === 'posts' || type === 'articles' || type === 'news' || type === 'novenas') && item.users) {
           item.author = item.users;
           delete item.users;
         }
@@ -400,7 +411,7 @@ export default async function handler(req, res) {
       }
       
       // Formatar dados
-      if ((type === 'posts' || type === 'articles' || type === 'news') && data.users) {
+      if ((type === 'posts' || type === 'articles' || type === 'news' || type === 'novenas') && data.users) {
         data.author = data.users;
         delete data.users;
       }
@@ -552,7 +563,7 @@ export default async function handler(req, res) {
       }
       
       // Garantir author_id para conteúdos editoriais
-      if (type === 'posts' || type === 'articles' || type === 'news') {
+      if (type === 'posts' || type === 'articles' || type === 'news' || type === 'novenas') {
         itemData.author_id = req.user.id;
       }
       
@@ -568,6 +579,7 @@ export default async function handler(req, res) {
         posts: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at',
         articles: 'id,title,slug,content,excerpt,cover_image_url,author_id,editorial_column_id,status,published_at,created_at,updated_at,is_featured,views_count',
         news: 'id,title,slug,content,excerpt,cover_image_url,author_id,status,published_at,created_at,updated_at,is_featured,views_count',
+        novenas: 'id,title,slug,content,excerpt,cover_image_url,author_id,editorial_column_id,status,published_at,created_at,updated_at,is_featured,views_count',
         courses: 'id,title,slug,description,cover_image_url,status,created_at,updated_at'
       };
       
