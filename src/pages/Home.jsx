@@ -17,6 +17,7 @@ const Home = () => {
   const [courses, setCourses] = useState([]);
   const [articles, setArticles] = useState([]);
   const [news, setNews] = useState([]);
+  const [novenas, setNovenas] = useState([]);
   const [inscricoes, setInscricoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -131,21 +132,21 @@ const Home = () => {
         const userIsAdmin = user?.roles?.some(r => r.name === 'ADMIN') || false;
         setIsAdmin(userIsAdmin);
         
-        const [coursesData, articlesData, newsData, inscricoesData] = await Promise.all([
+        const [coursesData, articlesData, newsData, novenasData, inscricoesData] = await Promise.all([
           api.courses.getAll(),
           api.get('/api/content?type=articles').catch(() => ({ articles: [] })),
           api.get('/api/content?type=news').catch(() => ({ news: [] })),
+          api.get('/api/content?type=novenas').catch(() => ({ novenas: [] })),
           api.registrations.getAll().catch(() => ({ registrations: [] }))
         ]);
         
         // HERO: Combinar cursos, artigos E inscrições (5 mais recentes no total)
-        const heroContent = [
-          ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
-          ...(articlesData.articles || []).map(a => ({ ...a, type: 'article' })),
-          ...(inscricoesData.registrations || []).map(r => ({ ...r, type: 'registration' }))
-        ];
-        
-        // Ordenar por data mais recente
+      const heroContent = [
+        ...(coursesData.courses || []).map(c => ({ ...c, type: 'course' })),
+        ...(articlesData.articles || []).map(a => ({ ...a, type: 'article' })),
+        ...(novenasData.novenas || []).map(n => ({ ...n, type: 'novena' })),
+        ...(inscricoesData.registrations || []).map(r => ({ ...r, type: 'registration' }))
+      ];        // Ordenar por data mais recente
         heroContent.sort((a, b) => {
           const dateA = new Date(a.published_at || a.created_at || a.registration_starts || a.date);
           const dateB = new Date(b.published_at || b.created_at || b.registration_starts || b.date);
@@ -161,6 +162,7 @@ const Home = () => {
         setCourses(coursesData.courses?.slice(0, 4) || []);
         setArticles(articlesData.articles?.slice(0, 3) || []);
         setNews(newsData.news?.slice(0, 4) || []);
+        setNovenas(novenasData.novenas?.slice(0, 3) || []);
         
         // Filtrar inscrições abertas
         const now = new Date();
@@ -421,6 +423,8 @@ const Home = () => {
                     navigate(`/cursos/${currentHero?.slug || currentHero?.id}`);
                   } else if (currentHero?.type === 'article') {
                     navigate(`/artigos/${currentHero?.slug || currentHero?.id}`);
+                  } else if (currentHero?.type === 'novena') {
+                    navigate(`/novenas/${currentHero?.slug || currentHero?.id}`);
                   } else if (currentHero?.type === 'registration') {
                     navigate(`/inscricoes/${currentHero?.id}`);
                   } else {
@@ -431,7 +435,8 @@ const Home = () => {
               >
                 <span>
                   {currentHero?.type === 'course' ? 'Assistir Agora' : 
-                   currentHero?.type === 'registration' ? 'Inscrever-se' : 
+                   currentHero?.type === 'registration' ? 'Inscrever-se' :
+                   currentHero?.type === 'novena' ? 'Rezar Novena' : 
                    'Ler Artigo'}
                 </span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -820,6 +825,81 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* Latest Novenas Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Novenas</h2>
+              <p className="text-gray-600 dark:text-gray-400">Orações poderosas para sua vida espiritual</p>
+            </div>
+            <Link
+              to="/novenas"
+              className="hidden sm:flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {novenas.length > 0 ? (
+              novenas.map(novena => (
+                <Link key={novena.id} to={`/novenas/${novena.slug}`} className="group">
+                  <article className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all">
+                    {novena.cover_image_url && (
+                      <div className="h-48 overflow-hidden">
+                        <img
+                          src={novena.cover_image_url}
+                          alt={novena.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6">
+                      {novena.editorial_column && (
+                        <span 
+                          className="inline-block px-3 py-1 text-xs font-bold rounded-full mb-3 text-white"
+                          style={{ backgroundColor: novena.editorial_column.color }}
+                        >
+                          {novena.editorial_column.name}
+                        </span>
+                      )}
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-amber-500 transition-colors">
+                        {novena.title}
+                      </h3>
+                      {novena.excerpt && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+                          {novena.excerpt}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                </Link>
+              ))
+            ) : (
+              <p className="col-span-3 text-center text-gray-600 dark:text-gray-400">
+                Nenhuma novena disponível no momento
+              </p>
+            )}
+          </div>
+
+          <div className="mt-8 text-center sm:hidden">
+            <Link
+              to="/novenas"
+              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+            >
+              Ver todas as novenas
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Latest Articles Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-950">

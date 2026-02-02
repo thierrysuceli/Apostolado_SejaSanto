@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../contexts/ApiContext';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
@@ -25,8 +25,7 @@ const formatDateTimeLocal = (isoString) => {
 const AdminNovenaCreate = () => {
   const api = useApi();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const editId = searchParams.get('editId');
+  const { id: editId } = useParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
